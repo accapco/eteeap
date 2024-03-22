@@ -1,0 +1,23 @@
+{% extends "index.html" %}
+
+
+{% block content %}
+{% for document in documents %}
+<p> {{ document.filename }} </p> <br>
+{% endfor %}
+<br><br>
+<form action="/index/documents" method="post" enctype="multipart/form-data">
+    {{ form.hidden_tag() }}
+    {{ form.file() }}
+    <br><br>
+
+    {{ form.submit() }} <br><br>
+    {% if form.file.errors %}
+        <ul class="errors">
+        {% for error in form.file.errors %}
+            <li>{{ error }}</li>
+        {% endfor %}
+        </ul>
+    {% endif %}
+</form>
+{% endblock %}

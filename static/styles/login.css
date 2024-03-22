@@ -1,0 +1,82 @@
+@font-face {
+    font-family: mplus1p-bold;
+    src: url(/static/fonts/MPLUS1p-Bold.ttf);
+}
+
+@font-face {
+    font-family: quicksand;
+    src: url(/static/fonts/QuicksandbookRegular-0gW4.otf);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    font-family: quicksand;
+}
+
+body {
+    background-color: #dedede;
+}
+
+h1{
+    color: #266DD3;
+    font-size: 38px;
+    font-family: mplus1p-bold;
+    margin-top: 160px;
+    width: 100%;
+    text-align: center;
+}
+
+.card {
+    background-color: #f7f7f7;
+    margin: auto;
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    width: 640px;
+    height: 420px;
+    border: 1px solid #344055;
+    box-shadow: 12px 10px #344055;
+    border-radius: 3%;
+}
+
+.card label {
+    font-size: 26px;
+}
+
+.card form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.card button {
+    background-color: #266DD3;
+    color: white;
+    font-size: 22px;
+    padding: 12px 22px;
+    border: none;
+    border-radius: 6%;
+}
+
+.card input {
+    width: 380px;
+    font-size: 22px;
+    padding: 12px 18px;
+    border: none;
+    border-bottom: 2px solid #344055;
+    border-radius: 4%;
+    margin-bottom: 20px;
+    transition: ease-in-out, width .35s ease-in-out;
+}
+
+.card input:focus {
+    outline: none;
+    border-bottom: 2px solid #266DD3;
+}
+
+.card button:hover {
+    background-color: #344055;
+    cursor: pointer;
+}

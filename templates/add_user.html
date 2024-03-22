@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <title>ETEEAP</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href= "{{ url_for('static',filename='styles/index.css') }}">
+    </head>
+    <body>
+        <div class="nav"><h3>Add {{ user_type.title() }} Account</h3></div>
+        <div class="main-content">
+            <form action="/index/users/add_user/{{user_type}}" method="post">
+                {{ form.hidden_tag() }}
+
+                {{ form.username.label }} <br> {{ form.username() }} <br><br>
+                {{ form.l_name.label }} <br> {{ form.l_name() }} <br><br>
+                {{ form.f_name.label }} <br> {{ form.f_name() }} <br><br>
+                {{ form.m_name.label }} <br> {{ form.m_name() }} <br><br>
+                {{ form.password.label }} <br> {{ form.password() }} <br><br><br>
+                {{ form.submit }} <br>
+            </form>
+        </div>
+    </body>
+</html>

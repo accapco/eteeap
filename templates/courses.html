@@ -1,0 +1,39 @@
+{% extends "index.html" %}
+
+
+{% block content %}
+
+<div class="main-row">
+    <div class="card side color-white">
+        <div class="inline">
+            <h3>Courses</h3>
+            <button class="btn-add" onclick="addCourse()">Add course</button><br>
+        </div>
+        {% if courses is defined and courses|length > 0 %}
+        <ul class="stylized-table">
+            <li class="table-header">
+                <div class="col col-2">COURSE CODE</div>
+                <div class="col col-2">TITLE</div>
+            </li>
+            {% for course in courses %}
+            <li class="table-row">
+                <div class="col col-2" data-label="CODE">{{ course.code }}</div>
+                <div class="col col-2" data-label="TITLE">{{ course.title }}</div>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p>No courses have been created.</p>
+        {% endif %}
+    </div>
+</div class="main-row">
+
+<script>
+    function addCourse() {
+        var url = '/index/courses/add_course';
+        var features = 'width=600,height=600';
+        window.open(url, name, features);
+    }
+</script>
+
+{% endblock %}

@@ -1,0 +1,68 @@
+{% extends "index.html" %}
+
+
+{% block content %}
+
+<div class="main-row">
+    <div class="card side color-white">
+        <div class="inline">
+            <h3>Instructors</h3>
+            <button class="btn-add" onclick="addUser('instructor')">Add account</button><br>
+        </div>
+        {% if instructors is defined and instructors|length > 0 %}
+        <ul class="stylized-table">
+            <li class="table-header">
+                <div class="col col-1">ID</div>
+                <div class="col col-2">USERNAME</div>
+                <div class="col col-3">NAME</div>
+            </li>
+            {% for instructor in instructors %}
+            <li class="table-row">
+                <div class="col col-1" data-label="ID">{{ instructor.id }}</div>
+                <div class="col col-2" data-label="USERNAME">{{ instructor.username }}</div>
+                <div class="col col-3" data-label="NAME">{{ instructor.l_name }}, {{ instructor.f_name }}</div>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p>No instructor accounts have been created.</p>
+        {% endif %}
+    </div>
+    
+    <br><br><br>
+    
+    <div class="card side color-white">
+        <div class="inline">
+            <h3>Students</h3>
+            <button class="btn-add" onclick="addUser('student')">Add account</button><br>
+        </div>
+        {% if students is defined and students|length > 0 %}
+        <ul class="stylized-table">
+            <li class="table-header">
+                <div class="col col-1">ID</div>
+                <div class="col col-2">USERNAME</div>
+                <div class="col col-3">NAME</div>
+            </li>
+            {% for student in students %}
+            <li class="table-row">
+                <div class="col col-1" data-label="ID">{{ student.id }}</div>
+                <div class="col col-2" data-label="USERNAME">{{ student.username }}</div>
+                <div class="col col-3" data-label="NAME">{{ student.l_name }}, {{ student.f_name }}</div>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p>No student accounts have been created.</p>
+        {% endif %}
+    </div>
+    
+</div class="main-row">
+<script>
+    function addUser(user_type) {
+        var url = '/index/users/add_user/' + user_type;
+        var features = 'width=600,height=600';
+        window.open(url, name, features);
+    }
+</script>
+
+{% endblock %}
