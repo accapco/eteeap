@@ -1,0 +1,48 @@
+{% extends "index.html" %}
+
+
+{% block content %}
+<div class="main-content">
+    {% for student in students %}
+    <div class="main-row">
+        <div class="card bar color-white">
+            <div class="left">
+                <div class="card-strongtext">{{ student.l_name|title }}, {{ student.f_name }} {{ student.m_name[0] }}. </div>
+                <div class="card-subtext">{{ student.username }} — {{ student.user_id }}</div>
+            </div>
+            <div class="middle">
+                <div class="cell {{ student.progress }}"> {{ student.progress.title() }} </div>
+            </div>
+            <div class="right">
+                {% if student.progress == 'payment' and student.receipt_filepath %}
+                    <a href="{{url_for(".get_receipt", user_id=student.user_id )}}" target="_blank"><button class="btn-grey">View receipt</button></a>
+                    <button class="btn-green" onclick="approveStatus('{{student.user_id}}', '{{student.progress}}')">Approve</button>
+                {% elif student.progress == 'payment' %}
+                    <button disabled>No receipt</button>
+                    <button disabled>Approve</button>
+                {% elif student.progress == 'evaluation' and student.document_filepath %}
+                    <a href="{{url_for(".get_document", user_id=student.user_id )}}" target="_blank"><button class="btn-grey">View doc</button></a>
+                    <button class="btn-green" onclick="approveStatus('{{student.user_id}}', '{{student.progress}}')">Approve</button>
+                {% elif student.progress == 'evaluation' %}
+                    <button disabled>No doc</button>
+                    <button disabled>Approve</button>
+                {% elif student.progress == 'enrollment' %}
+                    <button class="btn-yellow">Assign classes</button>
+                {% else %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<script>
+    function approveStatus(user_id, progress) {
+        var url = '/index/students/' + user_id + '/approve/'  + progress;
+        left = (screen.width - 600) / 2;
+        top = (screen.height - 800) / 4;
+        var features = 'width=600,height=800,left='+left+',top='+top;
+        window.open(url, name, features);
+    }
+</script>
+{% endblock %}

@@ -31,7 +31,9 @@
 <script>
     function addCourse() {
         var url = '/index/courses/add_course';
-        var features = 'width=600,height=600';
+        left = (screen.width - 600) / 2;
+        top = (screen.height - 600) / 4;
+        var features = 'width=600,height=600,left='+left+',top='+top;;
         window.open(url, name, features);
     }
 </script>

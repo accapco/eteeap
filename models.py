@@ -33,11 +33,11 @@ class Class(db.Model):
     id = db.Column("id", db.Integer, primary_key=True)
     course = db.Column(db.Integer, db.ForeignKey('courses.id'))
     units = db.Column("units", db.Integer)
-    instructor = db.Column(db.Integer, db.ForeignKey('instructors.id'))
+    instructor = db.Column("instructor", db.Integer, db.ForeignKey('instructors.id'))
     students = db.relationship('Student', secondary='enrollment', back_populates='classes')
-    day = db.Column(db.Enum('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'))
-    start_time = db.Column(db.Time)
-    end_time = db.Column(db.Time)
+    day = db.Column("day", db.Enum('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'))
+    start_time = db.Column("start_time", db.Time)
+    end_time = db.Column("end_time", db.Time)
 
 class Instructor(db.Model):
     __tablename__ = "instructors"
@@ -51,7 +51,9 @@ class Student(db.Model):
 
     id = db.Column("id", db.Integer, primary_key=True)
     user_id = db.Column("user_id", db.Integer, db.ForeignKey('users.id'))
-    progress = db.Column(db.Enum('evaluation', 'enrollment', 'completion'), nullable=False, default='evaluation')
+    progress = db.Column(db.Enum('payment', 'evaluation', 'enrollment', 'completion'), nullable=False, default='payment')
+    receipt_filepath = db.Column("receipt_filepath", db.String(64))
+    document_filepath = db.Column("application_document_filepath", db.String(64))
     instructors = db.Column(db.Integer, db.ForeignKey('instructors.id'))
     classes = db.relationship('Class', secondary='enrollment', back_populates='students')
 
@@ -60,11 +62,3 @@ enrollment = db.Table(
   db.Column('student_id', db.Integer, db.ForeignKey('students.id')),
   db.Column('course_id', db.Integer, db.ForeignKey('classes.id'))
 )
-
-class Document(db.Model):
-    __tablename__ = "documents"
-
-    id = db.Column("id", db.Integer, primary_key=True)
-    user_id = db.Column("user_id", db.Integer, db.ForeignKey('users.id'))
-    filename = db.Column("filename", db.String(64), nullable=False)
-    file = db.Column("file", db.LargeBinary, nullable=False)

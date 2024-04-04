@@ -1,5 +1,6 @@
 from flask import Flask, request, session, redirect, url_for, render_template
 
+import os
 import secrets
 
 app = Flask(__name__)
@@ -7,8 +8,10 @@ app.secret_key = secrets.token_hex()
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite3'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['UPLOAD_FOLDER'] = '.\\instance\\uploads'
 
-from models import db, User, Admin, Instructor, Student
+from models import db, User, Admin
+from flask_migrate import Migrate
 
 def create_default_user():
     existing_user = User.query.first()
@@ -22,6 +25,8 @@ def create_default_user():
 with app.app_context():
     db.create_all()
     create_default_user()
+
+migrate = Migrate(app, db)
 
 from views import views
 app.register_blueprint(views, url_prefix='/index')
@@ -52,6 +57,10 @@ def login():
 def logout():
     session.pop('user', None)
     return redirect(url_for('.login'))
+
+@app.template_filter('filename')
+def get_filename(filepath):
+    return filepath.split('\\')[-1]
 
 if __name__ == "__main__":
     app.jinja_env.auto_reload = True

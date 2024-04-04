@@ -3,7 +3,8 @@ To Do:
 ## Admin View
 
   * Admin Dashboard
-    * Pull data from DB (Need to identify needed statistics)
+    * Pull data from DB (Need to identify more statistics)
+    * Create reports
       
   * Instructor
     * Pull instructors' data
@@ -13,12 +14,10 @@ To Do:
       
   * Students
     * Pull students' data
-      * Enrollment status (Payment, Evaluation, Enrolled, Completed)
-      * View submitted document
       * Subjects list (To be enrolled, Already enrolled)
       * Student schedule in a week-view graphic
     * Class assignment
-    * Search
+    * Search and filter
         
   * Courses
     * Modify/delete option to courses after creation
@@ -45,11 +44,6 @@ To Do:
 
 ## Student View
 
-  * Enrollment (Lacking features, might remove tab and display enrollment status elsewhere)
-    * View current status
-  * Document
-    * Upload PDF and PDF web Preview
-    * Submit PDF before student's status is 'Evaluation' (Lock upload/submit otherwise)
   * ~~Subjects~~ (Change to 'Classes')
     * List view for classes 
       * View assignments/projects

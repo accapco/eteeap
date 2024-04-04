@@ -12,11 +12,11 @@
             <form action="/index/users/add_user/{{user_type}}" method="post">
                 {{ form.hidden_tag() }}
 
-                {{ form.username.label }} <br> {{ form.username() }} <br><br>
-                {{ form.l_name.label }} <br> {{ form.l_name() }} <br><br>
-                {{ form.f_name.label }} <br> {{ form.f_name() }} <br><br>
-                {{ form.m_name.label }} <br> {{ form.m_name() }} <br><br>
-                {{ form.password.label }} <br> {{ form.password() }} <br><br><br>
+                {{ form.username.label }} <br><br> {{ form.username(class='form-textbox') }} <br>
+                {{ form.l_name.label }} <br><br> {{ form.l_name(class='form-textbox') }} <br>
+                {{ form.f_name.label }} <br><br> {{ form.f_name(class='form-textbox') }} <br>
+                {{ form.m_name.label }} <br><br> {{ form.m_name(class='form-textbox') }} <br>
+                {{ form.password.label }} <br><br> {{ form.password(class='form-textbox') }} <br><br>
                 {{ form.submit }} <br>
             </form>
         </div>

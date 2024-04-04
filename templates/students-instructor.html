@@ -1,0 +1,22 @@
+{% extends "index.html" %}
+
+
+{% block content %}
+<div class="main-content">
+    
+    {% for student in students %}
+    <div class="main-row">
+        <div class="card bar color-white">
+            <div class="left">
+                <div class="card-strongtext">{{ student.l_name|title }}, {{ student.f_name }} {{ student.m_name[0] }}. </div>
+                <div class="card-subtext">{{ student.username }} — {{ student.user_id }}</div>
+            </div>
+            <div class="middle">
+            </div>
+            <div class="right">
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

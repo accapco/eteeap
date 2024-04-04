@@ -2,6 +2,87 @@
 
 
 {% block content %}
-<p> Status:</p> <h3>{{ student.progress.title() }}</h3> <br>
-<br><br>
+
+<div class="main-row">
+    <div class="card thin-bar color-1 opacity-80">
+        <p id="status"> Status: {{ student.progress.title() }} </p>
+    </div> 
+</div>
+
+<br>
+
+<div class="main-row">
+
+    <div class="card full">
+    {% if student.progress  == 'payment' %}
+
+        {% if student.receipt_filepath is none %}
+
+        <p id="status-message">Payment not yet confirmed, upload receipt.</p>
+
+        {% else %}
+
+        <p id="status-message">Receipt uploaded, waiting for confirmation.</p>
+        <br><br>
+        <img class="thumbnail" src="{{ receipt_fp }}" alt="receipt.jpg">
+
+        {% endif %}
+
+        <br><br>
+        <form action="/index/receipt" method="post" enctype="multipart/form-data">
+            {{ receipt_form.hidden_tag() }}
+    
+            {{ receipt_form.file() }} <br><br>
+    
+            {{ receipt_form.submit() }}
+        </form>
+
+    {% elif student.progress  == 'evaluation' %}
+
+        {% if student.document_filepath is none %}
+
+        <p id="status-message">Document not yet uploaded.</p>
+
+        {% else %}
+
+        <p id="status-message">Document uploaded, waiting for confirmation.</p>
+        <br><br>
+        <div>
+            <p>Uploaded document: </p>
+            <a href="{{ document_fp }}" target="_blank">{{ student['document_filepath']|filename }}</a>
+        </div>
+
+        {% endif %}
+
+        <br><br>
+        <form action="/index/document" method="post" enctype="multipart/form-data">
+            {{ document_form.hidden_tag() }}
+    
+            {{ document_form.file() }} <br><br>
+    
+            {{ document_form.submit() }}
+        </form>
+
+    {% elif student.progress  == 'enrollment' %}
+
+    {% else %}
+
+    {% endif %}
+
+    <br><br>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <ul class=flashes>
+                {% for category, message in messages %}
+                <li class="{{ category }}">{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    {% endwith %}
+
+    </div>
+
+</div>
+
 {% endblock %}
