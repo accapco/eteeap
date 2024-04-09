@@ -58,6 +58,18 @@ input {
     border-bottom: 2px solid #266DD3;
 }
 
+select {
+    width: 200px;
+    line-height: 22px;
+    font-size: 16px;
+    padding: 6px;
+    border: 1px solid rgba(47, 47, 47, 0.6);
+}
+
+select option{
+    margin-bottom: 4px;
+}
+
 input[type="file"]::file-selector-button {
     color: white;
     background-color: #959595;
@@ -128,7 +140,7 @@ button[disabled]:hover {
     background-color: rgba(36, 148, 14, 0.9);
 }
 
-.btn-yellow {
+.btn-purple {
     background-color: rgba(140, 80, 195, 0.9);
 }
 
@@ -372,7 +384,7 @@ button[disabled]:hover {
 .card.full {
     width: calc(64vw + 80px);
     min-height: 186px;
-    padding: 52px 0px;
+    padding: 0;
     height: auto;
 
     a {
@@ -383,6 +395,46 @@ button[disabled]:hover {
     a:hover {
         border-bottom: none;
         opacity: 80%;
+    }
+
+    .card-header {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        width: auto;
+        height: 10%;
+        padding: 16px;
+        margin: 0;
+
+        h4 {
+            font-weight: bold;
+        }
+
+        p {
+            text-align: right;
+        }
+
+        small {
+            font-style: italic;
+            color: rgb(52, 52, 52);
+        }
+
+        .left {
+            margin-left: 16px
+        }
+
+        .right {
+            margin-right: 16px;
+        }
+    }
+}
+
+.card.full.small {
+    height: 460px;
+
+    ul li.table-row div.col{
+        font-size: 14px;
     }
 }
 
@@ -520,4 +572,14 @@ button[disabled]:hover {
 .completion {
     background-color: rgb(156, 98, 255);
     color: black;
+}
+
+.center {
+    display: flex;
+    align-items: center;
+    justify-items: center;
+}
+
+.no-margin {
+    margin: 0;
 }

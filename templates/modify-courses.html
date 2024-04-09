@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <title>ETEEAP</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href= "{{ url_for('static',filename='styles/index.css') }}">
+    </head>
+    <body>
+        <div class="nav"><h3>Enroll Student</h3></div>
+        <div class="main-content">
+            <div class="main-row">
+                <div class="center">
+                    <div class="card full small color-white no-margin">
+                        <div class="card-header">
+                            <div class="left">
+                                <h4>
+                                    {{ data['student']['l_name']|title }}, {{ data['student']['f_name'] }} {{ data['student']['m_name'][0] }}.
+                                </h4>
+                            </div>
+                            <div class="right">
+                                <p><small>{{ data['student']['username'] }}</small></p>
+                                <p><small>ID - {{ data['student']['id'] }}</small></p>
+                            </div>
+                        </div>
+                        {% if data['enrolled']|length > 0 %}
+                        <ul class="stylized-table">
+                            <li class="table-header">
+                                <div class="col col-3">SUBJECT CODE</div>
+                                <div class="col col-3">TITLE</div>
+                                <div class="col col-2">INSTRUCTOR</div>
+                            </li>
+                            {% for e in data['enrolled'] %}
+                            <li class="table-row">
+                                <div class="col col-3" data-label="code">{{ e['course']['code'] }}</div>
+                                <div class="col col-3" data-label="title">{{ e['course']['title'] }}</div>
+                                <div class="col col-2" data-label="instructor">
+                                    {{ e['instructor']['l_name']|title }}, {{ e['instructor']['f_name'] }} {{ e['instructor']['m_name'][0] }}.
+                                </div>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        {% else %}
+                        <p>Student not yet enrolled.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <br><br>
+
+            <div class="main-row">
+                <form action="/index/students/{{data['student']['user_id']}}/courses" method="post">
+                    {{ form.hidden_tag() }}
+    
+                    {{ form.courses_select.label(class='no-margin') }} {{ form.courses_select() }}
+                    {{ form.instructors_select.label() }} {{ form.instructors_select() }} <br><br><br>
+
+                    <div class="inline">
+                        {{ form.submit(class='no-margin') }}
+    
+                        <div>
+                        {% with messages = get_flashed_messages(with_categories=true) %}
+                            {% if messages %}
+                                <ul class=flashes>
+                                    {% for category, message in messages %}
+                                    <li class="{{ category }}">{{ message }}</li>
+                                    {% endfor %}
+                                </ul>
+                            {% endif %}
+                        {% endwith %}
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </body>
+</html>

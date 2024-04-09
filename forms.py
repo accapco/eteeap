@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, HiddenField, SubmitField, validators
+from wtforms import StringField, HiddenField, SubmitField, SelectField, validators
 from flask_wtf.file import FileField, FileAllowed
 
 class UserForm(FlaskForm):
@@ -26,3 +26,17 @@ class CourseForm(FlaskForm):
 
 class StatusConfirmationForm(FlaskForm):
     submit = SubmitField('Approve')
+
+class StudentCoursesForm(FlaskForm):
+    courses_select = SelectField('Course', choices=[("", "None")], validators=[])
+    instructors_select = SelectField('Instructor', choices=[("", "None")], validators=[])
+    submit = SubmitField('Enroll')
+
+    def __init__(self, available_courses, available_instructors):
+        super().__init__()
+        available_courses = [(c['id'], f"{c['code']}: {c['title']}") for c in available_courses]
+        available_instructors = [(i['user_id'], f"{i['l_name'].capitalize()}, {i['f_name']} {i['m_name'][0]}.") for i in available_instructors]
+        self.courses_select.choices += available_courses
+        self.instructors_select.choices += available_instructors
+        self.courses_select.validators = [validators.DataRequired("Course selected is not a valid option.")]
+        self.instructors_select.validators = [validators.DataRequired("Select an instructor.")]

@@ -27,7 +27,7 @@
                     <button disabled>No doc</button>
                     <button disabled>Approve</button>
                 {% elif student.progress == 'enrollment' %}
-                    <button class="btn-yellow">Assign classes</button>
+                    <button class="btn-purple" onclick="modifyStudentCourses('{{student.user_id}}')">Enroll student</button>
                 {% else %}
                 {% endif %}
             </div>
@@ -39,9 +39,21 @@
 <script>
     function approveStatus(user_id, progress) {
         var url = '/index/students/' + user_id + '/approve/'  + progress;
-        left = (screen.width - 600) / 2;
-        top = (screen.height - 800) / 4;
-        var features = 'width=600,height=800,left='+left+',top='+top;
+        width = 600;
+        height = 800;
+        left = (screen.width - width) / 2;
+        top = (screen.height - height) / 4;
+        var features = 'width='+width+',height='+height+',left='+left+',top='+top;
+        window.open(url, name, features);
+    }
+
+    function modifyStudentCourses(user_id) {
+        var url = '/index/students/' + user_id + '/courses';
+        width = 800;
+        height = 700;
+        left = (screen.width - width) / 2;
+        top = (screen.height - height) / 4;
+        var features = 'width='+width+',height='+height+',left='+left+',top='+top;
         window.open(url, name, features);
     }
 </script>

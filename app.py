@@ -11,7 +11,6 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['UPLOAD_FOLDER'] = '.\\instance\\uploads'
 
 from models import db, User, Admin
-from flask_migrate import Migrate
 
 def create_default_user():
     existing_user = User.query.first()
@@ -25,8 +24,6 @@ def create_default_user():
 with app.app_context():
     db.create_all()
     create_default_user()
-
-migrate = Migrate(app, db)
 
 from views import views
 app.register_blueprint(views, url_prefix='/index')

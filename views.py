@@ -26,7 +26,6 @@ user_views = {
     ],
     'student': [
         {'name': 'Enrollment', 'link': '.enrollment'},
-        # {'name': 'Documents', 'link': '.documents'},
         {'name': 'Subjects', 'link': '.subjects'},
         {'name': 'Message', 'link': '.message'},
         {'name': 'Manage Account', 'link': '.account'},
@@ -108,21 +107,6 @@ def add_course():
         except Exception as e:
             return jsonify({"message": f"Problem adding course"}), 400
     return render_template('add_course.html', form=form)
-
-# @views.route('/documents', methods=['GET', 'POST'])
-# def documents():
-#     if g.user != 'student':
-#         return redirect(url_for('.unauthorized'))
-#     form = ApplicationForm()
-#     if form.validate_on_submit():
-#         try:
-#             _add_document(form.file.data)
-#             return f"Uploaded document {form.file.data.filename}"
-#         except Exception as e:
-#             return jsonify({"message": f"Problem uploading document. {e}"}), 400
-#     views = user_views[g.user]
-#     documents = _get_documents(session.get("id"))
-#     return render_template('documents.html', page="Documents", documents=documents, form=form, views=views)
 
 @views.route('/subjects')
 def subjects():
@@ -232,6 +216,23 @@ def approve_document(user_id, progress):
         </script>
         """
     return render_template('approve-status.html', form=form, user_id=user_id, progress=progress, receipt_fp=receipt_fp, document_fp=document_fp)
+
+@views.route('/students/<user_id>/courses', methods=['GET', 'POST'])
+def enroll_student(user_id):
+    if g.user != 'admin':
+        return redirect(url_for('.unauthorized'))
+    data = db.get_student_enrollment_options(user_id)
+    form = StudentCoursesForm(data['available_courses'], data['instructors'])
+    if form.validate_on_submit():
+        message = db.enroll_student(user_id, form.data)
+        data = db.get_student_enrollment_options(user_id)
+        flash(f"{message}")
+    else:
+        if form.courses_select.errors:
+            flash(f"{form.courses_select.errors[0]}", 'error')
+        if form.instructors_select.errors:
+            flash(f"{form.instructors_select.errors[0]}", 'error')
+    return render_template('modify-courses.html', form=form, data=data)
 
 @views.route('/account')
 def account():
