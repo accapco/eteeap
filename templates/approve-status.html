@@ -17,7 +17,7 @@
             <iframe id="pdf-preview" src="{{ document_fp }}" frameborder="0"></iframe>
             {% endif %}
             <br><br>
-            <form action="/index/students/{{user_id}}/approve/{{progress}}" method="post">
+            <form action="/index/students/{{student_id}}/approve/{{progress}}" method="post">
                 {{ form.hidden_tag() }}
 
                 {{ form.submit }} <br>

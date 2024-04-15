@@ -3,20 +3,39 @@
 
 {% block content %}
 <div class="main-content">
-    
-    {% for student in students %}
+    {% for e in data.enrollments %}
     <div class="main-row">
         <div class="card bar color-white">
             <div class="left">
-                <div class="card-strongtext">{{ student.l_name|title }}, {{ student.f_name }} {{ student.m_name[0] }}. </div>
-                <div class="card-subtext">{{ student.username }} — {{ student.user_id }}</div>
+                <div class="card-strongtext"> {{ e.student_name }} </div>
+                <div class="card-subtext"> {{ e.course }}  </div>
             </div>
             <div class="middle">
+                <div class="cell {{ e.status }}"> {{ e.status|title }} </div>
             </div>
             <div class="right">
+                    <button class="btn-grey">Info</button>
+                {% if e.status == 'pending' %}
+                    <button class="btn-green" onclick="acceptEnrollment('{{data.instructor_id}}', '{{e.enrollment_id}}')">Accept</button>
+                {% elif e.status == 'ongoing' %}
+                    <button class="btn-purple">Requirements</button>
+                {% else %}
+                {% endif %}
             </div>
         </div>
     </div>
     {% endfor %}
 </div>
+
+<script>
+    function acceptEnrollment(instructor_id, enrollment_id) {
+        var url = '/index/instructors/' + instructor_id + '/enrollments/' + enrollment_id + '/accept';
+        width = 600;
+        height = 400;
+        left = (screen.width - width) / 2;
+        top = (screen.height - height) / 4;
+        var features = 'width='+width+',height='+height+',left='+left+',top='+top;
+        window.open(url, name, features);
+    }
+</script>
 {% endblock %}

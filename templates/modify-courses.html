@@ -15,27 +15,31 @@
                         <div class="card-header">
                             <div class="left">
                                 <h4>
-                                    {{ data['student']['l_name']|title }}, {{ data['student']['f_name'] }} {{ data['student']['m_name'][0] }}.
+                                    {{ data.student.name }}
                                 </h4>
                             </div>
                             <div class="right">
-                                <p><small>{{ data['student']['username'] }}</small></p>
-                                <p><small>ID - {{ data['student']['id'] }}</small></p>
+                                <p><small>{{ data.student.username }}</small></p>
+                                <p><small>ID - {{ data.student.user }}</small></p>
                             </div>
                         </div>
-                        {% if data['enrolled']|length > 0 %}
+                        {% if data.enrolled|length > 0 %}
                         <ul class="stylized-table">
                             <li class="table-header">
-                                <div class="col col-3">SUBJECT CODE</div>
-                                <div class="col col-3">TITLE</div>
+                                <div class="col col-2">SUBJECT CODE</div>
+                                <div class="col col-2">TITLE</div>
                                 <div class="col col-2">INSTRUCTOR</div>
+                                <div class="col col-2">STATUS</div>
                             </li>
-                            {% for e in data['enrolled'] %}
+                            {% for e in data.enrolled %}
                             <li class="table-row">
-                                <div class="col col-3" data-label="code">{{ e['course']['code'] }}</div>
-                                <div class="col col-3" data-label="title">{{ e['course']['title'] }}</div>
+                                <div class="col col-2" data-label="code">{{ e.course.code }}</div>
+                                <div class="col col-2" data-label="title">{{ e.course.title }}</div>
                                 <div class="col col-2" data-label="instructor">
-                                    {{ e['instructor']['l_name']|title }}, {{ e['instructor']['f_name'] }} {{ e['instructor']['m_name'][0] }}.
+                                    {{ e.instructor.l_name|title }}, {{ e.instructor.f_name }} {{ e.instructor.m_name[0] }}.
+                                </div>
+                                <div class="col col-2">
+                                   <div class="cell smaller {{ e.status }}">{{ e.status }}</div>
                                 </div>
                             </li>
                             {% endfor %}
@@ -50,7 +54,7 @@
             <br><br>
 
             <div class="main-row">
-                <form action="/index/students/{{data['student']['user_id']}}/courses" method="post">
+                <form action="/index/students/{{data.student.id}}/courses" method="post">
                     {{ form.hidden_tag() }}
     
                     {{ form.courses_select.label(class='no-margin') }} {{ form.courses_select() }}

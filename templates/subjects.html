@@ -2,6 +2,36 @@
 
 
 {% block content %}
-<div class="main-row">
+<div class="main-content">
+    {% if data %}
+        {% for e in data %}
+        <div class="main-row">
+            <div class="card bar color-white">
+                <div class="left">
+                    <div class="card-strongtext">{{ e.course.title }}</div>
+                    <div class="card-subtext">{{ e.course.code }}</div>
+                    <div class="card-subtext">{{ e.instructor.name }}</div>
+                </div>
+                <div class="middle">
+                    <div class="cell {{ e.status }}"> {{ e.status|title }} </div>
+                </div>
+                <div class="right">
+                    {% if e.status == 'ongoing' %}
+                    <button class="btn-purple" onclick="">Requirements</button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+
+    <div class="main-row">
+        <div class="card thin-bar color-1 opacity-80">
+            <p id="status"> Not yet enrolled </p>
+        </div> 
+    </div>
 </div>
+
+{% endif %}
+
 {% endblock %}

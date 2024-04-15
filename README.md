@@ -7,16 +7,11 @@ To Do:
     * Create reports
       
   * Instructor
-    * Pull instructors' data
-      * Instructor schedule in a week-view graphic
-    * Option to create class schedule and assign to instructors
+    * Pull instructors' students
     * Search
       
   * Students
-    * Pull students' data
-      * Subjects list (To be enrolled, Already enrolled)
-      * Student schedule in a week-view graphic
-    * Class assignment
+    * Pull student profile
     * Search and filter
         
   * Courses
@@ -34,27 +29,27 @@ To Do:
   * Instructor Dashboard
     * Pull data from DB (Need to identify needed statistics)
       
-  * ~~Students~~ (Change to 'Classes')
-    * List view for classes
-      * Students - View and grade submissions, grade at the end of the course
-      * Assignments/projects
-      * Class materials
-      * Announcements
+  * Students
+      * Students profiles
+      * Requirements
     * Search
+
+  * For enrollment
+    * Option to reject enrollment
 
 ## Student View
 
-  * ~~Subjects~~ (Change to 'Classes')
-    * List view for classes 
-      * View assignments/projects
-      * View class materials
-      * View announcements
+  * Subjects
+    * View/submit requirements
+    * View other posted materials
     * Search
 
 ## General
 
   * Message
-    * Announcement feature exclusive to admin
+    * Notification feature
+  * First time login system
   * Manage Account
   * Password hashing
   * Randomize user ID
+  * Ajax

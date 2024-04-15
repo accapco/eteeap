@@ -6,7 +6,7 @@ class UserForm(FlaskForm):
     user_type = HiddenField()
     username = StringField('Username', validators=[validators.DataRequired()])
     f_name = StringField('First Name', validators=[validators.DataRequired()])
-    m_name = StringField('Middle Name')
+    m_name = StringField('Middle Name', validators=[validators.DataRequired()])
     l_name = StringField('Last Name', validators=[validators.DataRequired()])
     password = StringField('Password', validators=[validators.DataRequired()])
     submit = SubmitField('Add User')
@@ -35,7 +35,7 @@ class StudentCoursesForm(FlaskForm):
     def __init__(self, available_courses, available_instructors):
         super().__init__()
         available_courses = [(c['id'], f"{c['code']}: {c['title']}") for c in available_courses]
-        available_instructors = [(i['user_id'], f"{i['l_name'].capitalize()}, {i['f_name']} {i['m_name'][0]}.") for i in available_instructors]
+        available_instructors = [(i['user'], f"{i['l_name'].capitalize()}, {i['f_name']} {i['m_name'][0]}.") for i in available_instructors]
         self.courses_select.choices += available_courses
         self.instructors_select.choices += available_instructors
         self.courses_select.validators = [validators.DataRequired("Course selected is not a valid option.")]

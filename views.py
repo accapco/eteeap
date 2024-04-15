@@ -65,7 +65,17 @@ def instructors():
     if g.user != 'admin':
         return redirect(url_for('.unauthorized'))
     views = user_views[g.user]
-    return render_template('instructors.html', page="Instructors", views=views)
+    instructors = db.get_instructors()
+    data = { 'instructors': [] }
+    for i in instructors:
+        info = {
+            'name': f"{i['l_name'].title()}, {i['f_name']} {i['m_name'][0]}.",
+            'username': i['username'],
+            'id': i['id'],
+            'uid': i['user'],
+        }
+        data['instructors'].append(info)
+    return render_template('instructors.html', page="Instructors", data=data, views=views)
         
 @views.route('/admin_students')
 def admin_students():
@@ -73,14 +83,61 @@ def admin_students():
         return redirect(url_for('.unauthorized'))
     views = user_views[g.user]
     students = db.get_students()
-    return render_template('students-admin.html', page="Students", students=students, views=views)
+    data = { 'students': [] }
+    for s in students:
+        info = {
+            'name': f"{s['l_name'].title()}, {s['f_name']} {s['m_name'][0]}.",
+            'username': s['username'],
+            'id': s['id'],
+            'uid': s['user'],
+            'progress': s['progress'],
+            'receipt': s['receipt_filepath'],
+            'doc': s['document_filepath']
+        }
+        data['students'].append(info)
+    return render_template('students-admin.html', page="Students", data=data, views=views)
 
 @views.route('/instructor_students')
 def instructor_students():
     if g.user != 'instructor':
         return redirect(url_for('.unauthorized'))
     views = user_views[g.user]
-    return render_template('students-instructor.html', page="Students", views=views)
+    enrollments = db.get_instructor_enrollments(db.uid_to_pk(session.get('id'), 'instructor'))
+    data = {
+        'instructor_id': db.uid_to_pk(session.get('id'), 'instructor'),
+        'enrollments': []
+    }
+    for e in enrollments:
+        data['enrollments'].append({
+            'student_name': f"{e['student']['l_name'].title()}, {e['student']['f_name']} {e['student']['m_name'][0]}.",
+            'course': f"{e['course']['code']}: {e['course']['title']}",
+            'status': e['status'],
+            'enrollment_id': e['id']
+        })
+    return render_template('students-instructor.html', page="Students", data=data, views=views)
+
+@views.route('/instructors/<instructor_id>/enrollments/<enrollment_id>/accept', methods=["GET", "POST"])
+def accept_enrollment(instructor_id, enrollment_id):
+    if g.user != 'instructor':
+        return redirect(url_for('.unauthorized'))
+    form = StatusConfirmationForm()
+    e = db.get_instructor_enrollment(instructor_id, enrollment_id)
+    data = {
+        'student_name': f"{e['student']['l_name'].title()}, {e['student']['f_name']} {e['student']['m_name'][0]}.",
+        'course': f"{e['course']['code']}: {e['course']['title']}",
+        'instructor_id': instructor_id,
+        'enrollment_id': enrollment_id
+    }
+    if form.validate_on_submit():
+        message = db.accept_enrollment(enrollment_id)
+        return f"""
+        <script>
+            alert("{message}");
+            window.opener.location.reload();
+            window.close();
+        </script>
+        """
+    return render_template('accept-enrollment.html', data=data, form=form)
 
 @views.route('/courses')
 def courses():
@@ -113,7 +170,10 @@ def subjects():
     if g.user != 'student':
         return redirect(url_for('.unauthorized'))
     views = user_views[g.user]
-    return render_template('subjects.html', page="Subjects", views=views)
+    data = db.get_student_enrollments(db.uid_to_pk(session.get('id'), 'student'))
+    for i in data:
+        i['instructor']['name'] = f"{i['instructor']['l_name'].title()}, {i['instructor']['f_name']} {i['instructor']['m_name'][0]}."
+    return render_template('subjects.html', page="Subjects", data=data, views=views)
 
 @views.route('/message')
 def message():
@@ -199,15 +259,15 @@ def get_receipt(user_id):
 def get_document(user_id):
     return send_from_directory(os.path.join(app.config['UPLOAD_FOLDER'], 'documents'), 'document_' + str(user_id) + '.pdf')
 
-@views.route('/students/<user_id>/approve/<progress>', methods=['GET', 'POST'])
-def approve_document(user_id, progress):
+@views.route('/students/<student_id>/approve/<progress>', methods=['GET', 'POST'])
+def approve_document(student_id, progress):
     if g.user != 'admin':
         return redirect(url_for('.unauthorized'))
     form = StatusConfirmationForm()
-    receipt_fp = url_for('.get_receipt', user_id=user_id)
-    document_fp = url_for('.get_document', user_id=user_id)
+    receipt_fp = url_for('.get_receipt', user_id=db.pk_to_uid(student_id, 'student'))
+    document_fp = url_for('.get_document', user_id=db.pk_to_uid(student_id, 'student'))
     if form.validate_on_submit():
-        message = db.move_student_progress(user_id, progress)
+        message = db.move_student_progress(student_id, progress)
         return f"""
         <script>
             alert("{message}");
@@ -215,17 +275,20 @@ def approve_document(user_id, progress):
             window.close();
         </script>
         """
-    return render_template('approve-status.html', form=form, user_id=user_id, progress=progress, receipt_fp=receipt_fp, document_fp=document_fp)
+    return render_template('approve-status.html', form=form, student_id=student_id, progress=progress, receipt_fp=receipt_fp, document_fp=document_fp)
 
-@views.route('/students/<user_id>/courses', methods=['GET', 'POST'])
-def enroll_student(user_id):
+@views.route('/students/<student_id>/courses', methods=['GET', 'POST'])
+def enroll_student(student_id):
     if g.user != 'admin':
         return redirect(url_for('.unauthorized'))
-    data = db.get_student_enrollment_options(user_id)
+    data = db.get_student_enrollment_options(student_id)
+    data['student']['name'] = f"{data['student']['l_name'].title()}, {data['student']['f_name']} {data['student']['m_name'][0]}."
     form = StudentCoursesForm(data['available_courses'], data['instructors'])
     if form.validate_on_submit():
-        message = db.enroll_student(user_id, form.data)
-        data = db.get_student_enrollment_options(user_id)
+        message = db.enroll_student(student_id, form.data)
+        data = db.get_student_enrollment_options(student_id)
+        data['student']['name'] = f"{data['student']['l_name'].title()}, {data['student']['f_name']} {data['student']['m_name'][0]}."
+        form = StudentCoursesForm(data['available_courses'], data['instructors'])
         flash(f"{message}")
     else:
         if form.courses_select.errors:

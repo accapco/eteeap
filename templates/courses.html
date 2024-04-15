@@ -12,13 +12,13 @@
         {% if courses is defined and courses|length > 0 %}
         <ul class="stylized-table">
             <li class="table-header">
-                <div class="col col-2">COURSE CODE</div>
-                <div class="col col-2">TITLE</div>
+                <div class="col col-3">COURSE CODE</div>
+                <div class="col col-6">TITLE</div>
             </li>
             {% for course in courses %}
             <li class="table-row">
-                <div class="col col-2" data-label="CODE">{{ course.code }}</div>
-                <div class="col col-2" data-label="TITLE">{{ course.title }}</div>
+                <div class="col col-3" data-label="CODE">{{ course.code }}</div>
+                <div class="col col-6" data-label="TITLE">{{ course.title }}</div>
             </li>
             {% endfor %}
         </ul>

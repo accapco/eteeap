@@ -30,7 +30,7 @@ class Admin(db.Model):
     __tablename__ = "admin"
 
     id = db.Column("id", db.Integer, primary_key=True)
-    user_id = db.Column("user_id", db.Integer, db.ForeignKey('users.id'))
+    user = db.Column("user", db.Integer, db.ForeignKey('users.id'))
 
 class Course(db.Model):
     __tablename__ = "courses"
@@ -39,37 +39,29 @@ class Course(db.Model):
     title = db.Column("title", db.String(64))
     code = db.Column("code", db.String(8))
 
-class Class(db.Model):
-    __tablename__ = "classes"
+class Enrollment(db.Model):
+    __tablename__ = "enrollment"
 
     id = db.Column("id", db.Integer, primary_key=True)
     course = db.Column("course", db.Integer, db.ForeignKey('courses.id'))
     units = db.Column("units", db.Integer)
     instructor = db.Column("instructor", db.Integer, db.ForeignKey('instructors.id'))
-    students = db.relationship("Student", secondary='enrollment', back_populates='classes')
-    day = db.Column("day", db.Enum('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'))
-    start_time = db.Column("start_time", db.Time)
-    end_time = db.Column("end_time", db.Time)
+    student = db.Column("student", db.Integer, db.ForeignKey('students.id'))
+    status = db.Column("status", db.Enum('completed', 'ongoing', 'pending'), default='pending')
 
 class Instructor(db.Model):
     __tablename__ = "instructors"
 
     id = db.Column("id", db.Integer, primary_key=True)
-    user_id = db.Column("user_id", db.Integer, db.ForeignKey('users.id'))
-    classes = db.relationship("Class", backref='instructors')
+    user = db.Column("user", db.Integer, db.ForeignKey('users.id'))
+    enrollments = db.relationship("Enrollment", backref='instructors')
 
 class Student(db.Model):
     __tablename__ = "students"
 
     id = db.Column("id", db.Integer, primary_key=True)
-    user_id = db.Column("user_id", db.Integer, db.ForeignKey('users.id'))
+    user = db.Column("user", db.Integer, db.ForeignKey('users.id'))
     progress = db.Column(db.Enum('payment', 'evaluation', 'enrollment', 'completion'), nullable=False, default='payment')
     receipt_filepath = db.Column("receipt_filepath", db.String(64))
     document_filepath = db.Column("application_document_filepath", db.String(64))
-    classes = db.relationship("Class", secondary='enrollment', back_populates='students')
-
-enrollment = db.Table(
-  'enrollment',
-  db.Column("student_id", db.Integer, db.ForeignKey('students.id')),
-  db.Column("class_id", db.Integer, db.ForeignKey('classes.id'))
-)
+    enrollments = db.relationship("Enrollment", backref='students')

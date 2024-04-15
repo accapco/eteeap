@@ -15,7 +15,7 @@
                 </div>
                 <ul>
                     {% for view in views %}
-                    <li><div class=icon></div><a class="side-links" href="{{ url_for(view['link']) }}">{{ view['name'] }}</a></li>
+                    <li><div class=icon></div><a class="side-links" href="{{ url_for(view.link) }}">{{ view.name }}</a></li>
                     {% endfor %}
                     <li id="logout"><div class=icon></div><a href="/logout">Logout</a></li>
                 </ul><br>

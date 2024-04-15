@@ -2,6 +2,19 @@
 
 
 {% block content %}
-<div class="main-row">
+<div class="main-content">
+    {% for instructor in data.instructors %}
+    <div class="main-row">
+        <div class="card bar color-white">
+            <div class="left">
+                <div class="card-strongtext"> {{ instructor.name}} </div>
+                <div class="card-subtext">{{ instructor.username }} — {{ instructor.uid }}</div>
+            </div>
+            <div class="right">
+                <button class="btn-grey">Students</button>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
 </div>
 {% endblock %}

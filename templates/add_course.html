@@ -12,8 +12,8 @@
             <form action="/index/courses/add_course" method="post">
                 {{ form.hidden_tag() }}
 
-                {{ form.code.label }} <br><br> {{ form.title(class='form-textbox') }} <br>
-                {{ form.title.label }} <br><br> {{ form.code(class='form-textbox') }} <br><br>
+                {{ form.code.label }} <br><br> {{ form.code(class='form-textbox') }} <br><br>
+                {{ form.title.label }} <br><br> {{ form.title(class='form-textbox') }} <br><br>
                 {{ form.submit() }} <br>
             </form>
         </div>

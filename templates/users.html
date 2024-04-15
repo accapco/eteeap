@@ -12,14 +12,14 @@
         {% if instructors is defined and instructors|length > 0 %}
         <ul class="stylized-table">
             <li class="table-header">
-                <div class="col col-1">ID</div>
-                <div class="col col-2">USERNAME</div>
+                <div class="col col-2">ID</div>
+                <div class="col col-5">USERNAME</div>
                 <div class="col col-3">NAME</div>
             </li>
             {% for instructor in instructors %}
             <li class="table-row">
-                <div class="col col-1" data-label="ID">{{ instructor.id }}</div>
-                <div class="col col-2" data-label="USERNAME">{{ instructor.username }}</div>
+                <div class="col col-2" data-label="ID">{{ instructor.id }}</div>
+                <div class="col col-5" data-label="USERNAME">{{ instructor.username }}</div>
                 <div class="col col-3" data-label="NAME">{{ instructor.l_name }}, {{ instructor.f_name }}</div>
             </li>
             {% endfor %}
@@ -39,14 +39,14 @@
         {% if students is defined and students|length > 0 %}
         <ul class="stylized-table">
             <li class="table-header">
-                <div class="col col-1">ID</div>
-                <div class="col col-2">USERNAME</div>
+                <div class="col col-2">ID</div>
+                <div class="col col-5">USERNAME</div>
                 <div class="col col-3">NAME</div>
             </li>
             {% for student in students %}
             <li class="table-row">
-                <div class="col col-1" data-label="ID">{{ student.id }}</div>
-                <div class="col col-2" data-label="USERNAME">{{ student.username }}</div>
+                <div class="col col-2" data-label="ID">{{ student.id }}</div>
+                <div class="col col-5" data-label="USERNAME">{{ student.username }}</div>
                 <div class="col col-3" data-label="NAME">{{ student.l_name|title }}, {{ student.f_name }}</div>
             </li>
             {% endfor %}

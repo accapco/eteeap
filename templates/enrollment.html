@@ -66,6 +66,11 @@
 
     {% elif student.progress  == 'enrollment' %}
 
+        <p id="status-message">For enrollment. View your subjects:</p> <br><br>
+        <a href="{{ url_for('.subjects') }}">
+            <button class="btn-grey">Subjects</button>
+        </a>
+
     {% else %}
 
     {% endif %}
