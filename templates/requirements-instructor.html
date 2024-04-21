@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <title>ETEEAP</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href= "{{ url_for('static',filename='styles/index.css') }}">
+    </head>
+    <body>
+        <div class="nav">
+            <div>
+                <h3>{{ course }}</h3>
+                <p>Class Requirements</p>
+            </div>
+            <a href="{{ url_for('views.add_requirement', instructor_id=instructor_id, enrollment_id=enrollment_id) }}">
+                <button class="btn-green">Add Requirement</button>
+            </a>
+        </div>
+        <div class="main-content">
+            {% if data %}
+                {% for d in data %}
+                <div class="main-row">
+                    <div class="card bar color-white">
+                        <div class="left">
+                            <div class="card-text"> {{ d.title }} </div>
+                            <div class="card-long-description"> {{ d.description }} </div>
+                        </div>
+                        <div class="middle">
+                            <div class="cell smaller {{ d.progress }}">{{ d.progress|title }}</div>
+                        </div>
+                        <div class="right">
+                            <button class="btn-purple">Open</button>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+            <p>Requirements have not yet been added for this class.</p>
+            {% endif %}
+        </div>
+    </body>
+</html>

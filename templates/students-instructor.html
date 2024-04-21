@@ -18,7 +18,7 @@
                 {% if e.status == 'pending' %}
                     <button class="btn-green" onclick="acceptEnrollment('{{data.instructor_id}}', '{{e.enrollment_id}}')">Accept</button>
                 {% elif e.status == 'ongoing' %}
-                    <button class="btn-purple">Requirements</button>
+                    <button class="btn-purple" onclick="viewRequirements('{{data.instructor_id}}', '{{e.enrollment_id}}')">Requirements</button>
                 {% else %}
                 {% endif %}
             </div>
@@ -32,6 +32,16 @@
         var url = '/index/instructors/' + instructor_id + '/enrollments/' + enrollment_id + '/accept';
         width = 600;
         height = 400;
+        left = (screen.width - width) / 2;
+        top = (screen.height - height) / 4;
+        var features = 'width='+width+',height='+height+',left='+left+',top='+top;
+        window.open(url, name, features);
+    }
+
+    function viewRequirements(instructor_id, enrollment_id) {
+        var url = '/index/instructors/' + instructor_id + '/enrollments/' + enrollment_id + '/requirements';
+        width = 1000;
+        height = 800;
         left = (screen.width - width) / 2;
         top = (screen.height - height) / 4;
         var features = 'width='+width+',height='+height+',left='+left+',top='+top;

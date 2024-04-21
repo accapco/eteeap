@@ -108,6 +108,45 @@ def accept_enrollment(enrollment_id):
     else:
         return "Invalid operation"
 
+def get_requirements(enrollment_id):
+    requirements = Requirement.query.filter_by(enrollment=enrollment_id).all()
+    response = []
+    for r in requirements:
+        r = r.__dict__
+        r['materials'] = get_materials(r['id'])
+        r['submissions'] = get_submissions(r['id'])
+        response.append(r)
+    return response
+
+def add_requirement(enrollment_id, data):
+    enrollment = Enrollment.query.filter_by(id=enrollment_id).first()
+    new_requirement = Requirement(
+        enrollment = enrollment.id,
+        title = data['title'],
+        description = data['description'],
+        progress = 'incomplete'
+    )
+    try:
+        db.session.add(new_requirement)
+        db.session.commit()
+        return "Requirement posted."
+    except Exception as e:
+        return f"An error occured while posting the requirement: {e}"
+
+def get_materials(requirement_id):
+    materials = RequirementMaterial.query.filter_by(requirement=requirement_id).all()
+    response = []
+    for m in materials:
+        response.append(m.__dict__)
+    return response
+
+def get_submissions(requirement_id):
+    submissions = RequirementSubmission.query.filter_by(requirement=requirement_id).all()
+    response = []
+    for s in submissions:
+        response.append(s.__dict__)
+    return response
+
 def get_student(user_id):
     student = Student.query.filter_by(user=user_id).first().__dict__
     userinfo = get_user(student['user'])
@@ -165,7 +204,7 @@ def get_student_enrollments(student_id):
         enrollment_data['instructor'] = instructor_data
         enrollment_data['course'] = course_data
         response.append(enrollment_data)
-    return _remove_sa_instance_state(response)
+    return response
 
 def get_student_enrollment_options(student_id):
     enrolled_classes = get_student_enrollments(student_id)
@@ -178,7 +217,7 @@ def get_student_enrollment_options(student_id):
         'instructors': get_instructors(),
         'enrolled': enrolled_classes
     }
-    return _remove_sa_instance_state(response)
+    return response
 
 def upload_receipt(user_id, file):
     student = Student.query.filter_by(user=user_id).first()

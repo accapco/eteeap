@@ -39,7 +39,7 @@ p {
     margin-left: 52px;
 }
 
-input {
+input, textarea {
     margin-left: 52px;
 }
 
@@ -169,7 +169,7 @@ button[disabled]:hover {
 
         h4 {
             font-family: mplus1p-bold;
-            font-size: 32px;
+            font-size: 30px;
             text-align: left;
             padding-left: 12px;
         }
@@ -210,6 +210,12 @@ button[disabled]:hover {
     height: 82px;
     width: 100%;
     z-index: 2;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+
+    p {
+        margin-left: 32px;
+        font-size: 18px;
+    }
 
     h3 {
         margin-left: 32px;
@@ -220,6 +226,10 @@ button[disabled]:hover {
         font-family: mplus1p-black;
         font-size: 28px;
         margin-left: 32px;
+    }
+
+    button {
+        margin-right: 32px;
     }
 }
 
@@ -273,6 +283,14 @@ button[disabled]:hover {
         margin-left: 24px;
     }
     
+    .card-text {
+        color: black;
+        font-weight: bold;
+        font-size: 16px;
+        line-height: 24px;
+        margin-left: 24px;
+    }
+
     .card-main-text {
         color: black;
         font-size: 56px;
@@ -286,6 +304,15 @@ button[disabled]:hover {
         font-size: 14px;
         text-align: left;
         font-weight: bold;
+        margin-left: 24px;
+        font-style: italic;
+    }
+
+    .card-long-description {
+        color: rgb(85, 85, 85);
+        font-size: 11px;
+        text-align: left;
+        font-weight: italic;
         margin-left: 24px;
         font-style: italic;
     }
@@ -558,7 +585,7 @@ button[disabled]:hover {
     width: 72px;
     text-align: center;
 
-    &.payment, &.completed {
+    &.payment, &.completed, &.incomplete {
         background-color: rgb(139, 159, 185);
         color: black;
     }
@@ -573,7 +600,7 @@ button[disabled]:hover {
         color: black;
     }
     
-    &.completion, &.ongoing {
+    &.completion, &.ongoing, &.completed {
         background-color: rgba(20, 4, 124, 0.5);
         color: black;
     }

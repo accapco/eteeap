@@ -32,6 +32,8 @@ To Do:
   * Students
       * Students profiles
       * Requirements
+        * Open requirement details
+        * Edit requirement details
     * Search
 
   * For enrollment

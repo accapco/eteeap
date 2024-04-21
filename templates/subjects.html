@@ -17,7 +17,7 @@
                 </div>
                 <div class="right">
                     {% if e.status == 'ongoing' %}
-                    <button class="btn-purple" onclick="">Requirements</button>
+                    <button class="btn-purple" onclick="viewRequirements('{{student_id}}', '{{e.id}}')">Requirements</button>
                     {% endif %}
                 </div>
             </div>
@@ -30,8 +30,19 @@
             <p id="status"> Not yet enrolled </p>
         </div> 
     </div>
+    {% endif %}
 </div>
 
-{% endif %}
+<script>
+    function viewRequirements(student_id, enrollment_id) {
+        var url = '/index/students/' + student_id + '/enrollments/' + enrollment_id + '/requirements';
+        width = 1000;
+        height = 800;
+        left = (screen.width - width) / 2;
+        top = (screen.height - height) / 4;
+        var features = 'width='+width+',height='+height+',left='+left+',top='+top;
+        window.open(url, name, features);
+    }
+</script>
 
 {% endblock %}

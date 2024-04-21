@@ -39,8 +39,33 @@ class Course(db.Model):
     title = db.Column("title", db.String(64))
     code = db.Column("code", db.String(8))
 
+class RequirementMaterial(db.Model):
+    __tablename__ = "requirement_materials"
+
+    id = db.Column("id", db.String(64), primary_key=True)
+    filepath = db.Column("filepath", db.String(64))
+    requirement = db.Column("requirement", db.Integer, db.ForeignKey('requirements.id'))
+
+class RequirementSubmission(db.Model):
+    __tablename__ = "requirement_submissions"
+
+    id = db.Column("id", db.String(64), primary_key=True)
+    filepath = db.Column("filepath", db.String(64))
+    requirement = db.Column("requirement", db.Integer, db.ForeignKey('requirements.id'))
+
+class Requirement(db.Model):
+    __tablename__ = "requirements"
+
+    id = db.Column("id", db.Integer, primary_key=True)
+    enrollment = db.Column("enrollment", db.Integer, db.ForeignKey('enrollments.id'))
+    title = db.Column("title", db.String(256))
+    description = db.Column("description", db.String(256))
+    materials = db.relationship("RequirementMaterial", backref='requirements_materials')
+    submissions = db.relationship("RequirementSubmission", backref='requirements_submissions')
+    progress = db.Column("progress", db.Enum('incomplete', 'evaluation', 'completed'), default='incomplete')
+
 class Enrollment(db.Model):
-    __tablename__ = "enrollment"
+    __tablename__ = "enrollments"
 
     id = db.Column("id", db.Integer, primary_key=True)
     course = db.Column("course", db.Integer, db.ForeignKey('courses.id'))
@@ -48,6 +73,7 @@ class Enrollment(db.Model):
     instructor = db.Column("instructor", db.Integer, db.ForeignKey('instructors.id'))
     student = db.Column("student", db.Integer, db.ForeignKey('students.id'))
     status = db.Column("status", db.Enum('completed', 'ongoing', 'pending'), default='pending')
+    requirements = db.relationship("Requirement", backref='enrollments')
 
 class Instructor(db.Model):
     __tablename__ = "instructors"

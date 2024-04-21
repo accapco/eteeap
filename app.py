@@ -31,7 +31,7 @@ app.register_blueprint(views, url_prefix='/index')
 @app.route('/')
 def _index():
     if 'user' in session:
-        return redirect(url_for('.index'))
+        return redirect('/index/home')
     return redirect('/login')
 
 @app.route('/login', methods=['GET', 'POST'])

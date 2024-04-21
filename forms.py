@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, HiddenField, SubmitField, SelectField, validators
+from wtforms import StringField, HiddenField, SubmitField, SelectField, TextAreaField, validators
 from flask_wtf.file import FileField, FileAllowed
 
 class UserForm(FlaskForm):
@@ -23,6 +23,12 @@ class CourseForm(FlaskForm):
     title = StringField('Title', validators=[validators.DataRequired()])
     code = StringField('Course Code', validators=[validators.DataRequired()])
     submit = SubmitField('Add Course')
+
+class RequirementForm(FlaskForm):
+    title = StringField('Title', validators=[validators.DataRequired()])
+    description = TextAreaField('Description', validators=[validators.DataRequired()])
+    material = FileField('Additional Resources')
+    submit = SubmitField('Post')
 
 class StatusConfirmationForm(FlaskForm):
     submit = SubmitField('Approve')
