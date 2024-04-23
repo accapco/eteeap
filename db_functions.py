@@ -1,7 +1,9 @@
 from app import app, db
 from models import *
 from sqlalchemy import func
+from uuid import uuid4
 import os
+import sys
 
 def get_user(user_id):
     return User.query.filter_by(id=user_id).first().__dict__
@@ -113,24 +115,37 @@ def get_requirements(enrollment_id):
     response = []
     for r in requirements:
         r = r.__dict__
+        r['description'] = r['description'].split('\n')
         r['materials'] = get_materials(r['id'])
         r['submissions'] = get_submissions(r['id'])
         response.append(r)
     return response
 
-def add_requirement(enrollment_id, data):
+def get_requirement(requirement_id):
+    return Requirement.query.filter_by(id=requirement_id).first().__dict__
+
+def add_requirement(enrollment_id, form):
     enrollment = Enrollment.query.filter_by(id=enrollment_id).first()
     new_requirement = Requirement(
         enrollment = enrollment.id,
-        title = data['title'],
-        description = data['description'],
+        title = form.title.data,
+        description = form.description.data,
         progress = 'incomplete'
     )
     try:
         db.session.add(new_requirement)
         db.session.commit()
+        for file in form.materials.data:
+            print(f'{file.filename}', file=sys.stdout)
+            filename = str(uuid4()) + os.path.splitext(file.filename)[1]
+            filepath = os.path.join(app.config['UPLOAD_FOLDER'], 'materials', filename)
+            file.save(filepath)
+            new_material = RequirementMaterial(filepath=filepath, requirement=new_requirement.id)
+            db.session.add(new_material)
+        db.session.commit()
         return "Requirement posted."
     except Exception as e:
+        db.session.rollback()
         return f"An error occured while posting the requirement: {e}"
 
 def get_materials(requirement_id):

@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, HiddenField, SubmitField, SelectField, TextAreaField, validators
-from flask_wtf.file import FileField, FileAllowed
+from wtforms import StringField, HiddenField, SubmitField, SelectField, TextAreaField, FieldList, FormField, validators
+from flask_wtf.file import FileField, MultipleFileField, FileAllowed
 
 class UserForm(FlaskForm):
     user_type = HiddenField()
@@ -10,7 +10,7 @@ class UserForm(FlaskForm):
     l_name = StringField('Last Name', validators=[validators.DataRequired()])
     password = StringField('Password', validators=[validators.DataRequired()])
     submit = SubmitField('Add User')
-
+    
 class DocumentForm(FlaskForm):
     file = FileField('Upload PDF File', validators=[validators.DataRequired(), FileAllowed(['pdf'], 'Only PDF files allowed')])
     submit = SubmitField('Upload')
@@ -27,7 +27,7 @@ class CourseForm(FlaskForm):
 class RequirementForm(FlaskForm):
     title = StringField('Title', validators=[validators.DataRequired()])
     description = TextAreaField('Description', validators=[validators.DataRequired()])
-    material = FileField('Additional Resources')
+    materials = MultipleFileField('Additional Resource(s)')
     submit = SubmitField('Post')
 
 class StatusConfirmationForm(FlaskForm):

@@ -43,6 +43,10 @@ input, textarea {
     margin-left: 52px;
 }
 
+textarea {
+    height: 100px;
+}
+
 .form-textbox {
     width: 380px;
     font-size: 18px;
@@ -363,11 +367,20 @@ button[disabled]:hover {
         grid-template-columns: 3fr 1fr 3fr;
         gap: 0 50px;
         align-items: center;
+        overflow: hidden;
     
         .left {
             grid-area: left;
             display: flex;
             flex-direction: column;
+            width: 302px;
+
+            .card-long-description {
+                max-height: 22px;
+                overflow: hidden;
+                white-space: nowrap;
+                text-overflow: ellipsis; 
+            }
         }
     
         .middle {
@@ -454,13 +467,39 @@ button[disabled]:hover {
                 margin-right: 16px;
             }
         }
-    }
-    
-    &.full.small {
-        height: 460px;
-    
-        ul li.table-row div.col{
-            font-size: 14px;
+
+        &.large {
+            height: 620px;
+
+            a {
+                font-size: 14px;
+            }
+
+            .card-strongtext {
+                margin: 0 54px;
+                font-size: 24px;
+            }
+
+            .card-text {
+                font-size: 14px;
+                margin: 0 54px;
+                padding-right: 106px;
+            }
+        
+            .card-subtext {
+                font-size: 12px;
+                font-style: normal;
+                margin: 0 54px;
+                line-height: 26px;
+            }
+        }
+
+        &.small {
+            height: 460px;
+        
+            ul li.table-row div.col{
+                font-size: 14px;
+            }
         }
     }
     

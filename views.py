@@ -14,20 +14,20 @@ user_views = {
         {'name': 'Instructors', 'link': '.instructors'},
         {'name': 'Students', 'link': '.admin_students'},
         {'name': 'Courses', 'link': '.courses'},
-        {'name': 'Message', 'link': '.message'},
+        # {'name': 'Message', 'link': '.message'},
         {'name': 'Manage Users', 'link': '.users'},
         {'name': 'Manage Account', 'link': '.account'},
     ],
     'instructor': [
-        {'name': 'Overview', 'link': '.dashboard_instructor'},
+        # {'name': 'Overview', 'link': '.dashboard_instructor'},
         {'name': 'Students', 'link': '.instructor_students'},
-        {'name': 'Message', 'link': '.message'},
+        # {'name': 'Message', 'link': '.message'},
         {'name': 'Manage Account', 'link': '.account'},
     ],
     'student': [
         {'name': 'Enrollment', 'link': '.enrollment'},
         {'name': 'Subjects', 'link': '.subjects'},
-        {'name': 'Message', 'link': '.message'},
+        # {'name': 'Message', 'link': '.message'},
         {'name': 'Manage Account', 'link': '.account'},
     ],
 }
@@ -149,6 +149,16 @@ def view_instructor_requirements(instructor_id, enrollment_id):
     course = f"{course['code']}: {course['title']}"
     return render_template('requirements-instructor.html', data=data, course=course, instructor_id=instructor_id, enrollment_id=enrollment_id)
 
+@views.route('/instructors/<instructor_id>/enrollments/<enrollment_id>/requirements/<requirement_id>', methods=["GET", "POST"])
+def view_instructor_requirement(instructor_id, enrollment_id, requirement_id):
+    if g.user != 'instructor':
+        return redirect(url_for('.unauthorized'))
+    data = db.get_requirement(requirement_id)
+    enrollment = db.get_enrollment(enrollment_id)
+    course = db.get_course(enrollment['course'])
+    course = f"{course['code']}: {course['title']}"
+    return render_template('requirement-student.html', data=data, course=course, instructor_id=instructor_id, enrollment_id=enrollment_id)
+
 @views.route('/students/<student_id>/enrollments/<enrollment_id>/requirements', methods=["GET", "POST"])
 def view_student_requirements(student_id, enrollment_id):
     if g.user != 'student':
@@ -159,6 +169,16 @@ def view_student_requirements(student_id, enrollment_id):
     course = f"{course['code']}: {course['title']}"
     return render_template('requirements-student.html', data=data, course=course, student_id=student_id, enrollment_id=enrollment_id)
 
+@views.route('/students/<student_id>/enrollments/<enrollment_id>/requirements/<requirement_id>', methods=["GET", "POST"])
+def view_student_requirement(student_id, enrollment_id, requirement_id):
+    if g.user != 'student':
+        return redirect(url_for('.unauthorized'))
+    data = db.get_requirement(requirement_id)
+    enrollment = db.get_enrollment(enrollment_id)
+    course = db.get_course(enrollment['course'])
+    course = f"{course['code']}: {course['title']}"
+    return render_template('requirement-student.html', data=data, course=course, student_id=student_id, enrollment_id=enrollment_id)
+
 @views.route('/instructors/<instructor_id>/enrollments/<enrollment_id>/requirements/add', methods=["GET", "POST"])
 def add_requirement(instructor_id, enrollment_id):
     if g.user != 'instructor':
@@ -166,8 +186,8 @@ def add_requirement(instructor_id, enrollment_id):
     form = RequirementForm()
     if form.validate_on_submit():
         try:
-            message = db.add_requirement(enrollment_id, form.data)
-            return redirect(url_for('.view_requirements', instructor_id=instructor_id, enrollment_id=enrollment_id))
+            message = db.add_requirement(enrollment_id, form)
+            return redirect(url_for('.view_instructor_requirements', instructor_id=instructor_id, enrollment_id=enrollment_id))
         except Exception as e:
             return jsonify({"message": f"{e}"}), 400
     return render_template('add_requirement.html', instructor_id=instructor_id, enrollment_id=enrollment_id, form=form)

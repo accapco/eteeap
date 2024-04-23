@@ -7,15 +7,15 @@
         <link rel="stylesheet" href= "{{ url_for('static',filename='styles/index.css') }}">
     </head>
     <body>
-        <div class="nav"><h3>Add Course</h3></div>
+        <div class="nav"><h3>Post a requirement for this class</h3></div>
         <div class="main-content">
-            <form action="/index/instructors/{{instructor_id}}/enrollments/{{enrollment_id}}/requirements/add" method="post">
+            <form action="/index/instructors/{{instructor_id}}/enrollments/{{enrollment_id}}/requirements/add" method="post" enctype="multipart/form-data">
                 {{ form.hidden_tag() }}
 
                 {{ form.title.label }} <br><br> {{ form.title(class='form-textbox') }} <br><br>
                 {{ form.description.label }} <br><br> {{ form.description(class='form-textbox') }} <br><br>
-                {{ form.material.label }} <br><br> {{ form.material() }} <br><br><br>
-                {{ form.submit() }} <br>
+                {{ form.materials.label }} <br><br> {{ form.materials() }} <br><br><br>
+                {{ form.submit() }}
             </form>
         </div>
     </body>

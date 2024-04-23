@@ -23,13 +23,19 @@
                     <div class="card bar color-white">
                         <div class="left">
                             <div class="card-text"> {{ d.title }} </div>
-                            <div class="card-long-description"> {{ d.description }} </div>
+                            <div class="card-long-description">
+                            {% for line in d.description %}
+                                {{ line }} <br>
+                            {% endfor %}
+                            </div>
                         </div>
                         <div class="middle">
                             <div class="cell smaller {{ d.progress }}">{{ d.progress|title }}</div>
                         </div>
                         <div class="right">
-                            <button class="btn-purple">Open</button>
+                            <a href="{{url_for('views.view_instructor_requirement', instructor_id=instructor_id, enrollment_id=enrollment_id, requirement_id=d.id)}}">
+                                <button class="btn-purple">Open</button>
+                            </a>
                         </div>
                     </div>
                 </div>
