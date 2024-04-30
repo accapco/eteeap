@@ -17,12 +17,71 @@
             <div class="main-row">
                 <div class="card full large">
                     <br><br>
-                    <div><a onclick="history.back()">< Back</a></div> <br><br>
+                    <div class="card-row">
+                        <div class="flex-60"><a href="/index/students/{{student_id}}/enrollments/{{enrollment_id}}/requirements">< Back</a></div>
+                        {% if data.progress == 'incomplete' %}
+                        <div class="card-subtext italic flex-10">Not submitted</div>
+                        <button class="smaller btn-green flex-20" onclick="location.replace('{{requirement_id}}/turn_in')">Turn in</button>
+                        {% elif data.progress == 'evaluation' %}
+                        <div class="card-subtext italic flex-10">Submitted</div>
+                        <button class="smaller btn-grey flex-20">Undo turn in</button>
+                        {% else %}
+                        <div class="card-subtext italic flex-10">Returned</div>
+                        <button class="smaller flex-20" disabled>Undo turn in</button>
+                        {% endif %}
+                    </div> <br><br>
                     <div class="card-strongtext"> {{data.title}} </div> <br>
-                    <div class="card-subtext"> Description </div>
-                    <div class="card-text"> {{data.description}} </div>
+                    <div class="card-subtext"> Description </div> <br>
+                    {% for line in data.description %}
+                        <div class="card-text"> {{line}} </div>
+                    {% endfor %}
+                    <br><br><br><hr><br>
+                    <div class="card-subtext"> Materials </div> 
+                    {% if data.materials %}
+                        {% for m in data.materials %}
+                        <div>
+                            <a class="file" href="/index/uploads/{{m.filepath}}" download>{{m.filename}}</a>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="card-text">None</div>
+                    {% endif %} <br><br><br><hr><br>
+                    <div class="card-subtext"> Submissions <a class="input" onclick="document.getElementById('attach-submission').click()">Attach File(s)</a> </div>
+                    {% if data.submissions %}
+                        {% for s in data.submissions %}
+                            <a class="file" href="/index/uploads/{{s.filepath}}" download>{{s.filename}}</a>
+                        {% endfor %}
+                    {% else %}
+                        <div class="card-text">None</div>
+                    {% endif %} 
+                    <br>
+                    <form id="submission-form" action="/index/students/{{student_id}}/enrollments/{{enrollment_id}}/requirements/{{requirement_id}}" method="post" enctype="multipart/form-data">
+                        {{ form.hidden_tag() }}
+                        {{ form.submissions(type="file", id="attach-submission", style="display:none") }}
+                        <button type="submit" id="submit-attachment" style="display:none;"></button>
+                    </form>
+                    <br><br><br><br>
                 </div>
             </div>
         </div>
     </body>
+    <script>
+        document.getElementById('attach-submission').addEventListener('change', function() {
+            document.getElementById('submit-attachment').click();
+        });
+    
+        document.getElementById('submission-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+    
+            var formData = new FormData(this);
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', this.action, true);
+            xhr.onload = function() {
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    location.reload();
+                }
+            };
+            xhr.send(formData);
+        });
+    </script>
 </html>

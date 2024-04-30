@@ -44,6 +44,7 @@ class RequirementMaterial(db.Model):
 
     id = db.Column("id", db.Integer, primary_key=True)
     filepath = db.Column("filepath", db.String(64))
+    filename = db.Column("filename", db.String(64))
     requirement = db.Column("requirement", db.Integer, db.ForeignKey('requirements.id'))
 
 class RequirementSubmission(db.Model):
@@ -51,6 +52,7 @@ class RequirementSubmission(db.Model):
 
     id = db.Column("id", db.Integer, primary_key=True)
     filepath = db.Column("filepath", db.String(64))
+    filename = db.Column("filename", db.String(64))
     requirement = db.Column("requirement", db.Integer, db.ForeignKey('requirements.id'))
 
 class Requirement(db.Model):

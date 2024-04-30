@@ -122,7 +122,11 @@ def get_requirements(enrollment_id):
     return response
 
 def get_requirement(requirement_id):
-    return Requirement.query.filter_by(id=requirement_id).first().__dict__
+    response = Requirement.query.filter_by(id=requirement_id).first().__dict__
+    response['materials'] = get_materials(requirement_id)
+    response['description'] = response['description'].split('\n')
+    response['submissions'] = get_submissions(requirement_id)
+    return response
 
 def add_requirement(enrollment_id, form):
     enrollment = Enrollment.query.filter_by(id=enrollment_id).first()
@@ -136,11 +140,10 @@ def add_requirement(enrollment_id, form):
         db.session.add(new_requirement)
         db.session.commit()
         for file in form.materials.data:
-            print(f'{file.filename}', file=sys.stdout)
             filename = str(uuid4()) + os.path.splitext(file.filename)[1]
             filepath = os.path.join(app.config['UPLOAD_FOLDER'], 'materials', filename)
             file.save(filepath)
-            new_material = RequirementMaterial(filepath=filepath, requirement=new_requirement.id)
+            new_material = RequirementMaterial(filepath=filepath, filename=file.filename, requirement=new_requirement.id)
             db.session.add(new_material)
         db.session.commit()
         return "Requirement posted."
@@ -161,6 +164,38 @@ def get_submissions(requirement_id):
     for s in submissions:
         response.append(s.__dict__)
     return response
+
+def add_submission(requirement_id, form):
+    try:
+        for file in form.submissions.data:
+            filename = str(uuid4()) + os.path.splitext(file.filename)[1]
+            filepath = os.path.join(app.config['UPLOAD_FOLDER'], 'submissions', filename)
+            file.save(filepath)
+            new_submission = RequirementSubmission(filepath=filepath, filename=file.filename, requirement=requirement_id)
+            db.session.add(new_submission)
+        db.session.commit()
+        return "Requirement posted."
+    except Exception as e:
+        db.session.rollback()
+        return f"An error occured while posting the requirement: {e}"
+
+def turn_in_submission(requirement_id):
+    requirement = Requirement.query.filter_by(id=requirement_id).first()
+    if requirement.progress == 'incomplete':
+        requirement.progress = 'evaluation'
+        db.session.commit()
+        return "Successfully turned in."
+    else:
+        return "Invalid operation."
+    
+def return_submission(requirement_id):
+    requirement = Requirement.query.filter_by(id=requirement_id).first()
+    if requirement.progress == 'evaluation':
+        requirement.progress = 'completed'
+        db.session.commit()
+        return "Successfully returned."
+    else:
+        return "Invalid operation."
 
 def get_student(user_id):
     student = Student.query.filter_by(user=user_id).first().__dict__

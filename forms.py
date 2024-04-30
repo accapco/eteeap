@@ -30,6 +30,10 @@ class RequirementForm(FlaskForm):
     materials = MultipleFileField('Additional Resource(s)')
     submit = SubmitField('Post')
 
+class SubmissionForm(FlaskForm):
+    submissions = MultipleFileField('Attach File(s)')
+    submit = SubmitField('Submit')
+
 class StatusConfirmationForm(FlaskForm):
     submit = SubmitField('Approve')
 

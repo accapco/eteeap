@@ -157,7 +157,7 @@ def view_instructor_requirement(instructor_id, enrollment_id, requirement_id):
     enrollment = db.get_enrollment(enrollment_id)
     course = db.get_course(enrollment['course'])
     course = f"{course['code']}: {course['title']}"
-    return render_template('requirement-student.html', data=data, course=course, instructor_id=instructor_id, enrollment_id=enrollment_id)
+    return render_template('requirement-instructor.html', data=data, course=course, instructor_id=instructor_id, enrollment_id=enrollment_id, requirement_id=requirement_id)
 
 @views.route('/students/<student_id>/enrollments/<enrollment_id>/requirements', methods=["GET", "POST"])
 def view_student_requirements(student_id, enrollment_id):
@@ -173,11 +173,37 @@ def view_student_requirements(student_id, enrollment_id):
 def view_student_requirement(student_id, enrollment_id, requirement_id):
     if g.user != 'student':
         return redirect(url_for('.unauthorized'))
+    form = SubmissionForm()
     data = db.get_requirement(requirement_id)
     enrollment = db.get_enrollment(enrollment_id)
     course = db.get_course(enrollment['course'])
     course = f"{course['code']}: {course['title']}"
-    return render_template('requirement-student.html', data=data, course=course, student_id=student_id, enrollment_id=enrollment_id)
+    if form.validate_on_submit():
+        try:
+            message = db.add_submission(requirement_id, form)
+        except Exception as e:
+            return jsonify({"message": f"{e}"}), 400
+    return render_template('requirement-student.html', data=data, form=form, course=course, student_id=student_id, enrollment_id=enrollment_id, requirement_id=requirement_id)
+
+@views.route('/students/<student_id>/enrollments/<enrollment_id>/requirements/<requirement_id>/turn_in')
+def turn_in_submission(student_id, enrollment_id, requirement_id):
+    if g.user != 'student':
+        return redirect(url_for('.unauthorized'))
+    try:
+        message = db.turn_in_submission(requirement_id)
+        return redirect(url_for('.view_student_requirement', student_id=student_id, enrollment_id=enrollment_id, requirement_id=requirement_id))
+    except Exception as e:
+        return jsonify({"message": f"{e}"}), 400
+    
+@views.route('/instructors/<instructor_id>/enrollments/<enrollment_id>/requirements/<requirement_id>/return')
+def return_submission(instructor_id, enrollment_id, requirement_id):
+    if g.user != 'instructor':
+        return redirect(url_for('.unauthorized'))
+    try:
+        message = db.return_submission(requirement_id)
+        return redirect(url_for('.view_instructor_requirement', instructor_id=instructor_id, enrollment_id=enrollment_id, requirement_id=requirement_id))
+    except Exception as e:
+        return jsonify({"message": f"{e}"}), 400
 
 @views.route('/instructors/<instructor_id>/enrollments/<enrollment_id>/requirements/add', methods=["GET", "POST"])
 def add_requirement(instructor_id, enrollment_id):
@@ -312,6 +338,13 @@ def get_receipt(user_id):
 @views.route('/uploads/documents/<user_id>')
 def get_document(user_id):
     return send_from_directory(os.path.join(app.config['UPLOAD_FOLDER'], 'documents'), 'document_' + str(user_id) + '.pdf')
+
+@views.route('/uploads/<path:fp>')
+def ref_fp(fp):
+    path = os.path.split(fp)
+    directory = '/'.join(path[:-1])
+    filename = path[-1]
+    return send_from_directory(directory, filename)
 
 @views.route('/students/<student_id>/approve/<progress>', methods=['GET', 'POST'])
 def approve_document(student_id, progress):
