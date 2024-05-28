@@ -3,12 +3,36 @@
 
 {% block content %}
 <div class="main-content">
+    <form action="/index/admin_students" method="post">
+        <div class="form-row filters">
+            {{ form.hidden_tag() }}
+
+            <div class="field width-15">
+                {{ form.ay.label() }}
+                {{ form.ay(class="text") }}
+            </div>
+            <div class="field width-15">
+                {{ form.semester.label() }}
+                {{ form.semester(class="text") }}
+            </div>
+            <div class="field width-10">
+                {{ form.submit(class='submit grey width-100') }}
+            </div>
+        </div>
+    </form>
     {% for student in data.students %}
     <div class="main-row">
         <div class="card bar color-white">
             <div class="left">
                 <div class="card-strongtext"> {{ student.name}} </div>
-                <div class="card-subtext">{{ student.username }} — {{ student.uid }}</div>
+                <div class="card-subtext">
+                    {% if student.tup_id %}
+                        {{ student.tup_id }}
+                    {% else %}
+                        TUP ID not set
+                    {% endif %}
+                </div>
+                <div class="card-subtext smaller">{{ student.program }}</div>
             </div>
             <div class="middle">
                 <div class="cell {{ student.progress }}"> {{ student.progress.title() }} </div>
@@ -27,7 +51,9 @@
                     <button disabled>No doc</button>
                     <button disabled>Approve</button>
                 {% elif student.progress == 'enrollment' %}
-                    <button class="btn-purple" onclick="modifyStudentCourses('{{student.id}}')">Enroll student</button>
+                    <button class="btn-green" onclick="modifyStudentCourses('{{student.id}}')">Enroll student</button>
+                {% elif student.progress == 'enrolled' %}
+                <button class="btn-student" disabled>View Subjects</button>
                 {% else %}
                 {% endif %}
             </div>

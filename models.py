@@ -23,14 +23,42 @@ class User(db.Model):
     f_name = db.Column("f_name", db.String(64))
     m_name = db.Column("m_name", db.String(64))
     l_name = db.Column("l_name", db.String(64))
+    ext_name = db.Column("ext_name", db.String(5))
+    civil_status = db.Column("civil_status", db.Enum('Single', 'Married', 'Legally Separated', 'Widowed'))
+    citizenship = db.Column("citizenship", db.String(20))
+    birthyear = db.Column("birthyear", db.Integer)
+    birthmonth = db.Column("birthmonth", db.Integer)
+    birthday = db.Column("birthday", db.Integer)
+    gender = db.Column("gender", db.Enum('M', 'F'))
+    email = db.Column("email", db.String(64))
+    contact_no = db.Column("contact_no", db.String(64))
+    address = db.Column("address", db.String(100))
     password = db.Column("password", db.String(64), nullable=False)
     user_type = db.Column(db.Enum('admin', 'instructor', 'student'), nullable=False)
-    
+    ft_login = db.Column("ft_login", db.Boolean, default=True)
+
 class Admin(db.Model):
     __tablename__ = "admin"
 
     id = db.Column("id", db.Integer, primary_key=True)
     user = db.Column("user", db.Integer, db.ForeignKey('users.id'))
+
+class College(db.Model):
+    __tablename__ = "colleges"
+
+    id = db.Column("id", db.Integer, primary_key=True)
+    name = db.Column("name", db.String(64))
+    abbr = db.Column("abbr", db.String(10))
+    programs = db.relationship("Program", backref=db.backref("college"))
+
+class Program(db.Model):
+    __tablename__ = "programs"
+
+    id = db.Column("id", db.Integer, primary_key=True)
+    name = db.Column("name", db.String(64))
+    abbr = db.Column("abbr", db.String(10))
+    courses = db.relationship("Course", backref=db.backref("program"))
+    college_id = db.Column(db.Integer, db.ForeignKey("colleges.id"))
 
 class Course(db.Model):
     __tablename__ = "courses"
@@ -38,6 +66,7 @@ class Course(db.Model):
     id = db.Column("id", db.Integer, primary_key=True)
     title = db.Column("title", db.String(64))
     code = db.Column("code", db.String(8))
+    program_id = db.Column(db.Integer, db.ForeignKey("programs.id"))
 
 class RequirementMaterial(db.Model):
     __tablename__ = "requirement_materials"
@@ -72,9 +101,15 @@ class Enrollment(db.Model):
     id = db.Column("id", db.Integer, primary_key=True)
     course = db.Column("course", db.Integer, db.ForeignKey('courses.id'))
     units = db.Column("units", db.Integer)
+    ay = db.Column("academic_year", db.Integer)
+    semester = db.Column("semester", db.Enum('1st', '2nd'))
     instructor = db.Column("instructor", db.Integer, db.ForeignKey('instructors.id'))
     student = db.Column("student", db.Integer, db.ForeignKey('students.id'))
-    status = db.Column("status", db.Enum('completed', 'ongoing', 'pending'), default='pending')
+    status = db.Column("status", db.Enum('pending', 'ongoing', 'completed'), default='pending')
+    grade = db.Column("grade", db.Float)
+    form1 = db.Column("form1path", db.String(64))
+    form2 = db.Column("form2path", db.String(64))
+    form3 = db.Column("form3path", db.String(64))
     requirements = db.relationship("Requirement", backref='enrollments')
 
 class Instructor(db.Model):
@@ -89,7 +124,11 @@ class Student(db.Model):
 
     id = db.Column("id", db.Integer, primary_key=True)
     user = db.Column("user", db.Integer, db.ForeignKey('users.id'))
-    progress = db.Column(db.Enum('payment', 'evaluation', 'enrollment', 'completion'), nullable=False, default='payment')
+    progress = db.Column(db.Enum('payment', 'evaluation', 'enrollment', 'enrolled', 'completion'), nullable=False, default='payment')
+    program = db.Column("program", db.Integer, db.ForeignKey('programs.id'))
+    ay = db.Column("academic_year", db.Integer)
+    tup_id = db.Column("tup_id", db.String(20))
+    semester = db.Column("semester", db.Enum('1st', '2nd'))
     receipt_filepath = db.Column("receipt_filepath", db.String(64))
     document_filepath = db.Column("application_document_filepath", db.String(64))
     enrollments = db.relationship("Enrollment", backref='students')

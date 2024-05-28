@@ -9,43 +9,72 @@
     <body>
         <div class="nav"><h3>Enroll Student</h3></div>
         <div class="main-content">
+            {% if not data.student.program or not data.student.ay or not data.student.semester %}
+            <div class="main-row">
+                <form action="/index/students/{{data.student.id}}/enroll/program" method="post">
+                    <p><strong>Student:</strong> {{ data.student.name }}</p>
+                    <br><br>
+                    {{ programs_form.hidden_tag() }}
+    
+                    <div class="inline">{{ programs_form.academic_year.label(class="even") }} {{ programs_form.academic_year(class="spaced", value=data.academic_year, readonly="True") }}</div> <br>
+                    <div class="inline">{{ programs_form.semester.label(class="even") }} {{ programs_form.semester(class="spaced", value=data.semester, readonly="True") }}</div> <br>
+                    <div class="inline">{{ programs_form.programs_select.label(class="even") }} {{ programs_form.programs_select(class="spaced") }}</div> <br><br>
+    
+                    {{ programs_form.submit() }}
+                    <div>
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            <ul class=flashes>
+                                {% for category, message in messages %}
+                                <li class="{{ category }}">{{ message }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                    {% endwith %}
+                    </div>
+                </form>
+            </div>
+            {% else %}
             <div class="main-row">
                 <div class="center">
                     <div class="card full small color-white no-margin">
                         <div class="card-header">
                             <div class="left">
-                                <h4>
+                                <div class="card-text">
                                     {{ data.student.name }}
-                                </h4>
+                                </div>
+                                <div class="card-subtext">
+                                    {{ data.student.program }}
+                                </div>
                             </div>
                             <div class="right">
                                 <p><small>{{ data.student.username }}</small></p>
-                                <p><small>ID - {{ data.student.user }}</small></p>
+                                <p><small>{{ data.student.tup_id }}</small></p>
                             </div>
                         </div>
                         {% if data.enrolled|length > 0 %}
                         <ul class="stylized-table">
-                            <li class="table-header">
-                                <div class="col col-2">SUBJECT CODE</div>
+                            <li class="table-header smaller">
+                                <div class="col col-2">COURSE CODE</div>
                                 <div class="col col-2">TITLE</div>
                                 <div class="col col-2">INSTRUCTOR</div>
                                 <div class="col col-2">STATUS</div>
                             </li>
                             {% for e in data.enrolled %}
-                            <li class="table-row">
+                            <li class="table-row smaller">
                                 <div class="col col-2" data-label="code">{{ e.course.code }}</div>
                                 <div class="col col-2" data-label="title">{{ e.course.title }}</div>
                                 <div class="col col-2" data-label="instructor">
                                     {{ e.instructor.l_name|title }}, {{ e.instructor.f_name }} {{ e.instructor.m_name[0] }}.
                                 </div>
                                 <div class="col col-2">
-                                   <div class="cell smaller {{ e.status }}">{{ e.status }}</div>
+                                    <div class="cell smaller {{ e.status }}">{{ e.status }}</div>
                                 </div>
                             </li>
                             {% endfor %}
                         </ul>
                         {% else %}
-                        <p>Student not yet enrolled.</p>
+                        <p>Student not yet enrolled to any subjects.</p>
                         {% endif %}
                     </div>
                 </div>
@@ -54,14 +83,14 @@
             <br><br>
 
             <div class="main-row">
-                <form action="/index/students/{{data.student.id}}/courses" method="post">
-                    {{ form.hidden_tag() }}
+                <form action="/index/students/{{data.student.id}}/enroll/course" method="post">
+                    {{ courses_form.hidden_tag() }}
     
-                    {{ form.courses_select.label(class='no-margin') }} {{ form.courses_select() }}
-                    {{ form.instructors_select.label() }} {{ form.instructors_select() }} <br><br><br>
+                    {{ courses_form.courses_select.label(class='no-margin') }} {{ courses_form.courses_select() }}
+                    {{ courses_form.instructors_select.label() }} {{ courses_form.instructors_select() }} <br><br><br>
 
                     <div class="inline">
-                        {{ form.submit(class='no-margin') }}
+                        {{ courses_form.submit(class='no-margin') }}
     
                         <div>
                         {% with messages = get_flashed_messages(with_categories=true) %}
@@ -77,6 +106,7 @@
                     </div>
                 </form>
             </div>
+            {% endif %}
         </div>
     </body>
 </html>

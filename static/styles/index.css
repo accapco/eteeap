@@ -30,6 +30,17 @@ a {
     color: white;
 }
 
+.back {
+    font-size: 14px;
+    color: #02367e;
+    margin-bottom: 36px;
+
+    &:hover {
+        border-bottom: none;
+        opacity: 80%;
+    }
+}
+
 a:hover {
     border-bottom: 1px solid white;
     cursor: pointer;
@@ -47,22 +58,214 @@ textarea {
     height: 100px;
 }
 
-.form-textbox {
-    width: 380px;
-    font-size: 18px;
-    padding: 8px 10px;
-    border: none;
+.form-row {
+    position: relative;
+    margin: 10px 40px;
+    display: flex;
+    gap: 20px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+
+    &.filters {
+        margin: 10px 72px;
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        align-items: center;
+        padding-right: 72px;
+    }
+
+    select {
+        height: 16px;
+    }
+
+    option {
+        border: 1px solid black
+    }
+
+    input[type=number] {
+        padding: 0;
+        height: 16px;
+    }
+
+    .field {
+        position: relative;
+        display: flex;
+        flex-direction: row;
+        margin: 0;
+        width: 100%;
+        margin-bottom: 28px;
+
+        &.width-100 {
+            flex-basis: 100%;
+        }
+        &.width-70 {
+            flex-basis: 70%;
+        }
+        &.width-50 {
+            flex-basis: 50%;
+        }
+        &.width-35 {
+            flex-basis: 35%;
+        }
+        &.width-30 {
+            flex-basis: 30%;
+        }
+        &.width-25 {
+            flex-basis: 25%;
+        }
+        &.width-20 {
+            flex-basis: 20%;
+        }
+        &.width-15 {
+            flex-basis: 15%;
+        }
+        &.width-10 {
+            flex-basis: 10%;
+        }
+
+        label {
+            position: absolute;
+            align-self: start;
+            justify-self: start;
+            top: -18px;
+            left: 8px;
+            margin: 0;
+            color: #344055;
+            font-size: 12px;
+            font-weight: bold;
+            letter-spacing: 0.05em;
+        }
+
+        .text {
+            width: 100%;
+            margin: 0;
+            background-color: white;
+            font-size: 14px;
+            padding: 12px 10px;
+            border: 1px solid #34405550;
+            border-bottom: 2px solid #344055a4;
+            border-radius: 4px;
+            transition: ease-in-out, width .35s ease-in-out;
+            -ms-box-sizing: content-box;
+            -moz-box-sizing: content-box;
+            -webkit-box-sizing: content-box; 
+            box-sizing: content-box;
+        }
+        
+        .text[readonly] {
+            color: black;
+            background-color: #34405514;
+            border-bottom: 2px solid #344055a1;
+    
+            &::placeholder {
+                color: #13141798;
+            }
+        }
+        
+        .text:focus {
+            outline: none;
+            border-bottom: 2px solid #266DD3;
+        }
+    
+        button {
+            width: 100%;
+            margin: 0px;
+        }
+
+        .submit {
+            max-width: none;
+            margin: 0px;
+
+            &.grey {
+                background-color: rgba(55, 55, 55, 0.9);
+            }
+
+            &.width-100 {
+                width: 100%;
+            }
+            &.width-50 {
+                width: 50%;
+            }
+            &.width-25 {
+                width: 25%;
+            }
+
+            &[disabled] {
+                opacity: 0;
+
+                &:hover {
+                    cursor: default;
+                }
+            }
+        }
+    }
+
+    .section-header {
+        width: 100%;
+        text-align: left;
+        margin-bottom: 10px;
+        font-size: 18px;
+        color: #344055;
+        display: flex;
+        align-items: center;
+    
+        p {
+            width: 100%;
+            margin: 0;
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+        }
+    
+        .subtext {
+            margin-left: auto;
+            margin-right: 16px;
+            color: #344055ce;
+            font-size: 13px;
+            line-height: 13px;
+        }
+
+        .message {
+            color: #4ec91a;
+        }
+
+        .error {
+            color: #be3222;
+        }
+    
+        a {
+            color: #02367e;
+            margin-left: 16px;
+            font-size: 12px;
+            font-style: italic;
+        
+            &:hover {
+                border-bottom: none;
+                opacity: 80%;
+            }
+        }
+    }
+}
+
+select.form-field {
+    width: 125px;
+    background-color: white;
+    font-size: 14px;
+    padding: 12px 10px;
+    border: 1px solid #34405550;
+    border-bottom: 2px solid #344055a4;
     border-radius: 4px;
-    margin-bottom: 12px;
+    margin-bottom: 20px;
     transition: ease-in-out, width .35s ease-in-out;
+    -ms-box-sizing: content-box;
+    -moz-box-sizing: content-box;
+    -webkit-box-sizing: content-box; 
+    box-sizing: content-box;
 }
 
-.form-textbox:focus {
-    outline: none;
-    border-bottom: 2px solid #266DD3;
-}
-
-select {
+select, input[type="number"] {
     width: 200px;
     line-height: 22px;
     font-size: 16px;
@@ -98,7 +301,6 @@ input[type="submit"] {
     max-width: 102px;
 }
 
-
 input[type="submit"]:hover {
     opacity: 75%;
     cursor: pointer;
@@ -109,12 +311,34 @@ label {
     margin-bottom: 8px;
 }
 
+select.spaced, input.spaced {
+    -ms-box-sizing: content-box;
+    -moz-box-sizing: content-box;
+    -webkit-box-sizing: content-box; 
+    box-sizing: content-box;
+    display: inline;
+    padding: 6px 8px;
+    margin-left: 18px;
+    width: 30%;
+    height: 26px;
+}
+
+label.even {
+    width: 100px;
+}
+
 button {
     color: white;
     font-size: 14px;
     padding: 12px;
     border: none;
     border-radius: 6px;
+
+    &.smaller {
+        font-size: 12px;
+        padding: 12px 8px;
+        max-width: 112px;
+    }
 }
 
 button:hover {
@@ -146,12 +370,6 @@ button[disabled]:hover {
 
 .btn-purple {
     background-color: rgba(153, 111, 192, 0.9);
-}
-
-button.smaller {
-    font-size: 12px;
-    padding: 12px 8px;
-    max-width: 112px;
 }
 
 .view {
@@ -252,8 +470,8 @@ button.smaller {
 .main-content {
     position: relative;
     width: 100%;
-    height: 100%;
-    margin-top: 32px;
+    height: calc(100vh - 114px);
+    padding-top: 16px;
     display: flex;
     flex-direction: column;
 
@@ -315,7 +533,14 @@ button.smaller {
         text-align: left;
         font-weight: bold;
         margin-left: 24px;
-        font-style: italic;
+        margin-bottom: 4px;
+        font-style: normal;
+
+        &.smaller {
+            font-size: 14px;
+            font-weight: normal;
+            font-style: normal;
+        }
     }
 
     .card-long-description {
@@ -466,7 +691,14 @@ button.smaller {
             }
     
             .left {
-                margin-left: 16px
+                margin-left: 16px;
+
+                .card-text {
+                    margin-left: 0px;
+                }
+                .card-subtext {
+                    margin-left: 0px;
+                }
             }
     
             .right {
@@ -602,6 +834,13 @@ button.smaller {
         display: flex;
         justify-content: space-between;
         margin-bottom: 25px;
+
+        &.smaller {
+            font-size: 14px;
+            font-weight: lighter;
+            padding: 20px 30px;
+            margin-bottom: 12px;
+        }
     }
     .table-header {
         position: -webkit-sticky;
@@ -679,6 +918,8 @@ button.smaller {
 .flashes {
     margin-left: 52px;
     list-style-type: none;
+    display: block;
+    max-width: 320px;
 }
 
 .error {
@@ -711,12 +952,12 @@ button.smaller {
         color: black;
     }
 
-    &.enrollment {
+    &.enrollment, &.ongoing {
         background-color: rgb(152, 236, 78);
         color: black;
     }
     
-    &.completion, &.ongoing, &.completed {
+    &.completion, &.completed {
         background-color: rgba(20, 4, 124, 0.5);
         color: black;
     }
@@ -735,5 +976,43 @@ button.smaller {
 }
 
 .no-margin {
+    margin: 0px;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    overflow: hidden;
+    z-index: 10;
     margin: 0;
+    left: 0;
+    top: 0;
+    width: 100vw;
+    height: 100vh;
+    overflow: auto;
+    background-color: rgb(0,0,0);
+    background-color: rgba(0,0,0,0.4);
+}
+
+.modal-content {
+    background-color: #ffffff;
+    overflow: hidden;
+    margin: 8% auto;
+    padding: 20px;
+    border-radius: 10px;
+    width: 40%;
+}
+
+.close {
+    float: right;
+    color: #aaa;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
 }

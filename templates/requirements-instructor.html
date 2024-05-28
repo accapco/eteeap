@@ -12,9 +12,14 @@
                 <h3>{{ course }}</h3>
                 <p>Class Requirements</p>
             </div>
-            <a href="{{ url_for('views.add_requirement', instructor_id=instructor_id, enrollment_id=enrollment_id) }}">
-                <button class="btn-green">Add Requirement</button>
-            </a>
+            <div>
+                <a href="{{ url_for('views.submit_grade', instructor_id=instructor_id, enrollment_id=enrollment_id) }}">
+                    <button class="btn-grey">Submit Grade</button>
+                </a>
+                <a href="{{ url_for('views.add_requirement', instructor_id=instructor_id, enrollment_id=enrollment_id) }}">
+                    <button class="btn-green">Add Requirement</button>
+                </a>
+            </div>
         </div>
         <div class="main-content">
             {% if data %}

@@ -1,0 +1,76 @@
+{% extends "index.html" %}
+
+
+{% block content %}
+<div class="main-row">
+    <div class="card full">
+        <br>
+        <form action="/index/system" method="post">
+            {{ form.hidden_tag() }}
+            <div class="form-row">
+                <div class="section-header">
+                    <p>
+                        System Settings
+                        <a>Edit</a>
+                        {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                            <span class="subtext {{category}}">{{ message }}</span>
+                            {% endfor %}
+                        {% endif %}
+                        {% endwith %}
+                    </p>
+                </div>
+            </div><br>
+            <div class="form-row">
+                <div class="field width-50">
+                    {{ form.academic_year.label() }}
+                    {{ form.academic_year(class="toggle text", value=data.academic_year, placeholder="Academic Year", readonly=True) }}
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="field width-50">
+                    {{ form.semester.label() }}
+                    {{ form.semester(class="toggle text", value=data.semester, placeholder="Semester", readonly=True) }}
+                </div>
+            </div><br>
+            <div class="form-row">
+                <div class="field width-50">
+                    {{ form.submit(class="submit toggle width-100", disabled="True") }}
+                </div>
+            </div>
+        </form><br>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const editLink = document.querySelector('.section-header p a');
+    const formFields = document.querySelectorAll('form .toggle');
+    const submitButton = document.querySelector('form .submit.toggle');
+    let originalValues = {};
+
+    editLink.addEventListener('click', function(event) {
+        event.preventDefault();
+
+        if (editLink.textContent === 'Edit') {
+            formFields.forEach(field => {
+                originalValues[field.name] = field.value;
+                field.removeAttribute('readonly');
+            });
+            submitButton.removeAttribute('disabled');
+            editLink.textContent = 'Undo Edit';
+        } else {
+            formFields.forEach(field => {
+                field.value = originalValues[field.name];
+                field.setAttribute('readonly', 'true');
+            });
+            submitButton.setAttribute('disabled', 'true');
+            editLink.textContent = 'Edit';
+        }
+    });
+});
+</script>
+
+
+{% endblock %}

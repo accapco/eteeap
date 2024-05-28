@@ -7,15 +7,33 @@
         <link rel="stylesheet" href= "{{ url_for('static',filename='styles/index.css') }}">
     </head>
     <body>
-        <div class="nav"><h3>Post a requirement for this class</h3></div>
+        <div class="nav">
+            <h3>Post a requirement for this class</h3>
+        </div>
         <div class="main-content">
             <form action="/index/instructors/{{instructor_id}}/enrollments/{{enrollment_id}}/requirements/add" method="post" enctype="multipart/form-data">
                 {{ form.hidden_tag() }}
 
-                {{ form.title.label }} <br><br> {{ form.title(class='form-textbox') }} <br><br>
-                {{ form.description.label }} <br><br> {{ form.description(class='form-textbox') }} <br><br>
-                {{ form.materials.label }} <br><br> {{ form.materials() }} <br><br><br>
-                {{ form.submit() }}
+                <div class="form-row">
+                    <a class="back" href="/index/instructors/{{instructor_id}}/enrollments/{{enrollment_id}}/requirements">< Back</a>
+                </div>
+                <div class="form-row">
+                    <div class="field width-50">
+                        {{ form.title.label() }} 
+                        {{ form.title(class='text', placeholder="Title") }}
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="field width-50">
+                        {{ form.description.label() }} 
+                        {{ form.description(class='text', placeholder="Description") }}
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="field">
+                        {{ form.submit(class='submit width-50') }}
+                    </div>
+                </div>
             </form>
         </div>
     </body>

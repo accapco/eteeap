@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <title>ETEEAP</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href= "{{ url_for('static',filename='styles/index.css') }}">
+    </head>
+    <body>
+        <div class="nav">
+            <h3>Grade Submission</h3>
+        </div>
+        <div class="main-content">
+            <form action="/index/instructors/{{instructor_id}}/enrollments/{{enrollment_id}}/submit_grade" method="post" enctype="multipart/form-data">
+                {{ form.hidden_tag() }}
+
+                <div class="form-row">
+                    <a class="back" href="/index/instructors/{{instructor_id}}/enrollments/{{enrollment_id}}/requirements">< Back</a>
+                </div>
+
+                <div class="form-row">
+                    <div class="section-header">
+                        <p>Grade Submission Forms 
+                            <a href="{{ url_for('views.get_grade_submission_form1') }}" download>Download Form 1</a>
+                            <a href="{{ url_for('views.get_grade_submission_form2') }}" download>Download Form 2</a>
+                            <a href="{{ url_for('views.get_grade_submission_form3') }}" download>Download Form 3</a>
+                        </p>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="section-header">
+                        <p class="subtext">
+                            Student Name: {{ data.name }} <br> 
+                            Subject Code: {{ data.course }}
+                        </p>
+                    </div>
+                </div><br><br>
+
+                <div class="form-row">
+                    <div class="field width-50">
+                        {{ form.grade.label() }} 
+                        {{ form.grade(class='text') }}
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="field width-50">
+                        {{ form.file1.label() }} 
+                        {{ form.file1(class='text', placeholder="File 1") }}
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="field width-50">
+                        {{ form.file2.label() }} 
+                        {{ form.file2(class='text', placeholder="File 2") }}
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="field width-50">
+                        {{ form.file3.label() }} 
+                        {{ form.file3(class='text', placeholder="File 3") }}
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="field">
+                        {{ form.submit(class='submit width-50') }}
+                    </div>
+                </div>
+            </form>
+        </div>
+    </body>
+</html>

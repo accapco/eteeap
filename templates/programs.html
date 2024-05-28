@@ -1,0 +1,45 @@
+{% extends "index.html" %}
+
+
+{% block content %}
+
+<div class="main-row">
+    <div class="card side color-white">
+        <div class="inline">
+            <h3>List of Programs</h3>
+        </div>
+        {% if data is defined and data|length > 0 %}
+            {% for college in data %}
+            <ul class="stylized-table">
+                <li class="table-header">
+                    <div class="col">{{ college.abbr }}: {{ college.name }}</div>
+                </li>
+                {% for program in college.programs %}
+                <li class="table-row smaller">
+                    <div class="col col-6">{{ program.name }}</div>
+                    <div class="col col-2">
+                        <button class="btn-grey smaller">Subjects</button>
+                    </div>
+                </li>
+                {% endfor %}
+                <br><br>
+            </ul>
+            {% endfor %}
+        {% else %}
+        <br><br>
+        <p>No programs have been created.</p>
+        {% endif %}
+    </div>
+</div class="main-row">
+
+<script>
+    function addProgram() {
+        var url = '/index/programs/add_program';
+        left = (screen.width - 600) / 2;
+        top = (screen.height - 600) / 4;
+        var features = 'width=600,height=600,left='+left+',top='+top;;
+        window.open(url, name, features);
+    }
+</script>
+
+{% endblock %}

@@ -3,5 +3,175 @@
 
 {% block content %}
 <div class="main-row">
+    <div class="card full">
+        <br>
+        <form action="/index/account" method="post">
+            {{ form.hidden_tag() }}
+            <div class="form-row">
+                <div class="section-header">
+                    <p>
+                        Account Details 
+                        <a>Edit</a>
+                        {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                            <span class="subtext {{category}}">{{ message }}</span>
+                            {% endfor %}
+                        {% endif %}
+                        {% endwith %}
+                    </p>
+                </div>
+            </div><br>
+            {% if user_type == 'student' %}
+            <div class="form-row">
+                <div class="field width-35">
+                    {{ form.tup_id.label() }}
+                    {{ form.tup_id(class="toggle text", value=data.tup_id, placeholder="TUP Student ID", readonly=True) }}
+                </div>
+            </div>
+            {% endif %}
+            <div class="form-row">
+                <div class="field width-25">
+                    {{ form.l_name.label() }}
+                    {{ form.l_name(class="toggle text", value=data.l_name, placeholder="Last Name", readonly=True) }}
+                </div>
+                <div class="field width-35">
+                    {{ form.f_name.label() }}
+                    {{ form.f_name(class="toggle text", value=data.f_name, placeholder="First Name", readonly=True) }}
+                </div>
+                <div class="field width-25">
+                    {{ form.m_name.label() }}
+                    {{ form.m_name(class="toggle text", value=data.m_name, placeholder="Middle Name", readonly=True) }}
+                </div>
+                <div class="field width-15">
+                    {{ form.ext_name.label() }}
+                    {{ form.ext_name(class="toggle text", value=data.ext_name, placeholder="Ext.", readonly=True) }}
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="field width-30">
+                    {{ form.civil_status.label() }}
+                    {{ form.civil_status(class="toggle text", value=data.civil_status, placeholder="Civil Status", readonly=True) }}
+                </div>
+                <div class="field width-30">
+                    {{ form.citizenship.label() }}
+                    {{ form.citizenship(class="toggle text", value=data.citizenship, placeholder="Citizenship", readonly=True) }}
+                </div>
+                <div class="field width-30">
+                    <label>Birthdate</label>
+                    {{ form.birthmonth(class="toggle text", value=data.birthmonth, placeholder="MM", readonly=True) }}
+                    {{ form.birthday(class="toggle text", value=data.birthday, placeholder="DD", readonly=True) }}
+                    {{ form.birthyear(class="toggle text", value=data.birthyear, placeholder="YY", readonly=True) }}
+                </div>
+                <div class="field width-10">
+                    {{ form.gender.label() }}
+                    {{ form.gender(class="toggle text", value=data.gender, placeholder="Gender", readonly=True) }}
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="field width-35">
+                    {{ form.email.label() }}
+                    {{ form.email(class="toggle text", value=data.email, placeholder="Email", readonly=True) }}
+                </div>
+                <div class="field width-25">
+                    {{ form.contact_no.label() }}
+                    {{ form.contact_no(class="toggle text", value=data.contact_no, placeholder="Contact No.", readonly=True) }}
+                </div>
+                <div class="field width-50">
+                    {{ form.address.label() }}
+                    {{ form.address(class="toggle text", value=data.address, placeholder="Address", readonly=True) }}
+                </div>
+            </div><br>
+            <div class="form-row">
+                <div class="field width-25">
+                    <button type="button" class="btn-grey" id="change-password-btn">Change Password</button>
+                </div>
+                <div class="field width-25">
+                    {{ form.update(class="submit toggle width-100", disabled="True") }}
+                </div>
+            </div>
+        </form><br>
+    </div>
 </div>
+
+<div id="password-modal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <form id="password-change-form" action="/index/account/change_password" method="post">
+            {{ pass_form.hidden_tag() }}
+            
+            <div class="form-row">
+                <div class="field width-100">
+                    <strong><p class="no-margin">Change Password</p></strong>
+                </div>
+            </div><br>
+            <div class="form-row">
+                <div class="field width-100">
+                    {{ pass_form.current.label() }}
+                    {{ pass_form.current(class="text", placeholder="Current Password") }}
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="field width-100">
+                    {{ pass_form.new.label() }}
+                    {{ pass_form.new(class="text", placeholder="New Password") }}
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="field width-100">
+                    {{ pass_form.confirm.label() }}
+                    {{ pass_form.confirm(class="text", placeholder="Confirm New Password") }}
+                </div>
+            </div><br>
+            <div class="form-row">
+                <div class="field width-100">
+                    {{ pass_form.submit(class="submit width-100") }}
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const editLink = document.querySelector('.section-header p a');
+    const formFields = document.querySelectorAll('form .toggle');
+    const submitButton = document.querySelector('form .submit.toggle');
+    let originalValues = {};
+
+    editLink.addEventListener('click', function(event) {
+        event.preventDefault();
+
+        if (editLink.textContent === 'Edit') {
+            formFields.forEach(field => {
+                originalValues[field.name] = field.value;
+                field.removeAttribute('readonly');
+            });
+            submitButton.removeAttribute('disabled');
+            editLink.textContent = 'Undo Edit';
+        } else {
+            formFields.forEach(field => {
+                field.value = originalValues[field.name];
+                field.setAttribute('readonly', 'true');
+            });
+            submitButton.setAttribute('disabled', 'true');
+            editLink.textContent = 'Edit';
+        }
+    });
+
+    const modal = document.getElementById("password-modal");
+    const btn = document.getElementById("change-password-btn");
+    const span = document.querySelector(".modal .close");
+
+    btn.onclick = function() {
+        modal.style.display = "block";
+    }
+
+    span.onclick = function() {
+        modal.style.display = "none";
+    }
+});
+</script>
+
+
 {% endblock %}

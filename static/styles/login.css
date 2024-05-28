@@ -22,9 +22,18 @@ h1{
     color: #266DD3;
     font-size: 38px;
     font-family: mplus1p-bold;
-    margin-top: 120px;
+    margin-top: 80px;
     width: 100%;
     text-align: center;
+}
+
+h2{
+    color: #266DD3;
+    font-size: 22px;
+    width: 100%;
+    padding-left: 32px;
+    margin-top: 36px;
+    text-align: left;
 }
 
 .card {
@@ -33,7 +42,7 @@ h1{
     margin-top: 10px;
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: space-around;
     width: 640px;
     height: 420px;
     border: 1px solid #344055;
@@ -51,32 +60,69 @@ h1{
     align-items: center;
 }
 
-.card button {
-    background-color: #266DD3;
-    color: white;
-    font-size: 22px;
-    padding: 12px 22px;
-    border: none;
-    border-radius: 6%;
-}
-
 .card input {
     width: 380px;
     font-size: 22px;
     padding: 12px 18px;
     border: none;
     border-bottom: 2px solid #344055;
-    border-radius: 4%;
     margin-bottom: 20px;
+    background-color: #ffffff00;
     transition: ease-in-out, width .35s ease-in-out;
 }
+
+.card input[type='submit'] {
+    background-color: #266DD3;
+    color: white;
+    font-size: 22px;
+    padding: 12px 22px;
+    border: none;
+    border-radius: 6px;
+}
+
 
 .card input:focus {
     outline: none;
     border-bottom: 2px solid #266DD3;
 }
 
-.card button:hover {
+.card input[type='submit']:hover {
     background-color: #344055;
     cursor: pointer;
+}
+
+.card input[type='submit']:focus {
+    background-color: #344055;
+    outline: none;
+    border-bottom: none;
+}
+
+.ws-80 {
+    height: 80px;
+    background-color: #ffffff00;
+}
+
+.ws-20 {
+    height: 20px;
+    background-color: #ffffff00;
+}
+
+.flashes {
+    list-style-type: none;
+    display: block;
+    width: auto;
+    text-align: center;
+    margin-top: 40px;
+}
+
+.error {
+    color: rgba(255, 34, 34, 0.95);
+    font-size: 22px;
+    line-height: 24px;
+}
+
+.message {
+    color: rgba(0, 0, 0, 0.95);
+    font-size: 22px;
+    line-height: 24px;
 }
