@@ -3,3 +3,5 @@ jinja2
 flask-wtf
 flask-sqlalchemy
 flask-migrate
+pandas
+openpyxl

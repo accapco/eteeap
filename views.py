@@ -66,6 +66,20 @@ def system():
     data = db.get_system_settings()
     return render_template('system.html', page="System Settings", form=form, data=data, views=views)
 
+@views.route('/report')
+def report():
+    if g.user != 'admin':
+        return redirect(url_for('.unauthorized'))
+    data = db.generate_report()
+    success, message = db.create_excel(data)
+    if success:
+        return(send_from_directory('.', 'reports.xlsx'))
+    return f"""
+        <script>
+            alert("{message}");
+        </script>
+        """
+
 @views.route('/admin_dashboard')
 def dashboard_admin():
     if g.user != 'admin':
@@ -131,21 +145,7 @@ def admin_students():
     data['students'] = [s for s in data['students'] if str(s['ay']) == filter['ay'] and str(s['semester']) == filter['semester']]
     return render_template('students-admin.html', page="Students", data=data, form=form, views=views)
 
-@views.route('/report')
-def report():
-    if g.user != 'admin':
-        return redirect(url_for('.unauthorized'))
-    data = db.generate_report()
-    success, message = db.create_excel(data)
-    if success:
-        return(send_from_directory('.', 'reports.xlsx'))
-    return f"""
-        <script>
-            alert("{message}");
-        </script>
-        """
-
-@views.route('/instructor_students')
+@views.route('/instructor_students', methods=["GET", "POST"])
 def instructor_students():
     if g.user != 'instructor':
         return redirect(url_for('.unauthorized'))
@@ -155,14 +155,26 @@ def instructor_students():
         'instructor_id': db.uid_to_pk(session.get('id'), 'instructor'),
         'enrollments': []
     }
+    form = FilterForm(db.get_academic_years())
     for e in enrollments:
         data['enrollments'].append({
             'student_name': f"{e['student']['l_name'].title()}, {e['student']['f_name']} {e['student']['m_name'][0]}.",
             'course': f"{e['course']['code']}: {e['course']['title']}",
             'status': e['status'],
-            'enrollment_id': e['id']
+            'enrollment_id': e['id'],
+            'grade': e['grade'],
+            'ay': e['ay'],
+            'semester': e['semester']
         })
-    return render_template('students-instructor.html', page="Students", data=data, views=views)
+    if form.validate_on_submit():
+        filter = form.data
+    else:
+        cfg = db.get_system_settings()
+        form.ay.data = str(cfg['academic_year'])
+        form.semester.data = str(cfg['semester'])
+        filter = form.data
+    data['enrollments'] = [e for e in data['enrollments'] if str(e['ay']) == filter['ay'] and str(e['semester']) == filter['semester']]
+    return render_template('students-instructor.html', page="Students", form=form, data=data, views=views)
 
 @views.route('/instructors/<instructor_id>/enrollments/<enrollment_id>/accept', methods=["GET", "POST"])
 def accept_enrollment(instructor_id, enrollment_id):

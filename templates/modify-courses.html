@@ -9,15 +9,17 @@
     <body>
         <div class="nav"><h3>Enroll Student</h3></div>
         <div class="main-content">
-            {% if not data.student.program or not data.student.ay or not data.student.semester %}
+            {% if data.student.program == "Not yet enrolled to any program."  %}
             <div class="main-row">
                 <form action="/index/students/{{data.student.id}}/enroll/program" method="post">
-                    <p><strong>Student:</strong> {{ data.student.name }}</p>
+                    <br>
+                    <p> <strong>Name:</strong> {{ data.student.name }} </p><br>
+                    <p> <strong>Student ID:</strong> {{ data.student.tup_id }} </p>
                     <br><br>
                     {{ programs_form.hidden_tag() }}
     
-                    <div class="inline">{{ programs_form.academic_year.label(class="even") }} {{ programs_form.academic_year(class="spaced", value=data.academic_year, readonly="True") }}</div> <br>
-                    <div class="inline">{{ programs_form.semester.label(class="even") }} {{ programs_form.semester(class="spaced", value=data.semester, readonly="True") }}</div> <br>
+                    <div class="inline">{{ programs_form.academic_year.label(class="even") }} {{ programs_form.academic_year(class="spaced", value=data.student.ay, readonly="True") }}</div> <br>
+                    <div class="inline">{{ programs_form.semester.label(class="even") }} {{ programs_form.semester(class="spaced", value=data.student.semester, readonly="True") }}</div> <br>
                     <div class="inline">{{ programs_form.programs_select.label(class="even") }} {{ programs_form.programs_select(class="spaced") }}</div> <br><br>
     
                     {{ programs_form.submit() }}

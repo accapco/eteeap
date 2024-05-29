@@ -3,6 +3,23 @@
 
 {% block content %}
 <div class="main-content">
+    <form action="/index/instructor_students" method="post">
+        <div class="form-row filters">
+            {{ form.hidden_tag() }}
+
+            <div class="field width-15">
+                {{ form.ay.label() }}
+                {{ form.ay(class="text") }}
+            </div>
+            <div class="field width-15">
+                {{ form.semester.label() }}
+                {{ form.semester(class="text") }}
+            </div>
+            <div class="field width-10">
+                {{ form.submit(class='submit grey width-100') }}
+            </div>
+        </div>
+    </form>
     {% for e in data.enrollments %}
     <div class="main-row">
         <div class="card bar color-white">
@@ -14,12 +31,13 @@
                 <div class="cell {{ e.status }}"> {{ e.status|title }} </div>
             </div>
             <div class="right">
-                <button class="btn-grey">Info</button>
+                <!-- <button class="btn-grey">Info</button> -->
                 {% if e.status == 'pending' %}
                     <button class="btn-green" onclick="acceptEnrollment('{{data.instructor_id}}', '{{e.enrollment_id}}')">Accept</button>
                 {% elif e.status == 'ongoing' %}
                     <button class="btn-purple" onclick="viewRequirements('{{data.instructor_id}}', '{{e.enrollment_id}}')">Requirements</button>
                 {% else %}
+                    <p>Final Grade: {{ e.grade }}</p>
                 {% endif %}
             </div>
         </div>
