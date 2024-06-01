@@ -1,27 +1,22 @@
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="utf-8" />
-        <title>ETEEAP</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" href= "{{ url_for('static',filename='styles/index.css') }}">
-    </head>
-    <body>
-        <div class="nav">
-            <h3>Confirmation of {{ progress.title() }}</h3>
-        </div>
-        <div class="main-content">
-            {% if progress == 'payment' %}
-            <img id="image-preview" src="{{ receipt_fp }}" alt="receipt.jpg">
-            {% elif progress == 'evaluation' %}
-            <iframe id="pdf-preview" src="{{ document_fp }}" frameborder="0"></iframe>
-            {% endif %}
-            <br><br>
-            <form action="/index/students/{{student_id}}/approve/{{progress}}" method="post">
-                {{ form.hidden_tag() }}
 
-                {{ form.submit }} <br>
-            </form>
-        </div>
-    </body>
-</html>
+<div>
+    <span id="close" class="close">&times;</span><br>
+    <div class="main-content">
+        <form action="/index/students/{{student_id}}/approve/{{progress}}" method="post">
+            {{ form.hidden_tag() }}
+
+            <div class="form-row">
+                <div class="section-header">
+                    <p>Confirmation of Student's Uploaded OR and COR</p>
+                </div>
+            </div><hr>
+            <iframe id="pdf-preview" src="{{ receipt_fp }}" frameborder="0"></iframe>
+            <hr><br>
+            <div class="form-row">
+                <div class="field center width-100">
+                    {{ form.submit(class="submit width-50") }} 
+                </div>
+            </div>
+        </form>
+    </div>
+</div>

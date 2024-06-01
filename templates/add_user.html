@@ -1,131 +1,67 @@
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="utf-8" />
-        <title>ETEEAP</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" href="{{ url_for('static', filename='styles/index.css') }}">
-    </head>
-    <body>
-        <div class="nav"><h3>Add {{ user_type.title() }} Account</h3></div>
-        <div class="main-content">
-            <form action="/index/users/add_user/{{user_type}}" method="post">
-                {{ form.hidden_tag() }}
+<div>
+    <span id="close" class="close">&times;</span><br>
+    <form action="/index/users/add_user/{{user_type}}" method="post">
+        {{ form.hidden_tag() }}
 
-                <div class="form-row">
-                    <div class="section-header">User Details</div>
-                </div><br>
-                {% if user_type == 'student' %}
-                    <div class="form-row">
-                        <div class="field width-100">
-                            {{ form.tup_id.label() }}
-                            {{ form.tup_id(class='text', placeholder='TUP Student ID') }}
-                        </div>
-                    </div>
-                {% endif %}
-                <div class="form-row">
-                    <div class='field width-50'>
-                        {{ form.l_name.label() }}
-                        {{ form.l_name(class="text", placeholder='Surname', id='l_name') }}
-                    </div>
-                    <div class="field width-50">
-                        {{ form.f_name.label() }}
-                        {{ form.f_name(class='text', placeholder='First Name', id='f_name') }}
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="field width-35">
-                        {{ form.m_name.label() }}
-                        {{ form.m_name(class='text width-50', placeholder='Middle Name') }}
-                    </div>
-                    <div class="field width-15">
-                        {{ form.ext_name.label() }}
-                        {{ form.ext_name(class='text', placeholder='Ext.') }}
-                    </div>
-                    <div class="field width-20">
-                        {{ form.gender.label() }}
-                        {{ form.gender(class='text', title='Gender', placeholder='Gender') }}
-                    </div>
-                    <div class="field width-30">
-                        {{ form.civil_status.label() }}
-                        {{ form.civil_status(class='text', title='Civil Status', placeholder='Civil Status') }}
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="field width-50">
-                        {{ form.email.label() }}
-                        {{ form.email(class='text', placeholder='Email Address') }}
-                    </div>
-                    <div class="field width-50">
-                        {{ form.contact_no.label() }}
-                        {{ form.contact_no(class='text', placeholder='Contact No.') }}
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="section-header">Login Details</div>
-                </div><br>
-                <div class="form-row">
-                    <div class="field width-50">
-                        {{ form.username.label() }}
-                        {{ form.username(class='text', placeholder='Username', id='username', readonly='True') }}
-                    </div>
-                    <div class="field width-50">
-                        {{ form.password.label() }}
-                        {{ form.password(class='text', placeholder='Password', id='password', readonly='True') }}
-                    </div>
-                </div><br>
-                <div class="form-row">
-                    <div class="field" onclick=window.close()>
-                        <button class="btn-grey">Cancel</button>
-                    </div>
-                    <div class="field">
-                        {{ form.submit(class='submit width-100') }}
-                    </div>
-                </div>
-                <div>
-                    {% with messages = get_flashed_messages(with_categories=true) %}
-                        {% if messages %}
-                            <ul class=flashes>
-                                {% for category, message in messages %}
-                                <li class="{{ category }}">{{ message }}</li>
-                                {% endfor %}
-                            </ul>
-                        {% endif %}
-                    {% endwith %}
-                </div>
-            </form>
+        <div class="form-row">
+            <div class="section-header">Add {{ user_type.title() }} Account</div>
+        </div><hr><br><br>
+        {% if user_type == 'student' %}
+        <div class="form-row">
+            <div class="field width-100">
+                {{ form.tup_id.label() }}
+                {{ form.tup_id(class='text', placeholder='TUP Student ID') }}
+            </div>
         </div>
-    </body>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const lNameField = document.getElementById('l_name');
-            const fNameField = document.getElementById('f_name');
-            const usernameField = document.getElementById('username');
-
-            function updateUsername() {
-                const lName = lNameField.value.trim().toLowerCase();
-                const fName = fNameField.value.trim().toLowerCase().replace(/\s+/g, '');
-                if (lName && fName) {
-                    usernameField.value = `${lName}.${fName}`;
-                } else {
-                    usernameField.value = '';
-                }
-            }
-
-            lNameField.addEventListener('input', updateUsername);
-            fNameField.addEventListener('input', updateUsername);
-        });
-
-        function generateRandomPassword() {
-            const characters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-            let password = '';
-            for (let i = 0; i < 6; i++) {
-                const randomIndex = Math.floor(Math.random() * characters.length);
-                password += characters.charAt(randomIndex);
-            }
-            return password;
-        }
-        const passwordField = document.getElementById('password')
-        passwordField.value = generateRandomPassword()
-    </script>
-</html>
+        {% elif user_type == 'instructor' %}
+        <div class="form-row">
+            <div class="field width-100">
+                {{ form.college.label() }}
+                {{ form.college(class='text') }}
+            </div>
+        </div>
+        {% endif %}
+        <div class="form-row">
+            <div class='field width-50'>
+                {{ form.l_name.label() }}
+                {{ form.l_name(class="text", placeholder='Surname', id='l_name') }}
+            </div>
+            <div class="field width-50">
+                {{ form.f_name.label() }}
+                {{ form.f_name(class='text', placeholder='First Name', id='f_name') }}
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="field width-40">
+                {{ form.m_name.label() }}
+                {{ form.m_name(class='text width-50', placeholder='Middle Name') }}
+            </div>
+            <div class="field width-35">
+                {{ form.ext_name.label() }}
+                {{ form.ext_name(class='text', placeholder='Ext.') }}
+            </div>
+            <div class="field width-25">
+                {{ form.gender.label() }}
+                {{ form.gender(class='text', title='Gender', placeholder='Gender') }}
+            </div>
+        </div><br>
+        <div class="form-row">
+            <div class="section-header">Login Details</div>
+        </div><hr><br><br>
+        <div class="form-row">
+            <div class="field width-50">
+                {{ form.username.label() }}
+                {{ form.username(class='text', placeholder='Username', id='username', readonly='True') }}
+            </div>
+            <div class="field width-50">
+                {{ form.password.label() }}
+                {{ form.password(class='text', placeholder='Password', id='password', readonly='True') }}
+            </div>
+        </div><br>
+        <div class="form-row">
+            <div class="field width-100">
+                {{ form.submit(class="submit width-100") }}
+            </div>
+        </div><br>
+    </form>
+</div>

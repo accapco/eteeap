@@ -27,7 +27,13 @@
                             </div>
                         </div>
                         <div class="middle">
-                            <div class="cell smaller {{ d.progress }}">{{ d.progress|title }}</div>
+                            <div class="cell smaller {{ d.progress }}">
+                                {% if d.progress == 'evaluation' %}
+                                    Turned in
+                                {% else %}
+                                    {{ d.progress|title }}
+                                {% endif %}
+                            </div>
                         </div>
                         <div class="right">
                             <a href="{{url_for('views.view_student_requirement', student_id=student_id, enrollment_id=enrollment_id, requirement_id=d.id)}}">

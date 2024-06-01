@@ -51,21 +51,91 @@ def get_account_details(user_id):
     if user['user_type'] == 'student':
         student = Student.query.filter_by(user=user_id).first().__dict__
         user['tup_id'] = student['tup_id']
+    if user['user_type'] == 'instructor':
+        instructor = Instructor.query.filter_by(user=user_id).first().__dict__
+        college = College.query.filter_by(id=instructor['college']).first().abbr
+        user['college'] = college
+        user['educational_background'] = get_educational_background(user_id)
     return user
+
+def update_account_details(user_id, data):
+    try:
+        for key, value in data.items():
+            if value == "None":
+                data[key] = None
+        user = User.query.filter_by(id=user_id).first()
+        user.l_name = data['l_name']
+        user.f_name = data['f_name']
+        user.m_name = data['m_name']
+        user.ext_name = data['ext_name']
+        user.civil_status = data['civil_status']
+        user.citizenship = data['citizenship']
+        user.birthmonth = data['birthmonth']
+        user.birthday = data['birthday']
+        user.birthyear = data['birthyear']
+        user.gender = data['gender']
+        user.email = data['email']
+        user.contact_no = data['contact_no']
+        user.residency = data['residency']
+        user.local_address = data['local_address']
+        user.foreign_address = data['foreign_address']
+        if user.user_type == 'student':
+            student = Student.query.filter_by(user=user_id).first()
+            student.tup_id = data['tup_id']
+        elif user.user_type == 'instructor':
+            instructor = Instructor.query.filter_by(user=user_id).first()
+            college_id = College.query.filter_by(abbr=data['college']).first().id
+            instructor.college = college_id
+        db.session.commit()
+        return True, "Account details have been changed."
+    except Exception as e:
+        return False, f"An error occured while trying to update account. {e}"
+
+def add_educational_background(uid, data):
+    instructor = Instructor.query.filter_by(user=uid).first()
+    if data['school'] and data['degree'] and data['start_year'] and data['end_year']:
+        new_educational_background = EducationalBackground(
+            school = data['school'],
+            degree = data['degree'],
+            start_year = data['start_year'],
+            end_year = data['end_year'],
+            academic_honors = data['academic_honors'],
+            instructor = instructor.user
+        )
+        db.session.add(new_educational_background)
+        db.session.commit()
+
+def update_educational_background(data):
+    educational_background = EducationalBackground.query.filter_by(id=data['id']).first()
+    educational_background.school = data['school']
+    educational_background.degree = data['degree']
+    educational_background.start_year = data['start_year']
+    educational_background.end_year = data['end_year']
+    educational_background.academic_honors = data['academic_honors']
+    db.session.commit()
+
+def get_educational_background(uid):
+    instructor = Instructor.query.filter_by(user=uid).first()
+    educational_backgrounds = EducationalBackground.query.filter_by(instructor=instructor.user).all()
+    response = []
+    for e in educational_backgrounds:
+        response.append(e.__dict__)
+    return response
 
 def complete_ft_login(user_id, data):
     try:
         user = User.query.filter_by(id=user_id).first()
         user.password = data['password']
-        user.ft_login = False
         if user.user_type == 'student':
             student = Student.query.filter_by(user=user_id).first()
             if student.tup_id != data['tup_id']:
                 return False, "Invalid TUP ID."
+        update_account_details(user_id, data)
+        user.ft_login = False
         db.session.commit()
-        return True, "Password saved."
+        return True, "Account Details Saved."
     except Exception as e:
-        return False, f"An error occured when trying to save password."
+        return False, f"An error occured trying to save account details."
 
 def change_password(user_id, data):
     try:
@@ -79,139 +149,121 @@ def change_password(user_id, data):
     except Exception as e:
         return False, "An error occured when trying to save password."
 
-from copy import deepcopy
-
-def generate_report():
-        students = get_students()
-        instructors = get_instructors()
-        data = {
-            'total_enrollees': {},
-            'per_program': {
-            },
-            'per_college': {
-            },
-            'per_period': {},
-            'faculty': [],
-            'per_student': [],
-            'course_completion': []
-        }
-        programs_per_college = {}
-        colleges = {}
-        for college in College.query.all():
-            colleges[college.abbr] = 0
-            programs_per_college[college.abbr] = {}
-        data['per_college'] = colleges
-        programs = {}
-        for program in Program.query.all():
-            programs[program.abbr] = 0
+def generate_student_report(filters):
+    students = get_students()
+    data = {
+        'total_enrollees': 0,
+    }
+    # data['filters'] = [key for key, value in filters if value == True]
+    if filters['age']:
+        data['age'] = {}
+    if filters['gender']:
+        data['gender'] = {}
+    if filters['residency']:
+        data['residency'] = {}
+    if filters['student_course_status']:
+        data['course_status'] = {}
+    for student in students:
+        # get student info
+        user = get_user(user_id=student['user'])
+        ay = str(student['ay'])
+        semester = str(student['semester'])
+        program = Program.query.filter_by(id=student['program']).first()
+        if program == None:
+            continue
+        else:
             college = College.query.filter_by(id=program.college_id).first()
-            programs_per_college[college.abbr][program.abbr] = {
-                "total_count": 0,
-                "male": 0,
-                "female": 0,
-                "local": 0,
-                "foreign": 0,
-                "ages": {}
-            }
-        data['per_program'] = programs
-        for student in students:
-            user = User.query.filter_by(id=student['user']).first()
-            user = user.__dict__
-            student['gender'] = user['gender']
-            student['citizenship'] = user['citizenship']
-            # total_enrollees
-            if student['ay'] != None:
-                if student['ay'] not in data['total_enrollees'].keys():
-                    data['total_enrollees'][student['ay']] = {"1st": 0, "2nd": 0}
-                if student['semester'] != None:
-                    data['total_enrollees'][student['ay']][student['semester']] += 1
-            # per program
-            program = Program.query.filter_by(id=student['program']).first()
-            if program != None:
-                abbr = program.abbr
-                data['per_program'][abbr] += 1
-            # per college
-            if program != None:
-                college = College.query.filter_by(id=program.college_id).first()
-                abbr = college.abbr
-                data['per_college'][abbr] += 1
-            # per period
-            if student['ay'] != None and student['semester'] != None and student['program'] != None:
-                if student['ay'] not in data['per_period'].keys():
-                    data['per_period'][student['ay']] = {"1st": deepcopy(programs_per_college), "2nd": deepcopy(programs_per_college)}
-                program = Program.query.filter_by(id=student['program']).first()
-                college = College.query.filter_by(id=program.college_id).first()
-                data['per_period'][student['ay']][student['semester']][college.abbr][program.abbr]['total_count'] += 1
-                # demographic
-                # gender
-                if student['gender'] == 'M':
-                    data['per_period'][student['ay']][student['semester']][college.abbr][program.abbr]['male'] += 1
-                elif student['gender'] == 'F':
-                    data['per_period'][student['ay']][student['semester']][college.abbr][program.abbr]['female'] += 1
-                # citizenship
-                if student['citizenship'] != None and student['citizenship'].lower() == 'filipino':
-                    data['per_period'][student['ay']][student['semester']][college.abbr][program.abbr]['local'] += 1
-                elif student['citizenship'] != None: 
-                    data['per_period'][student['ay']][student['semester']][college.abbr][program.abbr]['foreign'] += 1
-                # age
-                if user['birthyear'] and user['birthmonth'] and user['birthday']:
-                    age = _calculate_age(user['birthyear'], user['birthmonth'], user['birthday'])
-                    if age not in data['per_period'][student['ay']][student['semester']][college.abbr][program.abbr]['ages'].keys():
-                        data['per_period'][student['ay']][student['semester']][college.abbr][program.abbr]['ages'][age] = 0
-                    data['per_period'][student['ay']][student['semester']][college.abbr][program.abbr]['ages'][age] += 1
-            # per student
-            name = f"{user['l_name']} {user['f_name']} {user['m_name']}"
-            enrollments = Enrollment.query.filter_by(student=student['id']).all()
-            subjects = {
-                'pending': 0,
-                'ongoing': 0,
-                'completed': 0
-            }
-            for enrollment in enrollments:
-                course = Course.query.filter_by(id=enrollment.course).first()
-                course_name = course.code
-                subjects[enrollment.status] += 1
-            data['per_student'].append({'name': name, 'subjects': subjects})
-        # course completion rate
-        courses = Course.query.all()
-        for course in courses:
-            enrollments = [e.__dict__ for e in Enrollment.query.filter_by(course=course.id).all() if e.status != 'pending']
-            if len(enrollments) > 0:
-                ongoing = len([e for e in enrollments if e['status'] == 'ongoing'])
-                completed = len([e for e in enrollments if e['status'] == 'completed'])
-                data['course_completion'].append({
-                    'name': course.code,
-                    'ongoing': ongoing,
-                    'completed': completed,
-                    'percentage': completed / (ongoing+completed) * 100
-                })
-        # faculty
-        for instructor in instructors:
-            user = User.query.filter_by(id=instructor['user']).first()
-            enrollments = Enrollment.query.filter_by(instructor=instructor['id']).all()
-            name = f"{user.l_name} {user.f_name} {user.m_name}"
-            pending = []
-            ongoing = []
-            completed = []
-            for enrollment in enrollments:
-                course = Course.query.filter_by(id=enrollment.course).first()
-                course_name = course.code
-                student = Student.query.filter_by(id=enrollment.student).first()
-                student = User.query.filter_by(id=student.user).first()
-                student_name = f"{student.l_name} {student.f_name} {student.m_name} "
-                if enrollment.status == 'pending':
-                    pending.append({'course': course_name, 'student': student_name})
-                elif enrollment.status == 'ongoing':
-                    ongoing.append({'course': course_name, 'student': student_name})
-                else:
-                    completed.append({'course': course_name, 'student': student_name})
-            data['faculty'].append({ 
-                'name': name,
-                'pending': {'count': len(pending), 'enrollments': pending},
-                'ongoing': {'count': len(ongoing), 'enrollments': ongoing},
-                'completed': {'count': len(completed), 'enrollments': completed},
-            })
-        return data
+            program = program.abbr
+            if college == None:
+                continue
+            else:
+                college = college.abbr
+        # skip if student doesn't match filter
+        if filters['ay'] != "All" and ay != filters['ay']:
+            continue
+        if filters['semester'] != "All" and semester != filters['semester']:
+            continue
+        if filters['college'] != "All" and college != filters['college']:
+            continue
+        if filters['program'] != "All" and program != filters['program']:
+            continue
+        data['total_enrollees'] += 1
+        # store data
+        if 'age' in data.keys():
+            if user['birthyear'] and user['birthmonth'] and user['birthday']:
+                age = _calculate_age(user['birthyear'], user['birthmonth'], user['birthday'])
+                if age not in data['age']:
+                    data['age'][age] = 0
+                data['age'][age] += 1
+        if 'gender' in data.keys():
+            gender = user['gender']
+            if gender not in data['gender']:
+                data['gender'][gender] = 0
+            data['gender'][gender] += 1
+        if 'residency' in data.keys():
+            residency = user['citizenship']
+            if residency not in data['residency']:
+                data['residency'][residency] = 0
+            data['residency'][residency] += 1
+        if 'course_status' in data.keys():
+            subjects = Enrollment.query.filter_by(student=student['id']).all()
+            for subject in subjects:
+                if subject.status not in data['course_status']:
+                    data['course_status'][subject.status] = 0
+                data['course_status'][subject.status] += 1
+    if 'age' in data.keys():
+        data['age'] = dict(sorted(data['age'].items()))
+    return data
+
+def generate_faculty_report(filters):
+    data = {
+        'faculty': []
+    }
+    instructors = get_instructors()
+    for instructor in instructors:
+        college = instructor['college']
+        if filters['college'] != "All" and college != filters['college']:
+            continue
+        user = User.query.filter_by(id=instructor['user']).first()
+        enrollments = Enrollment.query.filter_by(instructor=instructor['id']).all()
+        name = f"{user.l_name} {user.f_name} {user.m_name if user.m_name else ''}"
+        pending = []
+        ongoing = []
+        completed = []
+        honorarium_released = []
+        honorarium_onprocess = []
+        for enrollment in enrollments:
+            ay = enrollment.ay
+            semester = enrollment.semester
+            if filters['ay'] != "All" and ay != filters['ay']:
+                continue
+            if filters['semester'] != "All" and semester != filters['semester']:
+                continue
+            course = Course.query.filter_by(id=enrollment.course).first()
+            course_name = course.code
+            student = Student.query.filter_by(id=enrollment.student).first()
+            student = User.query.filter_by(id=student.user).first()
+            student_name = f"{student.l_name} {student.f_name} {student.m_name} "
+            if enrollment.status == 'pending':
+                pending.append({'course': course_name, 'student': student_name})
+            elif enrollment.status == 'ongoing':
+                ongoing.append({'course': course_name, 'student': student_name})
+            else:
+                completed.append({'course': course_name, 'student': student_name})
+            if enrollment.honorarium == 'onprocess':
+                honorarium_onprocess.append({'course': course_name, 'student': student_name})
+            else:
+                honorarium_released.append({'course': course_name, 'student': student_name})
+        snapshot = {'name': name}
+        if filters['faculty_course_status']:
+            snapshot['pending'] = {'count': len(pending), 'enrollments': pending}
+            snapshot['ongoing'] = {'count': len(ongoing), 'enrollments': ongoing}
+            snapshot['completed'] = {'count': len(completed), 'enrollments': completed}
+        if filters['honorarium']:
+            snapshot['honorarium_released'] = {'count': len(honorarium_released), 'enrollments': honorarium_released}
+            snapshot['honorarium_onprocess'] = {'count': len(honorarium_onprocess), 'enrollments': honorarium_onprocess}
+        data['faculty'].append(snapshot)
+    return data
 
 import pandas as pd
 from openpyxl import Workbook, load_workbook
@@ -220,366 +272,55 @@ from openpyxl.utils import get_column_letter
 from openpyxl.utils.dataframe import dataframe_to_rows 
 import os
 
-def create_excel(data):
+def create_sheet(data, wb, total_enrollees, sheet_name, Category):
+    
+    if sheet_name in wb.sheetnames:
+        del wb[sheet_name]
+    ws = wb.create_sheet(title=sheet_name)
+        
+    ws.append(["Total Enrollees", total_enrollees])
+    ws.append([])
+    df = pd.DataFrame(data, columns=[Category, "Count"])
+    for r in dataframe_to_rows(df, index=False, header=True):
+        ws.append(r)
+
+    chart = BarChart()
+    chart.title = sheet_name
+    chart.x_axis.title = Category
+    chart.y_axis.title = "Count"
+
+    chart.width = 30
+    chart.height = 15
+    
+    temp = Reference(ws, min_col=2, min_row=3, max_col=len(df.columns), max_row=len(df) + 3)
+    categories = Reference(ws, min_col=1, min_row=4, max_row=len(df) + 3)
+    chart.add_data(temp, titles_from_data=True)
+    chart.set_categories(categories)
+
+    ws.add_chart(chart, "E6")
+
+def create_student_excel(file_name, data):
     try:
-        excel_file = 'reports.xlsx'
+        excel_file = f'{file_name}.xlsx'
+
         if os.path.exists(excel_file):
-            wb = load_workbook(excel_file)
-        else:
-            wb = Workbook()
-            wb.remove(wb.active)
+            os.remove(excel_file)
 
-        # Number of Enrollees per Semester, Academic Year
-        new_sheet_name = 'Number of Enrollees'
-        if new_sheet_name in wb.sheetnames:
-            del wb[new_sheet_name]
-            ws = wb.create_sheet(title=new_sheet_name)
-        else:
-            ws = wb.create_sheet(title=new_sheet_name)
-
-        flattened_data = []
-        for year, period in data["total_enrollees"].items():
-            for period, count in period.items():
-                flattened_data.append({
-                    "Year-Period": f"{year} - {period} semester",
-                    "Count": count
-                })
-
-        df = pd.DataFrame(flattened_data)
-
-        for r in dataframe_to_rows(df, index=False, header=True):
-            ws.append(r)
-
-        chart = BarChart()
-        chart.title = "Number of Enrollees"
-        chart.x_axis.title = "Year-Period"
-        chart.y_axis.title = "Count"
-
-        temp = Reference(ws, min_col=2, min_row=1, max_col=len(df.columns), max_row=len(df) + 1)
-        categories = Reference(ws, min_col=1, min_row=2, max_row=len(df) + 1)
-        chart.add_data(temp, titles_from_data=True)
-        chart.set_categories(categories)
-
-        ws.add_chart(chart, "E6")
-        # College Enrollment Summary
-        new_sheet_name = 'Number of Enrollees Per Program'
-        if new_sheet_name in wb.sheetnames:
-            del wb[new_sheet_name]
-            ws = wb.create_sheet(title=new_sheet_name)
-        else:
-            ws = wb.create_sheet(title=new_sheet_name)
-
-        df = pd.DataFrame(list(data["per_program"].items()), columns=["Program", "Count"])
-
-        for r in dataframe_to_rows(df, index=False, header=True):
-            ws.append(r)
-
-        chart = BarChart()
-        chart.title = "Program Distribution"
-        chart.x_axis.title = "Program"
-        chart.y_axis.title = "Count"
-
-        temp = Reference(ws, min_col=2, min_row=1, max_col=len(df.columns), max_row=len(df) + 1)
-        categories = Reference(ws, min_col=1, min_row=2, max_row=len(df) + 1)
-        chart.add_data(temp, titles_from_data=True)
-        chart.set_categories(categories)
-
-        ws.add_chart(chart, "E6")
-
-        # Program Enrollment Breakdown
-        new_sheet_name = 'Per College'
-        if new_sheet_name in wb.sheetnames:
-            del wb[new_sheet_name]
-            ws = wb.create_sheet(title=new_sheet_name)
-        else:
-            ws = wb.create_sheet(title=new_sheet_name)
-
-        df = pd.DataFrame(list(data["per_college"].items()), columns=["College", "Count"])
-
-        for r in dataframe_to_rows(df, index=False, header=True):
-            ws.append(r)
-
-        chart = BarChart()
-        chart.title = "College Distribution"
-        chart.x_axis.title = "College"
-        chart.y_axis.title = "Count"
-
-        temp = Reference(ws, min_col=2, min_row=1, max_col=len(df.columns), max_row=len(df) + 1)
-        categories = Reference(ws, min_col=1, min_row=2, max_row=len(df) + 1)
-        chart.add_data(temp, titles_from_data=True)
-        chart.set_categories(categories)
-
-        ws.add_chart(chart, "E6")
-
-        # Comparison with Previous Periods
-        new_sheet_name = 'Per Period'
-        if new_sheet_name in wb.sheetnames:
-            del wb[new_sheet_name]
-            ws = wb.create_sheet(title=new_sheet_name)
-        else:
-            ws = wb.create_sheet(title=new_sheet_name)
-
-        flattened_data = []
-        for year, periods in data["per_period"].items():
-            for period, colleges in periods.items():
-                for college, programs in colleges.items():
-                    for program, counts in programs.items():
-                        flattened_data.append({
-                            "Year - Period - College - Program": f"{year}-{period} semester-{college}-{program}",
-                            "Total Count": counts["total_count"]
-                        })
-
-        df = pd.DataFrame(flattened_data)
-
-        for r in dataframe_to_rows(df, index=False, header=True):
-            ws.append(r)
-
-        chart = BarChart()
-        chart.title = "Period Distribution"
-        chart.x_axis.title = "Year - Period - College - Program"
-        chart.y_axis.title = "Count"
-
-        temp = Reference(ws, min_col=2, min_row=1, max_col=len(df.columns), max_row=len(df) + 1)
-        categories = Reference(ws, min_col=1, min_row=2, max_row=len(df) + 1)
-        chart.add_data(temp, titles_from_data=True)
-        chart.set_categories(categories)
-
-        ws.add_chart(chart, "E6")
+        wb = Workbook()
+        wb.remove(wb.active)
 
         # Age
-        new_sheet_name = 'Age'
-        if new_sheet_name in wb.sheetnames:
-            del wb[new_sheet_name]
-            ws = wb.create_sheet(title=new_sheet_name)
-        else:
-            ws = wb.create_sheet(title=new_sheet_name)
-
-        flattened_data = []
-        for year, periods in data["per_period"].items():
-            for period, colleges in periods.items():
-                for college, programs in colleges.items():
-                    for program, details in programs.items():
-                        for age, count in details['ages'].items():
-                            key = f"{year}-{period}-{age}"
-                            existing = next((item for item in flattened_data if item["Year-Period-Age"] == key), None)
-                            if existing:
-                                existing["Age Count"] += count
-                            else:
-                                flattened_data.append({
-                                    "Year-Period-Age": key,
-                                    "Age Count": count,
-                                })
-
-        df = pd.DataFrame(flattened_data)
-
-        for r in dataframe_to_rows(df, index=False, header=True):
-            ws.append(r)
-
-        chart = BarChart()
-        chart.title = "Age Distribution"
-        chart.x_axis.title = "Year-Period-Age"
-        chart.y_axis.title = "Count"
-
-        temp = Reference(ws, min_col=2, min_row=1, max_col=len(df.columns), max_row=len(df) + 1)
-        categories = Reference(ws, min_col=1, min_row=2, max_row=len(df) + 1)
-        chart.add_data(temp, titles_from_data=True)
-        chart.set_categories(categories)
-
-        ws.add_chart(chart, "E6")
-
+        if "age" in data:
+            create_sheet(data["age"].items(), wb, data["total_enrollees"],  "Age Distribution", "Age")
         # Gender
-        new_sheet_name = 'Gender'
-        if new_sheet_name in wb.sheetnames:
-            del wb[new_sheet_name]
-            ws = wb.create_sheet(title=new_sheet_name)
-        else:
-            ws = wb.create_sheet(title=new_sheet_name)
-
-        flattened_data = []
-        for year, periods in data["per_period"].items():
-            for period, colleges in periods.items():
-                male_count = 0
-                female_count = 0
-
-                for college, programs in colleges.items():
-                    for program, counts in programs.items():
-                        male_count += counts["male"]
-                        female_count += counts["female"]
-                
-                flattened_data.append({
-                    "Year-Period": f"{year}-{period} semester",
-                    "Male Count": male_count,
-                    "Female Count": female_count
-                })
-
-        df = pd.DataFrame(flattened_data)
-
-        for r in dataframe_to_rows(df, index=False, header=True):
-            ws.append(r)
-
-        chart = BarChart()
-        chart.title = "Gender Distribution"
-        chart.x_axis.title = "Year-Period"
-        chart.y_axis.title = "Count"
-
-        temp = Reference(ws, min_col=2, min_row=1, max_col=len(df.columns), max_row=len(df) + 1)
-        categories = Reference(ws, min_col=1, min_row=2, max_row=len(df) + 1)
-        chart.add_data(temp, titles_from_data=True)
-        chart.set_categories(categories)
-
-        ws.add_chart(chart, "E6")
-
-        # Lists faculty members and the subjects they handle. Includes details on the number of subjects completed and ongoing for each faculty member.
-        new_sheet_name = 'Faculty - Subjects'
-        if new_sheet_name in wb.sheetnames:
-            del wb[new_sheet_name]
-            ws = wb.create_sheet(title=new_sheet_name)
-        else:
-            ws = wb.create_sheet(title=new_sheet_name)
-
-        flattened_data = []
-        for faculty in data["faculty"]:
-            courses_handled = []
-            for enrollment_type in ["pending", "ongoing", "completed"]:
-                for enrollment in faculty[enrollment_type]["enrollments"]:
-                    courses_handled.append(enrollment["course"])
-            flattened_data.append({
-                "Faculty Name": faculty["name"], 
-                "Courses Handled": ", ".join(courses_handled),
-                "Pending": faculty["pending"]["count"],
-                "Ongoing": faculty["ongoing"]["count"],
-                "Completed": faculty["completed"]["count"],
-                "Courses Count": len(courses_handled)
-                })
-
-        df = pd.DataFrame(flattened_data)
-
-        for r in dataframe_to_rows(df, index=False, header=True):
-            ws.append(r)
-
-        chart = BarChart()
-        chart.title = "Courses Distribution"
-        chart.x_axis.title = "Faculty"
-        chart.y_axis.title = "Count"
-
-        temp = Reference(ws, min_col=2, min_row=1, max_col=len(df.columns), max_row=len(df) + 1)
-        categories = Reference(ws, min_col=1, min_row=2, max_row=len(df) + 1)
-        chart.add_data(temp, titles_from_data=True)
-        chart.set_categories(categories)
-
-        ws.add_chart(chart, "H6")
-
-        # Provides a breakdown of the number of subjects completed and ongoing for each student.
-        new_sheet_name = 'Student - Subjects'
-        if new_sheet_name in wb.sheetnames:
-            del wb[new_sheet_name]
-            ws = wb.create_sheet(title=new_sheet_name)
-        else:
-            ws = wb.create_sheet(title=new_sheet_name)
-
-        flattened_data = []
-        for student in data["per_student"]:
-            flattened_data.append({
-                "Student Name": student["name"],
-                "Pending": student["subjects"]["pending"],
-                "Ongoing": student["subjects"]["ongoing"],
-                "Completed": student["subjects"]["completed"],
-                "Total Subjects": student["subjects"]["pending"] + student["subjects"]["completed"] + student["subjects"]["ongoing"]
-            })
-
-        df = pd.DataFrame(flattened_data)
-
-        for r in dataframe_to_rows(df, index=False, header=True):
-            ws.append(r)
-
-        chart = BarChart()
-        chart.title = "Student Subjects Distribution"
-        chart.x_axis.title = "Students"
-        chart.y_axis.title = "Count"
-
-        temp = Reference(ws, min_col=2, min_row=1, max_col=len(df.columns), max_row=len(df) + 1)
-        categories = Reference(ws, min_col=1, min_row=2, max_row=len(df) + 1)
-        chart.add_data(temp, titles_from_data=True)
-        chart.set_categories(categories)
-
-        ws.add_chart(chart, "G6")
-
-        # Number of Students Categorized (Foreign and Local)
-        new_sheet_name = 'Local or Foreign'
-        if new_sheet_name in wb.sheetnames:
-            del wb[new_sheet_name]
-            ws = wb.create_sheet(title=new_sheet_name)
-        else:
-            ws = wb.create_sheet(title=new_sheet_name)
-
-        flattened_data = []
-        for year, periods in data["per_period"].items():
-            for period, colleges in periods.items():
-                local_count = 0
-                foreign_count = 0
-
-                for college, programs in colleges.items():
-                    for program, counts in programs.items():
-                        local_count += counts["local"]
-                        foreign_count += counts["foreign"]
-                
-                flattened_data.append({
-                    "Year-Period": f"{year}-{period} semester",
-                    "Local Count": local_count,
-                    "Foreign Count": foreign_count
-                })
-
-        df = pd.DataFrame(flattened_data)
-
-        for r in dataframe_to_rows(df, index=False, header=True):
-            ws.append(r)
-
-        chart = BarChart()
-        chart.title = "Citizenship Distribution"
-        chart.x_axis.title = "Year-Period"
-        chart.y_axis.title = "Count"
-
-        temp = Reference(ws, min_col=2, min_row=1, max_col=len(df.columns), max_row=len(df) + 1)
-        categories = Reference(ws, min_col=1, min_row=2, max_row=len(df) + 1)
-        chart.add_data(temp, titles_from_data=True)
-        chart.set_categories(categories)
-
-        ws.add_chart(chart, "E6")
-
-
-        # Provides insights into the percentage of enrolled students who successfully complete each course within their ETEEAP program.
-        new_sheet_name = 'Course Completion'
-        if new_sheet_name in wb.sheetnames:
-            del wb[new_sheet_name]
-            ws = wb.create_sheet(title=new_sheet_name)
-        else:
-            ws = wb.create_sheet(title=new_sheet_name)
-
-        flattened_data = []
-        for course in data["course_completion"]:
-            flattened_data.append({
-                "Course Name": course["name"],
-                "Completed": course["completed"],
-                "Ongoing": course["ongoing"],
-                "Percentage": course["percentage"]
-            })
-
-        df = pd.DataFrame(flattened_data)
-
-        for r in dataframe_to_rows(df, index=False, header=True):
-            ws.append(r)
-
-        add = 0
-        for idx, course in enumerate(data["course_completion"], start=2): 
-            chart = PieChart()
-            labels = Reference(ws, min_col=2, min_row=1, max_col=3)
-            data = Reference(ws, min_col=2, min_row=idx, max_col=3)
-            chart.add_data(data, titles_from_data=True)
-            chart.set_categories(labels)
-            chart.title = course["name"]
-        
-            ws.add_chart(chart, f"F{idx + add}")
-            add += 15
+        if "gender" in data:
+            create_sheet(data["gender"].items(), wb, data["total_enrollees"], "Gender Distribution", "Gender")
+        # Residency
+        if "residency" in data:
+            create_sheet(data["residency"].items(), wb, data["total_enrollees"], "Residency Distribution", "Residency")
+        # Course_Status
+        if "course_status" in data:
+            create_sheet(data["course_status"].items(), wb, data["total_enrollees"], "Course Status Distribution", "Course Status")
 
         # Auto Fit
         for sheet in wb.worksheets:
@@ -596,33 +337,116 @@ def create_excel(data):
                 sheet.column_dimensions[get_column_letter(column[0].column)].width = adjusted_width
 
         wb.save(excel_file)
-        return True, "Success"
-    except:
-        return False, "Could not generate the report."
-
-def update_account_details(user_id, data):
-    try:
-        user = User.query.filter_by(id=user_id).first()
-        user.l_name = data['l_name']
-        user.f_name = data['f_name']
-        user.m_name = data['m_name']
-        user.ext_name = data['ext_name']
-        user.civil_status = data['civil_status']
-        user.citizenship = data['citizenship']
-        user.birthmonth = data['birthmonth']
-        user.birthday = data['birthday']
-        user.birthyear = data['birthyear']
-        user.gender = data['gender']
-        user.email = data['email']
-        user.contact_no = data['contact_no']
-        user.address = data['address']
-        if user.user_type == 'student':
-            student = Student.query.filter_by(user=user_id).first()
-            student.tup_id = data['tup_id']
-        db.session.commit()
-        return True, "Account details have been changed."
+        return True, "Report created."
     except Exception as e:
-        return False, "An error occured while trying to update account."
+        return False, f"Problem occured while generating report. {e}"
+
+def create_faculty_excel(file_name, data):
+    try:
+        # Lists faculty members and the subjects they handle. Includes details on the number of subjects completed and ongoing for each faculty member.
+        excel_file = f'{file_name}.xlsx'
+        if os.path.exists(excel_file):
+            os.remove(excel_file)
+
+        wb = Workbook()
+        wb.remove(wb.active)
+
+        if "pending" in data["faculty"][0]:
+            new_sheet_name = 'Faculty - Subjects'
+            if new_sheet_name in wb.sheetnames:
+                del wb[new_sheet_name]
+            ws = wb.create_sheet(title=new_sheet_name)
+
+            flattened_data = []
+            for faculty in data["faculty"]:
+                courses_handled = []
+                for enrollment_type in ["pending", "ongoing", "completed"]:
+                    for enrollment in faculty[enrollment_type]["enrollments"]:
+                        courses_handled.append(enrollment["course"])
+                flattened_data.append({
+                    "Faculty Name": faculty["name"], 
+                    "Courses Handled": ", ".join(courses_handled),
+                    "Pending": faculty["pending"]["count"],
+                    "Ongoing": faculty["ongoing"]["count"],
+                    "Completed": faculty["completed"]["count"],
+                    "Courses Count": len(courses_handled),
+                    })
+
+            df = pd.DataFrame(flattened_data)
+
+            for r in dataframe_to_rows(df, index=False, header=True):
+                ws.append(r)
+
+            
+            chart = BarChart()
+            chart.title = "Faculty Distribution"
+            chart.x_axis.title = "Faculty"
+            chart.y_axis.title = "Count"
+
+            chart.width = 30
+            chart.height = 15
+
+            temp = Reference(ws, min_col=2, min_row=1, max_col=len(df.columns), max_row=len(df) + 1)
+            categories = Reference(ws, min_col=1, min_row=2, max_row=len(df) + 1)
+            chart.add_data(temp, titles_from_data=True)
+            chart.set_categories(categories)
+
+            ws.add_chart(chart, f"B{len(df)+ 3}")
+
+        # Honorarium
+        if "honorarium_onprocess" in data["faculty"][0]:
+            new_sheet_name = 'Honorarium'
+            if new_sheet_name in wb.sheetnames:
+                del wb[new_sheet_name]
+            
+            ws = wb.create_sheet(title=new_sheet_name)
+
+            flattened_data = []
+            for student in data["faculty"]:
+                flattened_data.append({
+                    "Faculty Name": student["name"],
+                    "Honorarium Released": student["honorarium_released"]["count"],
+                    "Honorarium Onprocess": student["honorarium_onprocess"]["count"]
+                })
+
+            df = pd.DataFrame(flattened_data)
+
+            for r in dataframe_to_rows(df, index=False, header=True):
+                ws.append(r)
+
+            chart = BarChart()
+            chart.title = "Honorarium Distribution"
+            chart.x_axis.title = "Faculty"
+            chart.y_axis.title = "Count"
+
+            chart.width = 30
+            chart.height = 15
+
+            temp = Reference(ws, min_col=2, min_row=1, max_col=len(df.columns), max_row=len(df) + 1)
+            categories = Reference(ws, min_col=1, min_row=2, max_row=len(df) + 1)
+            chart.add_data(temp, titles_from_data=True)
+            chart.set_categories(categories)
+
+            ws.add_chart(chart, f"B{len(df)+ 3}")
+
+        # Auto Fit
+        for sheet in wb.worksheets:
+            for column in sheet.columns:
+                max_length = 7.15
+                column = list(column)
+                for cell in column:
+                    try:
+                        if len(str(cell.value)) > max_length:
+                            max_length = len(cell.value)
+                    except:
+                        pass
+                adjusted_width = (max_length + 2)
+                sheet.column_dimensions[get_column_letter(column[0].column)].width = adjusted_width
+
+        wb.save(excel_file)
+        return True, "Report created."
+    except Exception as e:
+        return False, f"Problem occured while generating report. {e}"
 
 def uid_to_pk(uid, user_type):
     if user_type == 'student':
@@ -647,37 +471,42 @@ def pk_to_uid(id, user_type):
     return obj.query.filter_by(id=id).first().__dict__['user']
 
 def add_user(data):
-    new_user = User(
-        username=data['username'], 
-        f_name=data['f_name'],
-        m_name=data['m_name'],
-        l_name=data['l_name'],
-        ext_name=data['ext_name'],
-        gender=data['gender'],
-        password=data['password'],
-        user_type=data['user_type'],
-        email=data['email'],
-        contact_no=data['contact_no'],
-        civil_status=data['civil_status']
-    )
-    db.session.add(new_user)
-    db.session.commit()
-    if data['user_type'] == "admin":
-        new_admin = Admin(user=new_user.id)
-        db.session.add(new_admin)
-    elif data['user_type'] == "instructor":
-        new_instructor = Instructor(user=new_user.id)
-        db.session.add(new_instructor)
-    else:
-        cfg = get_system_settings()
-        new_student = Student(
-            user=new_user.id, 
-            tup_id=data['tup_id'],
-            ay=cfg['academic_year'],
-            semester=cfg['semester']
+    try:
+        for key, value in data.items():
+            if value == "None":
+                data[key] = None
+        new_user = User(
+            username=data['username'], 
+            f_name=data['f_name'],
+            m_name=data['m_name'],
+            l_name=data['l_name'],
+            ext_name=data['ext_name'],
+            gender=data['gender'],
+            password=data['password'],
+            user_type=data['user_type']
         )
-        db.session.add(new_student)
-    db.session.commit()
+        db.session.add(new_user)
+        db.session.commit()
+        if data['user_type'] == "admin":
+            new_admin = Admin(user=new_user.id)
+            db.session.add(new_admin)
+        elif data['user_type'] == "instructor":
+            college_id = College.query.filter_by(abbr=data['college']).first().id
+            new_instructor = Instructor(user=new_user.id, college=college_id)
+            db.session.add(new_instructor)
+        else:
+            cfg = get_system_settings()
+            new_student = Student(
+                user=new_user.id, 
+                tup_id=data['tup_id'],
+                ay=cfg['academic_year'],
+                semester=cfg['semester']
+            )
+            db.session.add(new_student)
+        db.session.commit()
+        return True, "Successfully added user."
+    except Exception as e:
+        return False, f"Error occured while adding user."
 
 def get_instructor(user_id):
     instructor = Instructor.query.filter_by(user=user_id).first().__dict__
@@ -706,6 +535,7 @@ def get_instructors():
         instructor['l_name'] = userinfo['l_name']
         instructor['m_name'] = userinfo['m_name']
         instructor['username'] = userinfo['username']
+        instructor['college'] = College.query.filter_by(id=instructor['college']).first().abbr
         instructors.append(instructor)
     return instructors
 
@@ -906,31 +736,29 @@ def get_student_enrollment_options(student_id):
     }
     return response
 
-def upload_receipt(user_id, file):
+def upload_receipt(user_id, data):
     student = Student.query.filter_by(user=user_id).first()
-    student.receipt_filepath = os.path.join(app.config['UPLOAD_FOLDER'], 'receipts', 'receipt_' + str(user_id) + '.jpg')
-    file.data.save(student.receipt_filepath)
+    student.receipt_filepath = str(uuid4()) + os.path.splitext(data['file'].filename)[1]
+    fp = os.path.join(app.config['UPLOAD_FOLDER'], 'receipts', student.receipt_filepath)
+    data['file'].save(fp)
     db.session.commit()
 
-def upload_document(user_id, file):
+def get_receipt_fp(user_id):
     student = Student.query.filter_by(user=user_id).first()
-    student.document_filepath = os.path.join(app.config['UPLOAD_FOLDER'], 'documents', 'document_' + str(user_id) + '.pdf')
-    file.data.save(student.document_filepath)
-    db.session.commit()
+    fp = student.receipt_filepath
+    return fp
 
 def move_student_progress(student_id, progress):
     student = Student.query.filter_by(id=student_id).first()
     if student.progress == progress:
         if progress == 'payment':
-            student.progress = 'evaluation'
-        elif progress == 'evaluation':
             student.progress = 'enrollment'
         else:
-            student.progress = 'completion'
+            student.progress = 'graduate'
         db.session.commit()
-        return "Success."
+        return True, "Documents have been approved."
     else:
-        return "Invalid operation."
+        return False, "Invalid operation."
     
 def get_enrollment(id):
     return Enrollment.query.filter_by(id=id).first().__dict__
@@ -960,12 +788,16 @@ def get_program(program_id):
         }
 
 def add_course(course):
-    new_course = Course(
-        title = course['title'],
-        code = course['code']
-    )
-    db.session.add(new_course)
-    db.session.commit()
+    try:
+        new_course = Course(
+            title = course['title'],
+            code = course['code']
+        )
+        db.session.add(new_course)
+        db.session.commit()
+        return True, "Added new course."
+    except:
+        return False, "Error occured while adding course."
 
 def get_course(cid):
     return Course.query.filter_by(id=cid).first().__dict__
@@ -1021,6 +853,16 @@ def submit_grade(enrollment_id, data):
         return True, f"Grades have been submitted."
     except Exception as e:
         return False, f"Error: {e}."
+
+def release_honorarium(enrollment_id):
+    try:
+        enrollment = Enrollment.query.filter_by(id=enrollment_id).first()
+        enrollment.honorarium = 'released'
+        db.session.add(enrollment)
+        db.session.commit()
+        return True, f"Honorarium has been released."
+    except Exception as e:
+        return False, f"Problem occred when releasing honorarium."
 
 def _remove_sa_instance_state(obj):
     if isinstance(obj, list):

@@ -1,21 +1,29 @@
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="utf-8" />
-        <title>ETEEAP</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" href= "{{ url_for('static',filename='styles/index.css') }}">
-    </head>
-    <body>
-        <div class="nav"><h3>Add Course</h3></div>
-        <div class="main-content">
-            <form action="/index/courses/add_course" method="post">
-                {{ form.hidden_tag() }}
+<div>
+    <span id="close" class="close">&times;</span><br>
+    <form id="add-course-form" action="/index/courses/add_course" method="post">
+        {{ form.hidden_tag() }}
 
-                {{ form.code.label }} <br><br> {{ form.code(class='form-textbox') }} <br><br>
-                {{ form.title.label }} <br><br> {{ form.title(class='form-textbox') }} <br><br>
-                {{ form.submit() }} <br>
-            </form>
+        <div class="form-row">
+            <div class="section-header">
+                <p>Add a new course to the system.</p>
+            </div>
+        </div><hr><br><br>
+        <div class="form-row">
+            <div class="field width-100">
+                {{ form.code.label() }} 
+                {{ form.code(class="text") }}
+            </div>
         </div>
-    </body>
-</html>
+        <div class="form-row">
+            <div class="field width-100">
+                {{ form.title.label() }} 
+                {{ form.title(class="text") }}
+            </div>
+        </div><br>
+        <div class="form-row">
+            <div class="field width-100">
+                {{ form.submit(class="submit width-100") }}
+            </div>
+        </div>
+    </form>
+</div>

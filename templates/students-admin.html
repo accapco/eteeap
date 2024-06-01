@@ -40,20 +40,14 @@
             <div class="right">
                 {% if student.progress == 'payment' and student.receipt %}
                     <a href="{{url_for(".get_receipt", user_id=student.uid )}}" target="_blank"><button class="btn-grey">View receipt</button></a>
-                    <button class="btn-green" onclick="approveStatus('{{student.id}}', '{{student.progress}}')">Approve</button>
+                    <button class="approve btn-green" data-id="{{student.id}}" data-progress="{{student.progress}}">Approve</button>
                 {% elif student.progress == 'payment' %}
                     <button disabled>No receipt</button>
                     <button disabled>Approve</button>
-                {% elif student.progress == 'evaluation' and student.doc %}
-                    <a href="{{url_for(".get_document", user_id=student.uid )}}" target="_blank"><button class="btn-grey">View doc</button></a>
-                    <button class="btn-green" onclick="approveStatus('{{student.id}}', '{{student.progress}}')">Approve</button>
-                {% elif student.progress == 'evaluation' %}
-                    <button disabled>No doc</button>
-                    <button disabled>Approve</button>
                 {% elif student.progress == 'enrollment' %}
-                    <button class="btn-green" onclick="modifyStudentCourses('{{student.id}}')">Enroll student</button>
+                    <button class="enroll btn-green"  data-id="{{student.id}}">Enroll student</button>
                 {% elif student.progress == 'enrolled' %}
-                <button class="btn-student" disabled>View Subjects</button>
+                <button class="view btn-purple">View Subjects</button>
                 {% else %}
                 {% endif %}
             </div>
@@ -62,25 +56,98 @@
     {% endfor %}
 </div>
 
-<script>
-    function approveStatus(student_id, progress) {
-        var url = '/index/students/' + student_id + '/approve/'  + progress;
-        width = 600;
-        height = 800;
-        left = (screen.width - width) / 2;
-        top = (screen.height - height) / 4;
-        var features = 'width='+width+',height='+height+',left='+left+',top='+top;
-        window.open(url, name, features);
-    }
+<div id="approve-modal" class="modal">
+    <div id="approve-modal-content" class="modal-content"></div>
+</div>
 
-    function modifyStudentCourses(student_id) {
-        var url = '/index/students/' + student_id + '/courses';
-        width = 800;
-        height = 800;
-        left = (screen.width - width) / 2;
-        top = (screen.height - height) / 4;
-        var features = 'width='+width+',height='+height+',left='+left+',top='+top;
-        window.open(url, name, features);
-    }
+<div id="enroll-modal" class="modal">
+    <div id="enroll-modal-content" class="modal-content width-60"></div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        var approveModal = document.querySelector('#approve-modal');
+        var approveModalContent = document.querySelector('#approve-modal-content');
+        var approveBtns = document.querySelectorAll('.approve');
+
+        approveBtns.forEach(btn => {
+            btn.addEventListener('click', (event) => {
+                event.preventDefault();
+                var student_id = btn.getAttribute('data-id');
+                var progress = btn.getAttribute('data-progress');
+                var route = '/index/students/' + student_id + '/approve/'  + progress;
+
+                fetch(route, {method: 'GET'})
+                    .then(response => response.text())
+                    .then(data => {
+                        approveModalContent.innerHTML = data;
+                        approveModalContent.classList.add("width-40");
+                        var close = approveModalContent.querySelector("#close");
+                        close.addEventListener('click', (event) => {
+                            event.preventDefault();
+                            approveModal.style.display = "none";
+                        });
+                        approveModal.style.display = "block";
+                    })
+                    .catch(error => {
+                        alert(error);
+                        window.location.reload();
+                    });
+            });
+        });
+   
+        var enrollModal = document.querySelector('#enroll-modal');
+        var enrollModalContent = document.querySelector('#enroll-modal-content');
+        var enrollBtns = document.querySelectorAll('.enroll');
+
+        enrollBtns.forEach(btn => {
+            btn.addEventListener('click', (event) => {
+                event.preventDefault();
+                var student_id = btn.getAttribute('data-id');
+                var route = '/index/students/' + student_id + '/courses'
+
+                fetch(route, {method: 'GET'})
+                    .then(response => response.text())
+                    .then(data => {
+                        enrollModalContent.innerHTML = data;
+                        enrollModalContent.classList.add("width-60");
+                        var close = enrollModalContent.querySelector("#close");
+                        close.addEventListener('click', (event) => {
+                            event.preventDefault();
+                            enrollModal.style.display = "none";
+                        });
+                        var releaseHonorariumBtns = document.querySelectorAll('.release-honorarium');
+                        releaseHonorariumBtns.forEach(btn => {
+                            btn.addEventListener('click', function(event) {
+                                event.preventDefault();
+                                const value = btn.getAttribute('data-value');
+                                
+                                fetch('/index/release_honorarium', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json'
+                                    },
+                                    body: JSON.stringify({ enrollment_id: value })
+                                })
+                                .then(response => response.json())
+                                .then(data => {
+                                    alert(data.message);
+                                    window.location.reload();
+                                })
+                                .catch(error => {
+                                    alert(error.message);
+                                    window.location.reload();
+                                });
+                            });
+                        });
+                        enrollModal.style.display = "block";
+                    })
+                    .catch(error => {
+                        alert(error);
+                        window.location.reload();
+                    });
+            });
+        });
+   });
 </script>
 {% endblock %}

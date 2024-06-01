@@ -19,13 +19,13 @@
 
         {% if student.receipt_filepath is none %}
 
-        <p id="status-message">Payment not yet confirmed, upload receipt.</p>
+        <p id="status-message">Welcome to the ETEEAP system {{ student.f_name }}. Upload your OR and COR to proceed with enrollment.</p>
 
         {% else %}
 
-        <p id="status-message">Receipt uploaded, waiting for confirmation.</p>
+        <p id="status-message">OR and COR uploaded, waiting for confirmation.</p>
         <br><br>
-        <img class="thumbnail" src="{{ receipt_fp }}" alt="receipt.jpg">
+        <a download href="{{ url_for('.get_receipt', user_id=student.user) }}">Uploaded File</a>
 
         {% endif %}
 
@@ -36,32 +36,6 @@
             {{ receipt_form.file() }} <br><br>
     
             {{ receipt_form.submit() }}
-        </form>
-
-    {% elif student.progress  == 'evaluation' %}
-
-        {% if student.document_filepath is none %}
-
-        <p id="status-message">Document not yet uploaded.</p>
-
-        {% else %}
-
-        <p id="status-message">Document uploaded, waiting for confirmation.</p>
-        <br><br>
-        <div>
-            <p>Uploaded document: </p>
-            <a href="{{ document_fp }}" target="_blank">{{ student['document_filepath']|filename }}</a>
-        </div>
-
-        {% endif %}
-
-        <br><br>
-        <form action="/index/document" method="post" enctype="multipart/form-data">
-            {{ document_form.hidden_tag() }}
-    
-            {{ document_form.file() }} <br><br>
-    
-            {{ document_form.submit() }}
         </form>
 
     {% elif student.progress  == 'enrollment' %}

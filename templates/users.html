@@ -7,18 +7,18 @@
     <div class="card side color-white">
         <div class="inline">
             <h3>Instructors</h3>
-            <button class="btn-add" onclick="addUser('instructor')">Add account</button><br>
+            <button class="btn-add" data-value="instructor">Add account</button><br>
         </div>
         {% if instructors is defined and instructors|length > 0 %}
         <ul class="stylized-table">
-            <li class="table-header">
-                <div class="col col-2">ID</div>
+            <li class="table-header smaller">
+                <div class="col col-2">COLLEGE</div>
                 <div class="col col-5">USERNAME</div>
                 <div class="col col-3">NAME</div>
             </li>
             {% for instructor in instructors %}
-            <li class="table-row">
-                <div class="col col-2" data-label="ID">{{ instructor.id }}</div>
+            <li class="table-row smaller">
+                <div class="col col-2" data-label="COLLEGE">{{ instructor.college }}</div>
                 <div class="col col-5" data-label="USERNAME">{{ instructor.username }}</div>
                 <div class="col col-3" data-label="NAME">{{ instructor.l_name }}, {{ instructor.f_name }}</div>
             </li>
@@ -34,18 +34,18 @@
     <div class="card side color-white">
         <div class="inline">
             <h3>Students</h3>
-            <button class="btn-add" onclick="addUser('student')">Add account</button><br>
+            <button class="btn-add" data-value="student">Add account</button><br>
         </div>
         {% if students is defined and students|length > 0 %}
         <ul class="stylized-table">
-            <li class="table-header">
-                <div class="col col-2">ID</div>
+            <li class="table-header smaller">
+                <div class="col col-4">TUP ID</div>
                 <div class="col col-5">USERNAME</div>
                 <div class="col col-3">NAME</div>
             </li>
             {% for student in students %}
-            <li class="table-row">
-                <div class="col col-2" data-label="ID">{{ student.id }}</div>
+            <li class="table-row smaller">
+                <div class="col col-4" data-label="TUP ID">{{ student.tup_id }}</div>
                 <div class="col col-5" data-label="USERNAME">{{ student.username }}</div>
                 <div class="col col-3" data-label="NAME">{{ student.l_name|title }}, {{ student.f_name }}</div>
             </li>
@@ -55,17 +55,90 @@
         <p>No student accounts have been created.</p>
         {% endif %}
     </div>
-    
 </div class="main-row">
 
+<div class="modal">
+    <div class="modal-content"></div>
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+        <script>
+            alert('{{message}}');
+        </script>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+
 <script>
-    function addUser(user_type) {
-        var url = '/index/users/add_user/' + user_type;
-        left = (screen.width - 600) / 2;
-        top = (screen.height - 600) / 4;
-        var features = 'width=600,height=800,left='+left+',top='+top;;
-        window.open(url, name, features);
+    function autoUpdateUsernameAndPassword(element) {
+        var lNameField = element.querySelector('#l_name');
+        var fNameField = element.querySelector('#f_name');
+        var usernameField = element.querySelector('#username');
+        var passwordField = element.querySelector('#password');
+
+        function updateUsername() {
+            var lName = lNameField.value.trim().toLowerCase();
+            var fName = fNameField.value.trim().toLowerCase().replace(/\s+/g, '');
+            if (lName && fName) {
+                usernameField.value = `${lName}.${fName}`;
+            } else {
+                usernameField.value = '';
+            }
+        }
+
+        function generateRandomPassword() {
+            const characters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            let password = '';
+            for (let i = 0; i < 6; i++) {
+                const randomIndex = Math.floor(Math.random() * characters.length);
+                password += characters.charAt(randomIndex);
+            }
+            return password;
+        }
+
+        if (lNameField && fNameField && usernameField) {
+            lNameField.addEventListener('input', updateUsername);
+            fNameField.addEventListener('input', updateUsername);
+        }
+
+        if (passwordField) {
+            passwordField.value = generateRandomPassword();
+        }
     }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const addBtns = document.querySelectorAll(".btn-add");
+        const modal = document.querySelector(".modal");
+        const modalContent = document.querySelector(".modal-content");
+
+        addBtns.forEach(btn => {
+            btn.addEventListener("click", (event) => {
+                event.preventDefault();
+                var userType = btn.getAttribute("data-value");
+                var route = '/index/users/add_user/' + userType;
+
+                fetch(route, {method: 'GET'})
+                    .then(response => response.json())
+                    .then(data => {
+                        modalContent.innerHTML = data.html;
+                        modalContent.classList.add("width-40")
+                        var close = modalContent.querySelector("#close");
+                        autoUpdateUsernameAndPassword(modalContent);
+                        close.addEventListener('click', (event) => {
+                            event.preventDefault();
+                            modal.style.display = "none";
+                        });
+                        modal.style.display = "block";
+                    })
+                    .catch(error => {
+                        alert(error);
+                        window.location.reload();
+                    })
+            });
+        });
+    });
 </script>
 
 {% endblock %}

@@ -21,9 +21,9 @@
                 <div class="form-row">
                     <div class="section-header">
                         <p>Grade Submission Forms 
-                            <a href="{{ url_for('views.get_grade_submission_form1') }}" download>Download Form 1</a>
-                            <a href="{{ url_for('views.get_grade_submission_form2') }}" download>Download Form 2</a>
-                            <a href="{{ url_for('views.get_grade_submission_form3') }}" download>Download Form 3</a>
+                            <a href="{{ url_for('views.get_grade_submission_form1') }}" download>Daily Time Record</a>
+                            <a href="{{ url_for('views.get_grade_submission_form2') }}" download>Student's Summary Grade</a>
+                            <a href="{{ url_for('views.get_grade_submission_form3') }}" download>Tutor's Evaluation Report</a>
                         </p>
                     </div>
                 </div>
@@ -46,19 +46,19 @@
                 <div class="form-row">
                     <div class="field width-50">
                         {{ form.file1.label() }} 
-                        {{ form.file1(class='text', placeholder="File 1") }}
+                        {{ form.file1(class='text', placeholder="Daily Time Record") }}
                     </div>
                 </div>
                 <div class="form-row">
                     <div class="field width-50">
                         {{ form.file2.label() }} 
-                        {{ form.file2(class='text', placeholder="File 2") }}
+                        {{ form.file2(class='text', placeholder="Student's Summary Grade Report") }}
                     </div>
                 </div>
                 <div class="form-row">
                     <div class="field width-50">
                         {{ form.file3.label() }} 
-                        {{ form.file3(class='text', placeholder="File 3") }}
+                        {{ form.file3(class='text', placeholder="Tutor's Evaluation Report") }}
                     </div>
                 </div>
                 <div class="form-row">

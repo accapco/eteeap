@@ -2,22 +2,117 @@
 
 
 {% block content %}
-<div class="main-row">
-    <div class="card col-1 color-1">
-        <div class="card-label">Payment</div>
-        <div class="card-main-text">{{ student_count.payment }}</div>
+<div class="main-content">
+    <form action="/index/admin_dashboard" method="post">
+        <div class="form-row filters">
+            {{ s_form.hidden_tag() }}
+            <div class="field width-15">
+                {{ s_form.ay.label() }}
+                {{ s_form.ay(class="text") }}
+            </div>
+            <div class="field width-15">
+                {{ s_form.semester.label() }}
+                {{ s_form.semester(class="text") }}
+            </div>
+            <div class="field width-15">
+                {{ s_form.college.label() }}
+                {{ s_form.college(class="text") }}
+            </div>
+            <div class="field width-15">
+                {{ s_form.program.label() }}
+                {{ s_form.program(class="text") }}
+            </div>
+            <div class="field width-15">
+                {{ s_form.submit(class="submit width-100 grey") }}
+            </div>
+        </div>
+    </form>
+    <div class="main-row">
+        <div class="card col-2 chart">
+            <canvas id="chart-age"></canvas>
+        </div>
+        <div class="card col-2 chart">
+            <canvas id="chart-gender"></canvas>
+        </div>
     </div>
-    <div class="card col-1 color-2">
-        <div class="card-label">Evaluation</div>
-        <div class="card-main-text">{{ student_count.evaluation }}</div>
-    </div>
-    <div class="card col-1 color-3">
-        <div class="card-label">Enrollment</div>
-        <div class="card-main-text">{{ student_count.enrollment }}</div>
-    </div>
-    <div class="card col-1 color-4">
-        <div class="card-label">Completed</div>
-        <div class="card-main-text">{{ student_count.completion }}</div>
+    <div class="main-row">
+        <div class="card col-2 chart">
+            <canvas id="chart-residency"></canvas>
+        </div>
+        <div class="card col-2 chart">
+            <canvas id="chart-course_status"></canvas>
+        </div>
     </div>
 </div>
+
+{% for key, value in graphs.items() %}
+    <script>
+        var labels = JSON.parse('{{ value.labels | tojson}}');
+        var data = JSON.parse('{{ value.data | tojson }}');
+
+        console.log(data);
+
+        var data = {
+            labels: labels,
+            datasets: [{
+                label: '{{ key }}',
+                backgroundColor: [
+                'rgb(132, 95, 184, 0.9)',
+                'rgb(201, 71, 71, 0.9)',
+                'rgb(69, 118, 153, 0.9)',
+                'rgb(98, 179, 71, 0.9)'
+                ],
+                borderColor: [
+                'rgb(132, 95, 184)',
+                'rgb(201, 71, 71)',
+                'rgb(69, 118, 153)',
+                
+                'rgb(98, 179, 71)'
+                ],
+                borderWidth: 1,
+                borderRadius: 4,
+                data: data
+            }]
+        };
+
+        var config = {
+            type: '{{value.type}}',
+            data: data,
+            options: {
+                maintainAspectRatio: false,
+                responsive: true,
+                plugins: {
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false
+                    },
+                    title: {
+                        display: true,
+                        text: '{{value.title}}'
+                    }
+                    },
+                    hover: {
+                    mode: 'index',
+                    intersec: false
+                    },
+                    scales: {
+                    x:{
+                        title: {
+                            display: true,
+                            text: '{{value.x_label}}'
+                        }
+                    },
+                    y: {
+                        ticks: { stepSize: 1 }
+                    }
+                }
+            }
+        };
+
+        var myChart = new Chart(
+            document.getElementById('chart-{{key}}'),
+            config
+        );
+    </script>
+    {% endfor %}
 {% endblock %}

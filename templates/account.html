@@ -1,85 +1,91 @@
 {% extends "index.html" %}
 
-
 {% block content %}
 <div class="main-row">
     <div class="card full">
         <br>
-        <form action="/index/account" method="post">
-            {{ form.hidden_tag() }}
+        <form action="/index/account/change_account_details" method="post">
+            {{ account_form.hidden_tag() }}
             <div class="form-row">
                 <div class="section-header">
-                    <p>
-                        Account Details 
-                        <a>Edit</a>
-                        {% with messages = get_flashed_messages(with_categories=true) %}
-                        {% if messages %}
-                            {% for category, message in messages %}
-                            <span class="subtext {{category}}">{{ message }}</span>
-                            {% endfor %}
-                        {% endif %}
-                        {% endwith %}
-                    </p>
+                    <p>Account Details <a>Edit</a> </p>
                 </div>
             </div><br>
             {% if user_type == 'student' %}
             <div class="form-row">
                 <div class="field width-35">
-                    {{ form.tup_id.label() }}
-                    {{ form.tup_id(class="toggle text", value=data.tup_id, placeholder="TUP Student ID", readonly=True) }}
+                    {{ account_form.tup_id.label() }}
+                    {{ account_form.tup_id(class="toggle text", value=data.tup_id, placeholder="TUP Student ID", readonly=True) }}
+                </div>
+            </div>
+            {% elif user_type == 'instructor' %}
+            <div class="form-row">
+                <div class="field width-35">
+                    {{ account_form.college.label() }}
+                    {{ account_form.college(class="toggle text", readonly=True) }}
                 </div>
             </div>
             {% endif %}
             <div class="form-row">
                 <div class="field width-25">
-                    {{ form.l_name.label() }}
-                    {{ form.l_name(class="toggle text", value=data.l_name, placeholder="Last Name", readonly=True) }}
+                    {{ account_form.l_name.label() }}
+                    {{ account_form.l_name(class="toggle text", value=data.l_name, placeholder="Last Name", readonly=True) }}
                 </div>
                 <div class="field width-35">
-                    {{ form.f_name.label() }}
-                    {{ form.f_name(class="toggle text", value=data.f_name, placeholder="First Name", readonly=True) }}
+                    {{ account_form.f_name.label() }}
+                    {{ account_form.f_name(class="toggle text", value=data.f_name, placeholder="First Name", readonly=True) }}
                 </div>
                 <div class="field width-25">
-                    {{ form.m_name.label() }}
-                    {{ form.m_name(class="toggle text", value=data.m_name, placeholder="Middle Name", readonly=True) }}
+                    {{ account_form.m_name.label() }}
+                    {{ account_form.m_name(class="toggle text", value=data.m_name, placeholder="Middle Name", readonly=True) }}
                 </div>
                 <div class="field width-15">
-                    {{ form.ext_name.label() }}
-                    {{ form.ext_name(class="toggle text", value=data.ext_name, placeholder="Ext.", readonly=True) }}
+                    {{ account_form.ext_name.label() }}
+                    {{ account_form.ext_name(class="toggle text", value=data.ext_name, placeholder="Ext.", readonly=True) }}
                 </div>
             </div>
             <div class="form-row">
                 <div class="field width-30">
-                    {{ form.civil_status.label() }}
-                    {{ form.civil_status(class="toggle text", value=data.civil_status, placeholder="Civil Status", readonly=True) }}
+                    {{ account_form.civil_status.label() }}
+                    {{ account_form.civil_status(class="toggle text", value=data.civil_status, placeholder="Civil Status", readonly=True) }}
                 </div>
                 <div class="field width-30">
-                    {{ form.citizenship.label() }}
-                    {{ form.citizenship(class="toggle text", value=data.citizenship, placeholder="Citizenship", readonly=True) }}
+                    {{ account_form.citizenship.label() }}
+                    {{ account_form.citizenship(class="toggle text", value=data.citizenship, placeholder="Citizenship", readonly=True) }}
                 </div>
                 <div class="field width-30">
                     <label>Birthdate</label>
-                    {{ form.birthmonth(class="toggle text", value=data.birthmonth, placeholder="MM", readonly=True) }}
-                    {{ form.birthday(class="toggle text", value=data.birthday, placeholder="DD", readonly=True) }}
-                    {{ form.birthyear(class="toggle text", value=data.birthyear, placeholder="YY", readonly=True) }}
+                    {{ account_form.birthmonth(class="toggle text", value=data.birthmonth, placeholder="MM", readonly=True) }}
+                    {{ account_form.birthday(class="toggle text", value=data.birthday, placeholder="DD", readonly=True) }}
+                    {{ account_form.birthyear(class="toggle text", value=data.birthyear, placeholder="YY", readonly=True) }}
                 </div>
                 <div class="field width-10">
-                    {{ form.gender.label() }}
-                    {{ form.gender(class="toggle text", value=data.gender, placeholder="Gender", readonly=True) }}
+                    {{ account_form.gender.label() }}
+                    {{ account_form.gender(class="toggle text", value=data.gender, placeholder="Gender", readonly=True) }}
                 </div>
             </div>
             <div class="form-row">
                 <div class="field width-35">
-                    {{ form.email.label() }}
-                    {{ form.email(class="toggle text", value=data.email, placeholder="Email", readonly=True) }}
+                    {{ account_form.email.label() }}
+                    {{ account_form.email(class="toggle text", value=data.email, placeholder="Email", readonly=True) }}
                 </div>
-                <div class="field width-25">
-                    {{ form.contact_no.label() }}
-                    {{ form.contact_no(class="toggle text", value=data.contact_no, placeholder="Contact No.", readonly=True) }}
+                <div class="field width-35">
+                    {{ account_form.contact_no.label() }}
+                    {{ account_form.contact_no(class="toggle text", value=data.contact_no, placeholder="Contact No.", readonly=True) }}
+                </div>
+                <div class="field width-30">
+                    {{ account_form.residency.label() }}
+                    {{ account_form.residency(class="toggle radio", value=data.residency, readonly=True) }}
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="field width-50">
+                    {{ account_form.local_address.label() }}
+                    {{ account_form.local_address(class="toggle text", value=data.local_address, placeholder="Local Address", readonly=True) }}
                 </div>
                 <div class="field width-50">
-                    {{ form.address.label() }}
-                    {{ form.address(class="toggle text", value=data.address, placeholder="Address", readonly=True) }}
+                    {{ account_form.foreign_address.label() }}
+                    {{ account_form.foreign_address(class="toggle text", value=data.foreign_address, placeholder="International Address", readonly=True) }}
                 </div>
             </div><br>
             <div class="form-row">
@@ -87,7 +93,82 @@
                     <button type="button" class="btn-grey" id="change-password-btn">Change Password</button>
                 </div>
                 <div class="field width-25">
-                    {{ form.update(class="submit toggle width-100", disabled="True") }}
+                    {{ account_form.update(class="submit toggle width-100", disabled="True") }}
+                </div>
+            </div>
+            {% if user_type == 'instructor' %}
+            <hr><br>
+            <div class="form-row">
+                <div class="section-header">
+                    <p>Educational Background</p>
+                </div>
+            </div><br>
+            <div id="educational-background-fields">
+                {% for field in account_form.educational_backgrounds %}
+                {{ field.hidden_tag() }}
+                <div class="form-row">
+                    <div class="field width-30">
+                        {{ field.school.label() }}
+                        {{ field.school(class="text toggle") }}
+                    </div>
+                    <div class="field width-25">
+                        {{ field.degree.label() }}
+                        {{ field.degree(class="text toggle") }}
+                    </div>
+                    <div class="field width-10">
+                        {{ field.start_year.label() }}
+                        {{ field.start_year(class="text toggle") }}
+                    </div>
+                    <div class="field width-10">
+                        {{ field.end_year.label() }}
+                        {{ field.end_year(class="text toggle") }}
+                    </div>
+                    <div class="field width-15">
+                        {{ field.academic_honors.label() }}
+                        {{ field.academic_honors(class="text toggle") }}
+                    </div>
+                    <div class="field width-10">
+                        {{ field.update(class="submit grey toggle width-100", disabled="True") }}
+                    </div>
+                </div>
+                {% endfor %}
+                <div class="form-row">
+                    {{ account_form.new_educational_background.hidden_tag() }}
+                    <div class="field width-30">
+                        {{ account_form.new_educational_background.school.label() }}
+                        {{ account_form.new_educational_background.school(class="text toggle") }}
+                    </div>
+                    <div class="field width-25">
+                        {{ account_form.new_educational_background.degree.label() }}
+                        {{ account_form.new_educational_background.degree(class="text toggle") }}
+                    </div>
+                    <div class="field width-10">
+                        {{ account_form.new_educational_background.start_year.label() }}
+                        {{ account_form.new_educational_background.start_year(class="text toggle") }}
+                    </div>
+                    <div class="field width-10">
+                        {{ account_form.new_educational_background.end_year.label() }}
+                        {{ account_form.new_educational_background.end_year(class="text toggle") }}
+                    </div>
+                    <div class="field width-15">
+                        {{ account_form.new_educational_background.academic_honors.label() }}
+                        {{ account_form.new_educational_background.academic_honors(class="text toggle") }}
+                    </div>
+                    <div class="field width-10">
+                        {{ account_form.new_educational_background.submit(class="submit toggle width-100", disabled="True") }}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            <div class="form-row">
+                <div class="section-header">
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                        <p><span class="subtext {{category}}">{{ message }}</span></p>
+                        {% endfor %}
+                    {% endif %}
+                    {% endwith %}
                 </div>
             </div>
         </form><br>
@@ -95,16 +176,17 @@
 </div>
 
 <div id="password-modal" class="modal">
-    <div class="modal-content">
+    <div class="modal-content width-40">
         <span class="close">&times;</span>
         <form id="password-change-form" action="/index/account/change_password" method="post">
             {{ pass_form.hidden_tag() }}
             
+            <br><br>
             <div class="form-row">
-                <div class="field width-100">
-                    <strong><p class="no-margin">Change Password</p></strong>
+                <div class="section-header">
+                    <p>Change Password</p>
                 </div>
-            </div><br>
+            </div><hr><br><br><br>
             <div class="form-row">
                 <div class="field width-100">
                     {{ pass_form.current.label() }}
@@ -133,45 +215,96 @@
 </div>
 
 <script>
-document.addEventListener("DOMContentLoaded", function() {
-    const editLink = document.querySelector('.section-header p a');
-    const formFields = document.querySelectorAll('form .toggle');
-    const submitButton = document.querySelector('form .submit.toggle');
-    let originalValues = {};
+    document.addEventListener("DOMContentLoaded", function() {
+        const editLink = document.querySelector('.section-header p a');
+        const account_formFields = document.querySelectorAll('form .toggle');
+        const submitButton = document.querySelectorAll('form .submit.toggle');
+        const radioButtons = document.querySelectorAll('form .toggle.radio input');
+        const selectFields = document.querySelectorAll('form select.toggle');
+        const residencyField = document.querySelector('form .toggle.radio');
+        const local = document.getElementById('residency-0')
+        const foreign = document.getElementById('residency-1')
+        const foreignAddressField = document.querySelector('input[name="foreign_address"]');
+        let originalValues = {};
+        let originalResidency = {};
 
-    editLink.addEventListener('click', function(event) {
-        event.preventDefault();
-
-        if (editLink.textContent === 'Edit') {
-            formFields.forEach(field => {
-                originalValues[field.name] = field.value;
-                field.removeAttribute('readonly');
-            });
-            submitButton.removeAttribute('disabled');
-            editLink.textContent = 'Undo Edit';
-        } else {
-            formFields.forEach(field => {
-                field.value = originalValues[field.name];
-                field.setAttribute('readonly', 'true');
-            });
-            submitButton.setAttribute('disabled', 'true');
-            editLink.textContent = 'Edit';
+        function changeEditMode() {
+            if (editLink.textContent === 'Edit') {
+                account_formFields.forEach(field => {
+                    originalValues[field.name] = field.value;
+                    field.removeAttribute('readonly');
+                });
+                radioButtons.forEach(radio => {
+                    if (radio.checked) {
+                        originalResidency.value = radio.value;
+                    }
+                    radio.removeAttribute('disabled');
+                });
+                selectFields.forEach(select => {
+                    select.removeAttribute('disabled');
+                });
+                submitButton.forEach(btn => {
+                    btn.removeAttribute('disabled');
+                });
+                editLink.textContent = 'Undo Edit';
+                setForeignAddressFieldDisabled();
+            } else {
+                account_formFields.forEach(field => {
+                    field.value = originalValues[field.name];
+                    field.setAttribute('readonly', 'true');
+                });
+                radioButtons.forEach(radio => {
+                    if (radio.value === originalResidency.value) {
+                        radio.checked = true;
+                    }
+                    radio.setAttribute('disabled', 'true');
+                });
+                selectFields.forEach(select => {
+                    select.setAttribute('disabled', 'true');
+                });
+                submitButton.forEach(btn => {
+                    btn.setAttribute('disabled', 'true');
+                });
+                editLink.textContent = 'Edit';
+                setForeignAddressFieldDisabled();
+            }
         }
+
+        editLink.addEventListener('click', function(event) {
+            event.preventDefault();
+            changeEditMode();    
+        });
+
+        function setForeignAddressFieldDisabled() {
+            if (local.checked) {
+                foreignAddressField.setAttribute('disabled', 'true');
+            }  else {
+                foreignAddressField.removeAttribute('disabled');
+            }
+        }
+
+        residencyField.addEventListener('change', function(event) {
+            if (event.target.value === 'local') {
+                foreignAddressField.setAttribute('disabled', 'true');
+            } else {
+                foreignAddressField.removeAttribute('disabled');
+            }
+        });
+
+        const modal = document.getElementById("password-modal");
+        const btn = document.getElementById("change-password-btn");
+        const span = document.querySelector(".modal .close");
+
+        btn.onclick = function() {
+            modal.style.display = "block";
+        }
+
+        span.onclick = function() {
+            modal.style.display = "none";
+        }
+
+        changeEditMode();
+        changeEditMode();
     });
-
-    const modal = document.getElementById("password-modal");
-    const btn = document.getElementById("change-password-btn");
-    const span = document.querySelector(".modal .close");
-
-    btn.onclick = function() {
-        modal.style.display = "block";
-    }
-
-    span.onclick = function() {
-        modal.style.display = "none";
-    }
-});
 </script>
-
-
 {% endblock %}

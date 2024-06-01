@@ -4,33 +4,146 @@
         <meta charset="utf-8" />
         <title>Login Page - ETEEAP</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" href= "{{ url_for('static',filename='styles/login.css') }}">
+        <link rel="stylesheet" href= "{{ url_for('static',filename='styles/index.css') }}">
     </head>
     <body>
-        <h1>First time login</h1><br>
-        <div class="card">
-            <form action="/first_time_login/{{user_type}}" method="post">
-                <div class="ws-20"></div>
-                {{ form.hidden_tag() }}
+        <div class="main-content">
+            <div class="main-row">
+                <div class="card full">
+                    <br>
+                    <form action="/first_time_login/{{user_type}}" method="post">
+                        {{ form.hidden_tag() }}
+                        <div class="form-row">
+                            <div class="section-header">
+                                <p>First Time Login </p>
+                            </div>
+                        </div><br>
+                        <div class="form-row">
+                            <div class="section-header">
+                                <p class="subtext">Account Details</p>
+                            </div>
+                        </div><hr><br><br>
+                        {% if user_type == 'student' %}
+                        <div class="form-row">
+                            <div class="field width-35">
+                                {{ form.tup_id.label() }}
+                                {{ form.tup_id(class="text", placeholder="TUP Student ID") }}
+                            </div>
+                        </div>
+                        {% endif %}
+                        <div class="form-row">
+                            <div class="field width-25">
+                                {{ form.l_name.label() }}
+                                {{ form.l_name(class="text", value=data.l_name, placeholder="Last Name") }}
+                            </div>
+                            <div class="field width-35">
+                                {{ form.f_name.label() }}
+                                {{ form.f_name(class="text", value=data.f_name, placeholder="First Name") }}
+                            </div>
+                            <div class="field width-25">
+                                {{ form.m_name.label() }}
+                                {{ form.m_name(class="text", value=data.m_name, placeholder="Middle Name") }}
+                            </div>
+                            <div class="field width-15">
+                                {{ form.ext_name.label() }}
+                                {{ form.ext_name(class="text", value=data.ext_name, placeholder="Ext.") }}
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="field width-30">
+                                {{ form.civil_status.label() }}
+                                {{ form.civil_status(class="text", placeholder="Civil Status") }}
+                            </div>
+                            <div class="field width-30">
+                                {{ form.citizenship.label() }}
+                                {{ form.citizenship(class="text", value=data.citizenship, placeholder="Citizenship") }}
+                            </div>
+                            <div class="field width-30">
+                                <label>Birthdate</label>
+                                {{ form.birthmonth(class="text", value=data.birthmonth, placeholder="MM") }}
+                                {{ form.birthday(class="text", value=data.birthday, placeholder="DD") }}
+                                {{ form.birthyear(class="text", value=data.birthyear, placeholder="YY") }}
+                            </div>
+                            <div class="field width-10">
+                                {{ form.gender.label() }}
+                                {{ form.gender(class="text", placeholder="Gender") }}
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="field width-35">
+                                {{ form.email.label() }}
+                                {{ form.email(class="text", value=data.email, placeholder="Email") }}
+                            </div>
+                            <div class="field width-35">
+                                {{ form.contact_no.label() }}
+                                {{ form.contact_no(class="text", value=data.contact_no, placeholder="Contact No.") }}
+                            </div>
+                            <div class="field width-30">
+                                {{ form.residency.label() }}
+                                {{ form.residency(class="radio", value=data.residency) }}
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="field width-50">
+                                {{ form.local_address.label() }}
+                                {{ form.local_address(class="text", value=data.local_address, placeholder="Local Address") }}
+                            </div>
+                            <div class="field width-50">
+                                {{ form.foreign_address.label() }}
+                                {{ form.foreign_address(class="text", value=data.foreign_address, placeholder="Foreign Address") }}
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="section-header">
+                                <p class="subtext">Set New Password</p>
+                            </div>
+                        </div><hr><br><br>
+                        <div class="form-row">
+                            <div class="field width-50">
+                                {{ form.password.label() }}
+                                {{ form.password(class="text", placeholder="New Password") }}
+                            </div>
+                            <div class="field width-50">
+                                {{ form.password_confirm.label() }}
+                                {{ form.password_confirm(class="text", placeholder="Password Confirmation") }}
+                            </div>
+                        </div><br>
+                        <div class="form-row">
+                            <div class="field center width-100">
+                                {{ form.submit(class="submit bold width-50") }}
+                            </div>
+                        </div>
+                    </form><br>
+                </div>
+            </div>
+        </div>
+        {% if form.errors %}
+            {% for field, errors in form.errors.items() %}
+                <script>
+                    var field = document.getElementById('{{field}}');
+                    field.classList.add("field-error");
+                    field.setAttribute("placeholder", "{{errors[0]}}")
+                </script>
+            {% endfor %}
+        {% endif %}
+        <script>
+            const residencyField = document.querySelector('form .radio');
+            const foreignAddressField = document.querySelector('input[name="foreign_address"]');
+            const local = document.getElementById('residency-0')
 
-                {% if user_type == 'student' %}
-                    {{ form.tup_id(placeholder="TUP Student ID") }} <br>
-                {% endif %}
-                {{ form.password(placeholder="New Password") }} <br>
-                {{ form.password_confirm(placeholder="Confirm New Password") }} <br><br>
-                {{ form.submit() }}
-            </form>
-        </div>
-        <div>
-            {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                    <ul class=flashes>
-                        {% for category, message in messages %}
-                        <li class="{{ category }}">{{ message }}</li>
-                        {% endfor %}
-                    </ul>
-                {% endif %}
-            {% endwith %}
-        </div>
+            residencyField.addEventListener('change', function(event) {
+                if (event.target.value === 'local') {
+                    foreignAddressField.setAttribute('disabled', 'true');
+                } else {
+                    foreignAddressField.removeAttribute('disabled');
+                }
+            });
+
+            if (local.checked) {
+                foreignAddressField.setAttribute('disabled', 'true');
+            }  else {
+                foreignAddressField.removeAttribute('disabled');
+            }
+        </script>
     </body>
 </html>

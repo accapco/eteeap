@@ -30,6 +30,12 @@
                     </div>
                 </div>
                 <div class="form-row">
+                    <div class="field width-50">
+                        {{ form.materials.label() }} 
+                        {{ form.materials(class='text', placeholder="Additional Resource(s)") }}
+                    </div>
+                </div><br>
+                <div class="form-row">
                     <div class="field">
                         {{ form.submit(class='submit width-50') }}
                     </div>

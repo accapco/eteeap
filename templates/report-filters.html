@@ -1,0 +1,137 @@
+{% extends "index.html" %}
+
+
+{% block content %}
+<div class="main-row">
+    <div class="card full">
+        <br>
+        <form id="studentReportForm" action="/index/student_report" method="post">
+            {{ student_report_form.hidden_tag() }}
+            <div class="form-row">
+                <div class="section-header">
+                    <p>
+                        Student Data Report Generation
+                        <a href="#" id="generateStudentReportLink">Generate Student Report</a>
+                        {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                            <span class="subtext {{category}}">{{ message }}</span>
+                            {% endfor %}
+                        {% endif %}
+                        {% endwith %}
+                    </p>
+                </div>
+            </div><br>
+            <div class="form-row">
+                <div class="section-header">
+                    <p class="subtext">General Filters</p>
+                </div>
+            </div><br>
+            <div class="form-row">
+                <div class="field width-25">
+                    {{ student_report_form.ay.label() }}
+                    {{ student_report_form.ay(class='text') }}
+                </div>
+                <div class="field width-25">
+                    {{ student_report_form.semester.label() }}
+                    {{ student_report_form.semester(class='text') }}
+                </div>
+                <div class="field width-25">
+                    {{ student_report_form.college.label() }}
+                    {{ student_report_form.college(class='text') }}
+                </div>
+                <div class="field width-25">
+                    {{ student_report_form.program.label() }}
+                    {{ student_report_form.program(class='text') }}
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="section-header">
+                    <p class="subtext">Data To Be Generated</p>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="field width-10">
+                    {{ student_report_form.age() }}
+                    {{ student_report_form.age.label(class='checkbox') }}  
+                </div>
+                <div class="field width-10">
+                    {{ student_report_form.gender() }}
+                    {{ student_report_form.gender.label(class='checkbox') }}                   
+                </div>
+                <div class="field width-10">
+                    {{ student_report_form.residency() }}
+                    {{ student_report_form.residency.label(class='checkbox') }}                  
+                </div>
+                <div class="field width-20">
+                    {{ student_report_form.student_course_status() }}
+                    {{ student_report_form.student_course_status.label(class='checkbox') }}                   
+                </div>
+            </div><br>
+        </form><br><hr><br><br>
+        <form id="facultyReportForm" action="/index/faculty_report" method="post">
+            {{ faculty_report_form.hidden_tag() }}
+            <div class="form-row">
+                <div class="section-header">
+                    <p>
+                        Faculty Data Report Generation
+                        <a href="#" id="generateFacultyReportLink">Generate Faculty Report</a>
+                        {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                            <span class="subtext {{category}}">{{ message }}</span>
+                            {% endfor %}
+                        {% endif %}
+                        {% endwith %}
+                    </p>
+                </div>
+            </div><br>
+            <div class="form-row">
+                <div class="section-header">
+                    <p class="subtext">General Filters</p>
+                </div>
+            </div><br>
+            <div class="form-row">
+                <div class="field width-25">
+                    {{ faculty_report_form.ay.label() }}
+                    {{ faculty_report_form.ay(class='text') }}
+                </div>
+                <div class="field width-25">
+                    {{ faculty_report_form.semester.label() }}
+                    {{ faculty_report_form.semester(class='text') }}
+                </div>
+                <div class="field width-25">
+                    {{ faculty_report_form.college.label() }}
+                    {{ faculty_report_form.college(class='text') }}
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="section-header">
+                    <p class="subtext">Data To Be Generated</p>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="field width-15">
+                    {{ faculty_report_form.faculty_course_status() }}
+                    {{ faculty_report_form.faculty_course_status.label(class='checkbox') }}  
+                </div>
+                <div class="field width-20">
+                    {{ faculty_report_form.honorarium() }}
+                    {{ faculty_report_form.honorarium.label(class='checkbox') }}                   
+                </div>
+            </div><br>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.getElementById('generateStudentReportLink').addEventListener('click', function(event) {
+        event.preventDefault();
+        document.getElementById('studentReportForm').submit();
+    });
+    document.getElementById('generateFacultyReportLink').addEventListener('click', function(event) {
+        event.preventDefault();
+        document.getElementById('facultyReportForm').submit();
+    });
+</script>
+{% endblock %}

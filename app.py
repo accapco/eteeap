@@ -55,7 +55,7 @@ def login():
             flash("Incorrect login details.", 'error')
     return render_template('login_template.html', form=form)
 
-from db_functions import complete_ft_login
+from db_functions import get_account_details, complete_ft_login
 
 @app.route('/first_time_login/<user_type>', methods=['GET', 'POST'])
 def ft_login(user_type):
@@ -64,18 +64,21 @@ def ft_login(user_type):
         g.user = session['user']
     else:
         return redirect('/login')
+    data = get_account_details(session.get('id'))
     form = FTLoginForm(user_type)
+    if data['gender']:
+        form.gender.data = data['gender']
+    if data['civil_status']:
+        form.civil_status.data = data['civil_status']
     if form.validate_on_submit():
         success, message = complete_ft_login(session.get('id'), form.data)
         if success:
             return redirect('/index/home')
-        else:
-            flash(message, 'error')
-    else:
-        if form.password_confirm.errors:
-            for error in form.password_confirm.errors:
-                flash(error, 'error')
-    return render_template('ft-login.html', user_type=user_type, form=form)
+        elif message == "Invalid TUP ID.":
+            form.tup_id.errors.append(message)
+            form.tup_id.data = ""
+            form.process()
+    return render_template('ft-login.html', user_type=user_type, form=form, data=data)
 
 @app.route('/logout')
 def logout():

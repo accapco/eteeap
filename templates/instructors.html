@@ -3,6 +3,19 @@
 
 {% block content %}
 <div class="main-content">
+    <form action="/index/instructors" method="post">
+        <div class="form-row filters">
+            {{ form.hidden_tag() }}
+
+            <div class="field width-15">
+                {{ form.college.label() }}
+                {{ form.college(class="text") }}
+            </div>
+            <div class="field width-10">
+                {{ form.submit(class='submit grey width-100') }}
+            </div>
+        </div>
+    </form>
     {% for instructor in data.instructors %}
     <div class="main-row">
         <div class="card bar color-white">
@@ -10,11 +23,51 @@
                 <div class="card-strongtext"> {{ instructor.name}} </div>
                 <div class="card-subtext">{{ instructor.username }}</div>
             </div>
-            <!-- <div class="right">
-                <button class="btn-grey">Students</button>
-            </div> -->
+            <div class="middle">
+                <div class="cell {{instructor.college}}">{{ instructor.college }}</div>
+            </div>
+            <div class="right">
+                <button class="btn-grey" data-value="{{instructor.uid}}">Info</button>
+            </div>
         </div>
     </div>
     {% endfor %}
 </div>
+
+<div class="modal">
+    <div class="modal-content width-50">
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        var modal = document.querySelector('.modal');
+        var modalContent = document.querySelector('.modal-content');
+        var btns = document.querySelectorAll('.btn-grey');
+
+        btns.forEach((btn) => {
+            btn.addEventListener('click', (event) => {
+                event.preventDefault();
+                var user_id = btn.getAttribute('data-value');
+                var route = "/index/users/" + user_id + "/profile";
+
+                fetch(route, {method: 'GET'})
+                    .then(response => response.text())
+                    .then(data => {
+                        modalContent.innerHTML = data;
+                        var close = modalContent.querySelector("#close");
+                        close.addEventListener('click', (event) => {
+                            event.preventDefault();
+                            modal.style.display = "none";
+                        });
+                        modal.style.display = "block";
+                    })
+                    .catch(error => {
+                        alert(error);
+                        window.location.reload();
+                    });
+            });
+        });
+    });
+</script>
 {% endblock %}

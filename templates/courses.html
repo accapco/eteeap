@@ -1,6 +1,5 @@
 {% extends "index.html" %}
 
-
 {% block content %}
 
 <div class="main-row">
@@ -31,7 +30,7 @@
     <div class="card side color-white">
         <div class="inline">
             <h3>Courses</h3>
-            <button class="btn-add" onclick="addCourse()">Add course</button><br>
+            <button id="add-course-btn" class="btn-add">Add course</button><br>
         </div>
         {% if courses is defined and courses|length > 0 %}
         <ul class="stylized-table">
@@ -52,14 +51,49 @@
     </div>
 </div class="main-row">
 
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+    {% for category, message in messages %}
+    <script>
+        alert('{{ message }}');
+    </script>
+    {% endfor %}
+{% endif %}
+{% endwith %}
+
+<div class="modal">
+    <div class="modal-content width-30"></div>
+</div>
+
 <script>
-    function addCourse() {
-        var url = '/index/courses/add_course';
-        left = (screen.width - 600) / 2;
-        top = (screen.height - 600) / 4;
-        var features = 'width=600,height=600,left='+left+',top='+top;;
-        window.open(url, name, features);
-    }
+    document.addEventListener("DOMContentLoaded", function() {
+        var modal = document.querySelector('.modal');
+        var modalContent = document.querySelector('.modal-content');
+        const addCourse = document.getElementById('add-course-btn')
+
+        addCourse.addEventListener('click', (event) => {
+            event.preventDefault();
+            var route = "/index/courses/add_course";
+
+            fetch(route, {
+                    method: 'GET'
+                })
+                .then(response => response.text())
+                .then(data => {
+                    modalContent.innerHTML = data;
+                    var close = modalContent.querySelector("#close");
+                    close.addEventListener('click', (event) => {
+                        event.preventDefault();
+                        modal.style.display = "none";
+                    });
+                    modal.style.display = "block";
+                })
+                .catch(error => {
+                    alert(error);
+                    window.location.reload();
+                });
+        });
+    });
 </script>
 
 {% endblock %}
