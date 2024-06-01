@@ -34,7 +34,7 @@ def _index():
         return redirect('/index/home')
     return redirect('/login')
 
-from forms import LoginForm, FTLoginForm
+from forms import LoginForm, FTLoginForm, ResetPasswordForm
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -50,12 +50,14 @@ def login():
             session['id'] = user.id
             if user.ft_login:
                 return redirect(url_for('ft_login', user_type=session['user']))
+            if user.reset_password:
+                return redirect(url_for('reset_password'))
             return redirect('/index/home')
         else:
             flash("Incorrect login details.", 'error')
     return render_template('login_template.html', form=form)
 
-from db_functions import get_account_details, complete_ft_login
+from db_functions import get_account_details, complete_ft_login, set_new_password
 
 @app.route('/first_time_login/<user_type>', methods=['GET', 'POST'])
 def ft_login(user_type):
@@ -79,6 +81,21 @@ def ft_login(user_type):
             form.tup_id.data = ""
             form.process()
     return render_template('ft-login.html', user_type=user_type, form=form, data=data)
+
+@app.route('/password_reset', methods=['GET', 'POST'])
+def reset_password():
+    g.user = None
+    if 'user' in session:
+        g.user = session['user']
+    else:
+        return redirect('/login')
+    form = ResetPasswordForm()
+    if form.validate_on_submit():
+        success, message = set_new_password(session.get('id'), form.data)
+        if success:
+            flash(message, 'info')
+            return redirect('/index/home')
+    return render_template('password-reset.html', form=form)
 
 @app.route('/logout')
 def logout():

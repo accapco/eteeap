@@ -706,7 +706,31 @@ button[disabled]:hover {
         gap: 0 50px;
         align-items: center;
         overflow: hidden;
+
+        p.smaller {
+            text-align: left;
+            font-size: 13px;
+            font-weight: bold;
+            letter-spacing: 0.1em;
+            margin: 0;
+        }
     
+        .section {
+            width: 100%;
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+
+            .sub-section {
+                width: 100%;
+                display: flex;
+                justify-content: flex-start;
+                gap: 24px;
+                align-items: center;
+            }
+        }
+
         .left {
             grid-area: left;
             display: flex;
@@ -945,6 +969,22 @@ button[disabled]:hover {
             font-weight: lighter;
             padding: 20px 30px;
             margin-bottom: 12px;
+        }
+
+        a {
+            font-style: italic;
+            color: #02367e;
+        }
+    
+        a:hover {
+            border-bottom: none;
+            opacity: 80%;
+        }
+
+        .password-reset {
+            width: 100%;
+            text-align: right;
+            font-size: 11px;
         }
     }
     .table-header {

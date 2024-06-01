@@ -262,7 +262,8 @@ def instructor_students():
             'enrollment_id': e['id'],
             'grade': e['grade'],
             'ay': e['ay'],
-            'semester': e['semester']
+            'semester': e['semester'],
+            'honorarium': e['honorarium']
         })
     if form.validate_on_submit():
         filter = form.data
@@ -469,6 +470,13 @@ def add_user(user_type):
         return redirect(url_for('.users'))
     return jsonify({'html': render_template('add_user.html', user_type=user_type, form=form)}), 200
 
+@views.route('/users/<id>/reset_password')
+def reset_password(id):
+    if g.user != 'admin':
+        return redirect(url_for('.unauthorized'))
+    success, message = db.reset_password(id)
+    return jsonify({"message": message}), 200 if success else 300
+
 @views.route('/enrollment')
 def enrollment():
     if g.user != 'student':
@@ -544,10 +552,6 @@ def approve_document(student_id, progress):
     receipt_fp = url_for('.get_receipt', user_id=db.pk_to_uid(student_id, 'student'))
     if form.validate_on_submit():
         success, message = db.move_student_progress(student_id, progress)
-        if success:
-            flash(message, 'info')
-        else:
-            flash(message, 'error')
         return redirect(url_for('.admin_students'))
     return render_template('approve-status.html', form=form, student_id=student_id, progress=progress, receipt_fp=receipt_fp)
 
@@ -574,14 +578,13 @@ def enroll_student_in_program(student_id):
     programs_form = StudentProgramForm(data['programs'])
     if programs_form.validate_on_submit():
         message = db.enroll_student_in_program(student_id, programs_form.data)
-        flash(f"{message}")
-    else:
-        if programs_form.academic_year.errors:
-            flash(f"{programs_form.academic_year.errors[0]}", 'error')
-        if programs_form.semester.errors:
-            flash(f"{programs_form.semester.errors[0]}", 'error')
-        if programs_form.academic_year.errors:
-            flash(f"{programs_form.programs_select.errors[0]}", 'error')
+    # else:
+    #     if programs_form.academic_year.errors:
+    #         flash(f"{programs_form.academic_year.errors[0]}", 'error')
+    #     if programs_form.semester.errors:
+    #         flash(f"{programs_form.semester.errors[0]}", 'error')
+    #     if programs_form.academic_year.errors:
+    #         flash(f"{programs_form.programs_select.errors[0]}", 'error')
     return redirect(url_for('.admin_students'))
 
 @views.route('/students/<student_id>/enroll/course', methods=['POST'])
@@ -590,12 +593,6 @@ def enroll_student_in_course(student_id):
     courses_form = StudentCoursesForm(data['available_courses'], data['instructors'])
     if courses_form.validate_on_submit():
         message = db.enroll_student_in_course(student_id, courses_form.data)
-        flash(f"{message}")
-    else:
-        if courses_form.courses_select.errors:
-            flash(f"{courses_form.courses_select.errors[0]}", 'error')
-        if courses_form.instructors_select.errors:
-            flash(f"{courses_form.instructors_select.errors[0]}", 'error')
     return redirect(url_for('.admin_students'))
 
 @views.route('/account', methods=['GET', 'POST'])

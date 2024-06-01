@@ -91,6 +91,34 @@ def update_account_details(user_id, data):
     except Exception as e:
         return False, f"An error occured while trying to update account. {e}"
 
+import string
+import random
+
+def reset_password(id):
+    try:
+        user = User.query.filter_by(id=id).first()
+        characters = string.ascii_letters
+        new_password = ''.join(random.choice(characters) for i in range(6))
+        user.reset_password = True
+        user.password = new_password
+        db.session.add(user)
+        db.session.commit()
+        name = f"{user.f_name} {user.l_name}"
+        return True, f"Password for {name} has been reset. New password {new_password}"
+    except Exception as e:
+        return False, f"Unable to reset password. {e}" 
+
+def set_new_password(id, data):
+    try:
+        user = User.query.filter_by(id=id).first()
+        user.password = data['password']
+        user.reset_password = False
+        db.session.add(user)
+        db.session.commit()
+        return True, f"Password saved."
+    except:
+        return False, f"Password was not saved." 
+
 def add_educational_background(uid, data):
     instructor = Instructor.query.filter_by(user=uid).first()
     if data['school'] and data['degree'] and data['start_year'] and data['end_year']:

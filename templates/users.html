@@ -12,15 +12,17 @@
         {% if instructors is defined and instructors|length > 0 %}
         <ul class="stylized-table">
             <li class="table-header smaller">
-                <div class="col col-2">COLLEGE</div>
-                <div class="col col-5">USERNAME</div>
+                <div class="col col-1">COLLEGE</div>
+                <div class="col col-3">USERNAME</div>
                 <div class="col col-3">NAME</div>
+                <div class="col col-2"></div>
             </li>
             {% for instructor in instructors %}
             <li class="table-row smaller">
-                <div class="col col-2" data-label="COLLEGE">{{ instructor.college }}</div>
-                <div class="col col-5" data-label="USERNAME">{{ instructor.username }}</div>
+                <div class="col col-1" data-label="COLLEGE">{{ instructor.college }}</div>
+                <div class="col col-3" data-label="USERNAME">{{ instructor.username }}</div>
                 <div class="col col-3" data-label="NAME">{{ instructor.l_name }}, {{ instructor.f_name }}</div>
+                <div class="col col-2"><a class="password-reset" data-id="{{instructor.user}}">Reset Password</a></div>
             </li>
             {% endfor %}
         </ul>
@@ -39,15 +41,17 @@
         {% if students is defined and students|length > 0 %}
         <ul class="stylized-table">
             <li class="table-header smaller">
-                <div class="col col-4">TUP ID</div>
-                <div class="col col-5">USERNAME</div>
+                <div class="col col-3">TUP ID</div>
+                <div class="col col-3">USERNAME</div>
                 <div class="col col-3">NAME</div>
+                <div class="col col-2"></div>
             </li>
             {% for student in students %}
             <li class="table-row smaller">
-                <div class="col col-4" data-label="TUP ID">{{ student.tup_id }}</div>
-                <div class="col col-5" data-label="USERNAME">{{ student.username }}</div>
+                <div class="col col-3" data-label="TUP ID">{{ student.tup_id }}</div>
+                <div class="col col-3" data-label="USERNAME">{{ student.username }}</div>
                 <div class="col col-3" data-label="NAME">{{ student.l_name|title }}, {{ student.f_name }}</div>
+                <div class="col col-2"><a class="password-reset" data-id="{{student.user}}">Reset Password</a></div>
             </li>
             {% endfor %}
         </ul>
@@ -70,6 +74,27 @@
         {% endfor %}
     {% endif %}
 {% endwith %}
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        var resetBtns = document.querySelectorAll(".password-reset");
+
+        resetBtns.forEach(btn => { 
+            btn.addEventListener('click', (event) => {
+                event.preventDefault();
+                var id = btn.getAttribute("data-id");
+                var route = "/index/users/" + id + "/reset_password";
+
+                console.log(route)
+
+                fetch(route, {method: 'GET'})
+                    .then(response => response.json())
+                    .then(data => {alert(data.message)})
+                    .catch(error => {alert(error.message)})
+            });
+        });
+    });
+</script>
 
 <script>
     function autoUpdateUsernameAndPassword(element) {

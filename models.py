@@ -38,6 +38,7 @@ class User(db.Model):
     password = db.Column("password", db.String(64), nullable=False)
     user_type = db.Column(db.Enum('admin', 'instructor', 'student'), nullable=False)
     ft_login = db.Column("ft_login", db.Boolean, default=True)
+    reset_password = db.Column("reset_password", db.Boolean, default=False)
 
 class Admin(db.Model):
     __tablename__ = "admin"

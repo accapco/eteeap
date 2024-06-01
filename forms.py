@@ -73,6 +73,11 @@ class LoginForm(FlaskForm):
     password = PasswordField('Password', validators=[DataRequired()])
     submit = SubmitField('Login')
 
+class ResetPasswordForm(FlaskForm):
+    password = PasswordField('New Password', validators=[DataRequired(), Length(min=8,message="Password must be at least 8 characters.")])
+    password_confirm = PasswordField('Confirm Password', validators=[DataRequired(), EqualTo('password', "Passwords do not match.")])
+    submit = SubmitField('Save new password')
+
 class FTLoginForm(FlaskForm):
     password = PasswordField('New Password', validators=[DataRequired(), Length(min=8,message="Password must be at least 8 characters.")])
     password_confirm = PasswordField('Confirm Password', validators=[DataRequired(), EqualTo('password', "Passwords do not match.")])

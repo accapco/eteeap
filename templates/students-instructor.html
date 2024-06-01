@@ -28,16 +28,29 @@
                 <div class="card-subtext"> {{ e.course }}  </div>
             </div>
             <div class="middle">
-                <div class="cell {{ e.status }}"> {{ e.status|title }} </div>
+                <div  class="cell {{ e.status }} smaller"> {{ e.status|title }} </div>
             </div>
             <div class="right">
-                <!-- <button class="btn-grey">Info</button> -->
                 {% if e.status == 'pending' %}
                     <button class="btn-green" onclick="acceptEnrollment('{{data.instructor_id}}', '{{e.enrollment_id}}')">Accept</button>
                 {% elif e.status == 'ongoing' %}
                     <button class="btn-purple" onclick="viewRequirements('{{data.instructor_id}}', '{{e.enrollment_id}}')">Requirements</button>
                 {% else %}
-                    <p>Final Grade: {{ e.grade }}</p>
+                    <div class="section">
+                        <div class="sub-section">
+                            <p class="smaller">Final Grade:  {{ e.grade }}</p>
+                        </div>
+                        <div class="sub-section">
+                            <p class="smaller">Honorarium:</p>
+                            <div class="cell smaller {{ e.honorarium }}"> 
+                                {% if e.honorarium == 'onprocess' %}
+                                On Process
+                                {% else %}
+                                {{ e.honorarium|title }}
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
                 {% endif %}
             </div>
         </div>
