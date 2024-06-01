@@ -8,7 +8,7 @@ app.secret_key = secrets.token_hex()
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite3'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['UPLOAD_FOLDER'] = '.\\instance\\uploads'
+app.config['UPLOAD_FOLDER'] = os.path.join('instance', 'uploads')
 
 from models import db, User, Admin
 
