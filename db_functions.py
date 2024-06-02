@@ -182,7 +182,6 @@ def generate_student_report(filters):
     data = {
         'total_enrollees': 0,
     }
-    # data['filters'] = [key for key, value in filters if value == True]
     if filters['age']:
         data['age'] = {}
     if filters['gender']:
@@ -229,16 +228,20 @@ def generate_student_report(filters):
                 data['gender'][gender] = 0
             data['gender'][gender] += 1
         if 'residency' in data.keys():
-            residency = user['citizenship']
-            if residency not in data['residency']:
-                data['residency'][residency] = 0
-            data['residency'][residency] += 1
+            if user['residency'] != None:
+                residency = user['residency']
+                if residency not in data['residency']:
+                    data['residency'][residency] = 0
+                data['residency'][residency] += 1
         if 'course_status' in data.keys():
             subjects = Enrollment.query.filter_by(student=student['id']).all()
             for subject in subjects:
                 if subject.status not in data['course_status']:
                     data['course_status'][subject.status] = 0
                 data['course_status'][subject.status] += 1
+            order = ['pending', 'ongoing', 'completed']
+            sorted_course_status = {key: data['course_status'][key] for key in order}
+            data['course_status'] = sorted_course_status
     if 'age' in data.keys():
         data['age'] = dict(sorted(data['age'].items()))
     return data

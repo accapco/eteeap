@@ -63,7 +63,9 @@ def system():
         for error in form.academic_year.errors:
             flash(error, 'error')
     data = db.get_system_settings()
-    return render_template('system.html', page="System Settings", form=form, data=data, views=views)
+    form.academic_year.data = data['academic_year']
+    form.semester.data = data['semester']
+    return render_template('system.html', page="System Settings", form=form, views=views)
 
 @views.route('/report', methods=['GET', 'POST'])
 def report():
@@ -157,10 +159,38 @@ def dashboard_admin():
     }
     student_data = db.generate_student_report(student_report_filters)
     graphs = {
-        'age': {'labels': [], 'data': [], 'type': 'bar', 'title': "Age Chart", 'x_label': "Age"},
-        'gender': {'labels': [], 'data': [], 'type': 'pie', 'title': "Gender Chart", 'x_label': ""},
-        'residency': {'labels': [], 'data': [], 'type': 'pie', 'title': "Residency Chart", 'x_label': ""},
-        'course_status': {'labels': [], 'data': [], 'type': 'bar', 'title': "Course Status Chart", 'x_label': "Course Status"},
+        'age': {
+            'labels': [], 
+            'data': [], 
+            'type': 'bar', 
+            'title': "Age Chart", 
+            'x_label': "Age", 
+            'scales': "true"
+        },
+        'gender': {
+            'labels': [], 
+            'data': [], 
+            'type': 'pie', 
+            'title': "Gender Chart", 
+            'x_label': "", 
+            'scales': "false"
+        },
+        'residency': {
+            'labels': [], 
+            'data': [], 
+            'type': 'pie', 
+            'title': "Residency Chart", 
+            'x_label': "", 
+            'scales': "false"
+        },
+        'course_status': {
+            'labels': [], 
+            'data': [], 
+            'type': 'bar', 
+            'title': "Course Status Chart", 
+            'x_label': "Course Status", 
+            'scales': "true"
+        },
     }
 
     for key in graphs.keys():

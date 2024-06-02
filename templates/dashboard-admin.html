@@ -50,8 +50,6 @@
         var labels = JSON.parse('{{ value.labels | tojson}}');
         var data = JSON.parse('{{ value.data | tojson }}');
 
-        console.log(data);
-
         var data = {
             labels: labels,
             datasets: [{
@@ -100,10 +98,28 @@
                         title: {
                             display: true,
                             text: '{{value.x_label}}'
+                        },
+                        ticks: { 
+                            display: ('{{value.scales}}' === 'true'),
+                        },
+                        border: {
+                            display: false
+                        },
+                        grid: {
+                            drawTicks: false
                         }
                     },
                     y: {
-                        ticks: { stepSize: 1 }
+                        ticks: { 
+                            stepSize: 1,
+                            display: ('{{value.scales}}' === 'true'),
+                        },
+                        border: {
+                            display: false
+                        },
+                        grid: {
+                            drawTicks: false
+                        }
                     }
                 }
             }

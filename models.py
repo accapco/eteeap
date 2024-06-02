@@ -144,6 +144,6 @@ class Student(db.Model):
     program = db.Column("program", db.Integer, db.ForeignKey('programs.id'))
     ay = db.Column("academic_year", db.String(9))
     tup_id = db.Column("tup_id", db.String(20))
-    semester = db.Column("semester", db.Enum('1st', '2nd'))
+    semester = db.Column("semester", db.Enum('1st', '2nd', 'Midyear'))
     receipt_filepath = db.Column("receipt_filepath", db.String(64))
     enrollments = db.relationship("Enrollment", backref='students')

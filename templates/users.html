@@ -104,7 +104,7 @@
         var passwordField = element.querySelector('#password');
 
         function updateUsername() {
-            var lName = lNameField.value.trim().toLowerCase();
+            var lName = lNameField.value.trim().toLowerCase().replace(/\s+/g, '');
             var fName = fNameField.value.trim().toLowerCase().replace(/\s+/g, '');
             if (lName && fName) {
                 usernameField.value = `${lName}.${fName}`;
