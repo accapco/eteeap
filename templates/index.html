@@ -13,14 +13,14 @@
             <div class="sidebar">
                 <div class="logo">
                     <h1>ETEEAP</h1>
-                    <h2>Welcome, {{ session.get('user').title() }}</h2>
+                    <h2>Welcome, {{ session.get('user').title() }} !</h2>
                 </div>
                 <ul>
                     {% for view in views %}
                     <li><button class="side-link" data-url="{{url_for(view.link)}}">{{ view.name }}</button></li>
                     {% endfor %}
-                    <li><button id="logout" class="side-link" data-url="/logout">Logout</button></li>
                 </ul>
+                <button id="logout" class="side-link" data-url="/logout">Logout</button></li>
             </div>
             <div class="page-content">
                 <div class="nav"><h2>{{ page }}</h2></div>

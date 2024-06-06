@@ -15,22 +15,23 @@
 }
 
 body {
-  background-color: #dedede;
+  background-color: #050020;
 }
 
 h1 {
-  color: #266dd3;
+  color: #dcdcdc;
   font-size: 38px;
   font-family: quicksand;
   font-weight: bold;
   margin-top: 80px;
+  margin-bottom: 22px;
   width: 100%;
   letter-spacing: 0.1em;
   text-align: center;
 }
 
 h2 {
-  color: #266dd3;
+  color: #d6d6d6;
   font-size: 22px;
   width: 100%;
   padding-left: 32px;
@@ -39,7 +40,7 @@ h2 {
 }
 
 .card {
-  background-color: #f7f7f7;
+  background-color: #000000;
   margin: auto;
   margin-top: 10px;
   display: flex;
@@ -47,9 +48,9 @@ h2 {
   justify-content: space-around;
   width: 640px;
   height: 420px;
-  border: 1px solid #344055;
-  box-shadow: 12px 10px #344055;
-  border-radius: 3%;
+  border: 1px solid white;
+  color: white;
+  border-radius: 8px;
 }
 
 .card label {
@@ -67,35 +68,43 @@ h2 {
   font-size: 22px;
   padding: 12px 18px;
   border: none;
-  border-bottom: 2px solid #344055;
+  border-bottom: 2px solid white;
   margin-bottom: 20px;
-  background-color: #ffffff00;
+  color: white;
+  background-color: #000000;
   transition: ease-in-out, width 0.35s ease-in-out;
 }
 
 .card input[type="submit"] {
-  background-color: #266dd3;
+  background-color: #003289;
+  border: 2px solid white;
   color: white;
   font-size: 22px;
   padding: 12px 22px;
-  border: none;
   border-radius: 6px;
 }
 
 .card input:focus {
   outline: none;
-  border-bottom: 2px solid #266dd3;
+  border-bottom: 2px solid #003289;
 }
 
 .card input[type="submit"]:hover {
-  background-color: #344055;
+  background-color: #00193b;
+  border: 2px solid white;
   cursor: pointer;
 }
 
 .card input[type="submit"]:focus {
-  background-color: #344055;
-  outline: none;
-  border-bottom: none;
+  background-color:  #00193b;
+  border: 2px solid white;
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover, 
+input:-webkit-autofill:focus, 
+input:-webkit-autofill:active{
+    background-color: #000000;
 }
 
 .ws-80 {
@@ -240,7 +249,7 @@ h2 {
 }
 
 .chat-icon {
-  background-color: white;
+  background-color: #d6d6d6;
   border: 1px solid #007bff;
   padding: 8px;
   position: fixed;

@@ -53,7 +53,7 @@
     <script>
         var labels = JSON.parse('{{ value.labels | tojson}}');
         var data = JSON.parse('{{ value.data | tojson }}');
-
+        
         var data = {
             labels: labels,
             datasets: [{
@@ -72,11 +72,10 @@
                 ],
                 borderWidth: 1,
                 borderRadius: 4,
+                borderColor: "#ffffff",
                 data: data
             }]
         };
-
-        console.log('{{key}}')
 
         var config = {
             type: '{{value.type}}',
@@ -91,7 +90,9 @@
                     },
                     title: {
                         display: true,
-                        text: '{{value.title}}'
+                        text: '{{value.title}}',
+                        color: "rgba(256, 256, 256, 1)",
+                        font: "arial"
                     }
                     },
                     hover: {
@@ -111,7 +112,8 @@
                             display: false
                         },
                         grid: {
-                            drawTicks: false
+                            drawTicks: false,
+                            color: "rgba(256, 256, 256, 0.5)",
                         }
                     },
                     y: {
@@ -123,7 +125,8 @@
                             display: false
                         },
                         grid: {
-                            drawTicks: false
+                            drawTicks: false,
+                            color: "rgba(256, 256, 256, 0.5)",
                         }
                     }
                 }

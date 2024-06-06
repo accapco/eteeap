@@ -193,7 +193,7 @@
                     </div>
                 </div>
             </div>
-            {% endif %}
+            {% endif %}<br><br>
             <div class="form-row">
                 <div class="field width-25">
                     <button type="button" class="btn-grey" id="change-password-btn">Change Password</button>
@@ -218,7 +218,7 @@
 </div>
 
 <div id="password-modal" class="modal">
-    <div class="modal-content width-40">
+    <div id="password-modal-content"  class="modal-content width-40">
         <span id="close" class="close">&times;</span>
         <form id="password-change-form" action="/index/account/change_password" method="post">
             {{ pass_form.hidden_tag() }}
@@ -341,13 +341,13 @@
         var changePasswordModal = document.getElementById("password-modal");
         var close = document.querySelector("#close");
 
-        changePasswordBtn = function() {
+        changePasswordBtn.addEventListener('click', (event) => {
             changePasswordModal.style.display = "block";
-        }
+        });
 
-        close.onclick = function() {
+        close.addEventListener('click', (event) => {
             changePasswordModal.style.display = "none";
-        }
+        });
 
         changeEditMode();
         changeEditMode();
