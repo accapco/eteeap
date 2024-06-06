@@ -5,8 +5,9 @@ from uuid import uuid4
 import os
 import sys
 import json
-from datetime import date
+from datetime import date, datetime
 from pathlib import Path
+import time
 
 def _calculate_age(birthyear, birthmonth, birthday):
     today = date.today()
@@ -22,7 +23,8 @@ def get_system_settings():
         with open(fp, 'r') as file:
             cfg = json.loads(file.read())
     else:
-        cfg = {'academic_year': date.today().year, 'semester': '1st'}
+        cfg = {
+            'academic_year': date.today().year, 'semester': '1st'}
         with open(fp, 'w') as file:
             file.write(json.dumps(cfg))
     return cfg
@@ -32,7 +34,10 @@ def update_system_settings(data):
         fp = "./cfg.json"
         cfg = {
             'academic_year': data['academic_year'],
-            'semester': data['semester']
+            'semester': data['semester'],
+            'cos_dept_head': data['cos_dept_head'],
+            'cit_dept_head': data['cit_dept_head'],
+            'cie_dept_head': data['cie_dept_head']
         }
         with open(fp, 'w') as file:
             file.write(json.dumps(cfg))
@@ -51,11 +56,27 @@ def get_account_details(user_id):
     if user['user_type'] == 'student':
         student = Student.query.filter_by(user=user_id).first().__dict__
         user['tup_id'] = student['tup_id']
+        user['type_of_student'] = student['type_of_student']
+        user['foreign_address'] = student['foreign_address']
     if user['user_type'] == 'instructor':
         instructor = Instructor.query.filter_by(user=user_id).first().__dict__
         college = College.query.filter_by(id=instructor['college']).first().abbr
         user['college'] = college
-        user['educational_background'] = get_educational_background(user_id)
+    return user
+
+def profile(user_id):
+    user = User.query.filter_by(id=user_id).first().__dict__
+    if user['user_type'] == 'student':
+        student = Student.query.filter_by(user=user_id).first().__dict__
+        user['tup_id'] = student['tup_id']
+        user['type_of_student'] = student['type_of_student']
+        user['foreign_address'] = student['foreign_address']
+    if user['user_type'] == 'instructor':
+        instructor = Instructor.query.filter_by(user=user_id).first().__dict__
+        college = College.query.filter_by(id=instructor['college']).first().abbr
+        user['college'] = college
+    user['educational_background'] = get_educational_backgrounds(user_id)
+    user['social_media_accounts'] = get_social_media_accounts(user_id)
     return user
 
 def update_account_details(user_id, data):
@@ -75,12 +96,13 @@ def update_account_details(user_id, data):
         user.birthyear = data['birthyear']
         user.gender = data['gender']
         user.email = data['email']
+        user.alternate_email = data['alternate_email']
         user.contact_no = data['contact_no']
-        user.residency = data['residency']
         user.local_address = data['local_address']
-        user.foreign_address = data['foreign_address']
         if user.user_type == 'student':
             student = Student.query.filter_by(user=user_id).first()
+            student.type_of_student = data['type_of_student']
+            student.foreign_address = data['foreign_address']
             student.tup_id = data['tup_id']
         elif user.user_type == 'instructor':
             instructor = Instructor.query.filter_by(user=user_id).first()
@@ -101,10 +123,16 @@ def reset_password(id):
         new_password = ''.join(random.choice(characters) for i in range(6))
         user.reset_password = True
         user.password = new_password
+        email = user.email
         db.session.add(user)
         db.session.commit()
         name = f"{user.f_name} {user.l_name}"
-        return True, f"Password for {name} has been reset. New password {new_password}"
+        email_message = f"Hi {user.f_name},\n\n\n"
+        email_message += "Your request for a password reset has been approved. \n"
+        email_message += "Here is your new password:\n\n"
+        email_message += f"{new_password}"
+        send_email(user.email, "TUP-ETEEAP Request for Password Reset", email_message)
+        return True, f"Password for {name} has been reset and sent to {email}."
     except Exception as e:
         return False, f"Unable to reset password. {e}" 
 
@@ -120,7 +148,6 @@ def set_new_password(id, data):
         return False, f"Password was not saved." 
 
 def add_educational_background(uid, data):
-    instructor = Instructor.query.filter_by(user=uid).first()
     if data['school'] and data['degree'] and data['start_year'] and data['end_year']:
         new_educational_background = EducationalBackground(
             school = data['school'],
@@ -128,7 +155,7 @@ def add_educational_background(uid, data):
             start_year = data['start_year'],
             end_year = data['end_year'],
             academic_honors = data['academic_honors'],
-            instructor = instructor.user
+            user = uid
         )
         db.session.add(new_educational_background)
         db.session.commit()
@@ -142,12 +169,34 @@ def update_educational_background(data):
     educational_background.academic_honors = data['academic_honors']
     db.session.commit()
 
-def get_educational_background(uid):
-    instructor = Instructor.query.filter_by(user=uid).first()
-    educational_backgrounds = EducationalBackground.query.filter_by(instructor=instructor.user).all()
+def get_educational_backgrounds(uid):
+    educational_backgrounds = EducationalBackground.query.filter_by(user=uid).all()
     response = []
     for e in educational_backgrounds:
         response.append(e.__dict__)
+    return response
+
+def add_social_media_account(uid, data):
+    if data['platform'] and data['handle']:
+        new_social_media_account = SocialMediaAccount(
+            platform = data['platform'],
+            handle = data['handle'],
+            user = uid
+        )
+        db.session.add(new_social_media_account)
+        db.session.commit()
+
+def update_social_media_account(data):
+    social_media_account = SocialMediaAccount.query.filter_by(id=data['id']).first()
+    social_media_account.platform = data['platform']
+    social_media_account.handle = data['handle']
+    db.session.commit()
+
+def get_social_media_accounts(uid):
+    social_media_accounts = SocialMediaAccount.query.filter_by(user=uid).all()
+    response = []
+    for s in social_media_accounts:
+        response.append(s.__dict__)
     return response
 
 def complete_ft_login(user_id, data):
@@ -165,6 +214,33 @@ def complete_ft_login(user_id, data):
     except Exception as e:
         return False, f"An error occured trying to save account details."
 
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+import email_auth
+
+def send_email(recipient_email, subject, message):
+    sender_email = email_auth.sender_email
+    app_password = email_auth.app_password
+    # Set up the MIME
+    msg = MIMEMultipart()
+    msg['From'] = sender_email
+    msg['To'] = recipient_email
+    msg['Subject'] = subject
+
+    # Add message body
+    msg.attach(MIMEText(message, 'plain'))
+
+    # Connect to the SMTP server
+    server = smtplib.SMTP('smtp.gmail.com', 587)
+    server.starttls()
+    server.login(sender_email, app_password)
+
+    # Send the email
+    text = msg.as_string()
+    server.sendmail(sender_email, recipient_email, text)
+    server.quit()
+
 def change_password(user_id, data):
     try:
         user = User.query.filter_by(id=user_id).first()
@@ -177,6 +253,8 @@ def change_password(user_id, data):
     except Exception as e:
         return False, "An error occured when trying to save password."
 
+from operator import itemgetter
+
 def generate_student_report(filters):
     students = get_students()
     data = {
@@ -185,22 +263,22 @@ def generate_student_report(filters):
     if filters['age']:
         data['age'] = {}
     if filters['gender']:
-        data['gender'] = {}
-    if filters['residency']:
-        data['residency'] = {}
+        data['gender'] = {'M': 0, 'F': 0}
+    if filters['type_of_student']:
+        data['type_of_student'] = {'foreign': 0, 'local': 0}
     if filters['student_course_status']:
-        data['course_status'] = {}
+        data['course_status'] = {'pending': 0, 'ongoing': 0, 'completed': 0}
+
     for student in students:
         # get student info
         user = get_user(user_id=student['user'])
         ay = str(student['ay'])
         semester = str(student['semester'])
-        program = Program.query.filter_by(id=student['program']).first()
+        program = Program.query.filter_by(abbr=student['program']).first()
         if program == None:
             continue
         else:
             college = College.query.filter_by(id=program.college_id).first()
-            program = program.abbr
             if college == None:
                 continue
             else:
@@ -224,45 +302,111 @@ def generate_student_report(filters):
                 data['age'][age] += 1
         if 'gender' in data.keys():
             gender = user['gender']
-            if gender not in data['gender']:
-                data['gender'][gender] = 0
             data['gender'][gender] += 1
-        if 'residency' in data.keys():
-            if user['residency'] != None:
-                residency = user['residency']
-                if residency not in data['residency']:
-                    data['residency'][residency] = 0
-                data['residency'][residency] += 1
+        if 'type_of_student' in data.keys():
+            if student['type_of_student'] != None:
+                type_of_student = student['type_of_student']
+                data['type_of_student'][type_of_student] += 1
         if 'course_status' in data.keys():
             subjects = Enrollment.query.filter_by(student=student['id']).all()
             for subject in subjects:
-                if subject.status not in data['course_status']:
-                    data['course_status'][subject.status] = 0
                 data['course_status'][subject.status] += 1
-            order = ['pending', 'ongoing', 'completed']
-            sorted_course_status = {key: data['course_status'][key] for key in order}
-            data['course_status'] = sorted_course_status
     if 'age' in data.keys():
         data['age'] = dict(sorted(data['age'].items()))
     return data
 
-def generate_faculty_report(filters):
+def generate_student_excel_report(filters):
+    students = get_students()
     data = {
-        'faculty': []
+        'total_enrollees': 0,
+        'filters': {
+            'academic_year': filters['ay'],
+            'semester': filters['semester'],
+            'college': filters['college'],
+            'program': filters['program'],
+            'age_range': f"{filters['lb_age']}-{filters['ub_age']}",
+            'gender': filters['gender'],
+            'type_of_student': filters['type_of_student']
+        },
+        'student_list': []
+    }
+
+    for student in students:
+        user = get_user(user_id=student['user'])
+        ay = str(student['ay'])
+        semester = str(student['semester'])
+        program = Program.query.filter_by(abbr=student['program']).first()
+        if user['birthyear'] and user['birthmonth'] and user['birthday']:
+            age = _calculate_age(user['birthyear'], user['birthmonth'], user['birthday'])
+        else:
+            age = "Not set"
+        if program == None:
+            continue
+        else:
+            college = College.query.filter_by(id=program.college_id).first()
+            if college == None:
+                continue
+            else:
+                college = college.abbr
+        if filters['ay'] != "All" and ay != filters['ay']:
+            continue
+        if filters['semester'] != "All" and semester != filters['semester']:
+            continue
+        if filters['college'] != "All" and college != filters['college']:
+            continue
+        if filters['program'] != "All" and program != filters['program']:
+            continue
+        if not(filters['lb_age'] <= age <= filters['ub_age']):
+            continue
+        if filters['gender'] != "All" and user['gender'] != filters['gender']:
+            continue
+        if filters['type_of_student'] != "All" and user['type_of_student'] != filters['type_of_student']:
+            continue
+        data['total_enrollees'] += 1
+        name = f"{student['l_name'].title()}, {student['f_name']} "
+        if user['m_name'] not in (None, "None"):
+            name += ' ' + user['m_name']
+        if user['ext_name'] not in (None, "None"):
+            name += ' ' + user['ext_name']
+        data['student_list'].append({
+            'name': name,
+            'college': college,
+            'program': program.abbr,
+            'age': age,
+            'gender': user['gender'],
+            'student_type': student['type_of_student']
+        })
+    data['student_list'] = sorted(data['student_list'], key=itemgetter('age'))
+    return data
+
+def generate_faculty_report(filters):
+    instructors = get_instructors()
+    data = {
+        'total_instructors': 0,
+        'filters': {
+            'academic_year': filters['ay'],
+            'semester': filters['semester'],
+            'college': filters['college'],
+            'programs_taught': filters['programs_taught'],
+            'honorarium_status': filters['honorarium_status']
+        },
+        'faculty_list': []
     }
     instructors = get_instructors()
     for instructor in instructors:
-        college = instructor['college']
-        if filters['college'] != "All" and college != filters['college']:
-            continue
         user = User.query.filter_by(id=instructor['user']).first()
         enrollments = Enrollment.query.filter_by(instructor=instructor['id']).all()
-        name = f"{user.l_name} {user.f_name} {user.m_name if user.m_name else ''}"
+        name = f"{user.l_name.title()}, {user.f_name}"
+        if user.m_name not in (None, "None"):
+            name += ' ' + user.m_name
+        if user.ext_name not in (None, "None"):
+            name += ' ' + user.ext_name
         pending = []
         ongoing = []
         completed = []
         honorarium_released = []
         honorarium_onprocess = []
+        total_enrollments = 0
         for enrollment in enrollments:
             ay = enrollment.ay
             semester = enrollment.semester
@@ -270,37 +414,121 @@ def generate_faculty_report(filters):
                 continue
             if filters['semester'] != "All" and semester != filters['semester']:
                 continue
+            student = Student.query.filter_by(id=enrollment.student).first()
+            program = Program.query.filter_by(id=student.program).first()
+            student = User.query.filter_by(id=student.user).first()
+            if program:
+                program = program.abbr
+            if filters['programs_taught'] != "All" and program != filters['programs_taught']:
+                continue
+            if filters['honorarium_status'] != "All" and enrollment.honorarium != filters['honorarium_status']:
+                continue
             course = Course.query.filter_by(id=enrollment.course).first()
             course_name = course.code
-            student = Student.query.filter_by(id=enrollment.student).first()
-            student = User.query.filter_by(id=student.user).first()
-            student_name = f"{student.l_name} {student.f_name} {student.m_name} "
+            student_name = f"{student.l_name.title()} {student.f_name}"
+            if student.m_name not in (None, "None"):
+                student_name += ' ' + student.m_name
+            if student.ext_name not in (None, "None"):
+                student_name += ' ' + student.ext_name
             if enrollment.status == 'pending':
                 pending.append({'course': course_name, 'student': student_name})
             elif enrollment.status == 'ongoing':
                 ongoing.append({'course': course_name, 'student': student_name})
             else:
-                completed.append({'course': course_name, 'student': student_name})
+                completed.append({'student': student_name, 'course': course_name})
             if enrollment.honorarium == 'onprocess':
                 honorarium_onprocess.append({'course': course_name, 'student': student_name})
             else:
                 honorarium_released.append({'course': course_name, 'student': student_name})
-        snapshot = {'name': name}
-        if filters['faculty_course_status']:
-            snapshot['pending'] = {'count': len(pending), 'enrollments': pending}
-            snapshot['ongoing'] = {'count': len(ongoing), 'enrollments': ongoing}
-            snapshot['completed'] = {'count': len(completed), 'enrollments': completed}
-        if filters['honorarium']:
-            snapshot['honorarium_released'] = {'count': len(honorarium_released), 'enrollments': honorarium_released}
-            snapshot['honorarium_onprocess'] = {'count': len(honorarium_onprocess), 'enrollments': honorarium_onprocess}
-        data['faculty'].append(snapshot)
+            total_enrollments += 1
+        if total_enrollments == 0:
+            continue
+        snapshot = {
+            'name': name,
+            'program': program
+        }
+        snapshot['pending'] = {'count': len(pending), 'enrollments': pending}
+        snapshot['ongoing'] = {'count': len(ongoing), 'enrollments': ongoing}
+        snapshot['completed'] = {'count': len(completed), 'enrollments': completed}
+        snapshot['honorarium_released'] = {'count': len(honorarium_released), 'enrollments': honorarium_released}
+        snapshot['honorarium_onprocess'] = {'count': len(honorarium_onprocess), 'enrollments': honorarium_onprocess}
+        data['faculty_list'].append(snapshot)
+        data['total_instructors'] += 1
     return data
+
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import letter
+
+def create_honorarium_pdf(data, report):
+    try:
+        pdf_filename = f"Honorarium {report.capitalize()} Report.pdf"
+        c = canvas.Canvas(pdf_filename, pagesize=letter)
+        width, height = letter
+
+        c.setFont("Helvetica-Bold", 12)
+
+        y_position = height - 50
+        title_status = "On Process" if report == "onprocess" else "Released"
+        c.drawString(width / 2 - 100, y_position, f"Faculty Report - Honorarium {title_status}")
+        
+        c.setFont("Helvetica", 12)
+        filters = data["filters"]
+        filter_parts = []
+
+        if filters["academic_year"] != "All":
+            filter_parts.append(filters["academic_year"])
+        if filters["semester"] != "All":
+            if filters["semester"] != "Midyear":
+                filter_parts.append(filters["semester"]+" Term")
+            else:
+                filter_parts.append(filters["semester"])
+        if filters["college"] != "All":
+            filter_parts.append(filters["college"])
+        if filters["programs_taught"] != "All":
+            filter_parts.append(filters["programs_taught"])
+        if filters["honorarium_status"] != "All":
+            filter_parts.append(filters["age_range"])
+
+        filter = ", ".join(filter_parts)
+        if filter == "":
+            filter = "All"
+        y_position -= 20
+        c.drawString(50, y_position, f"Filter: {filter}")
+        
+        y_position -= 20
+        for faculty in data["faculty_list"]:
+            if faculty[f'honorarium_{report}']['count'] > 0:
+                c.setFont("Helvetica-Bold", 12)
+                c.drawString(50, y_position, f"Name: {faculty['name']}")
+                y_position -= 15
+                c.setFont("Helvetica", 12)
+                c.drawString(50, y_position, f"Honorarium Count: {faculty[f'honorarium_{report}']['count']}")
+                y_position -= 15
+
+                c.drawString(50, y_position, "Enrollments:")
+                y_position -= 15
+                for enrollment in faculty[f'honorarium_{report}']['enrollments']:
+                    c.drawString(70, y_position, f"- {enrollment['student']} ({enrollment['course']})")
+                    y_position -= 15
+
+                y_position -= 15
+
+                if y_position <= 50:
+                    c.showPage()
+                    c.setFont("Helvetica", 12)
+                    y_position = height - 50
+
+        c.save()
+        return True, pdf_filename
+    except:
+        return False, "Could not create report."
 
 import pandas as pd
 from openpyxl import Workbook, load_workbook
 from openpyxl.chart import BarChart, PieChart, Reference
 from openpyxl.utils import get_column_letter
 from openpyxl.utils.dataframe import dataframe_to_rows 
+from openpyxl.styles import Font, Border, Side, Alignment
 import os
 
 def create_sheet(data, wb, total_enrollees, sheet_name, Category):
@@ -330,9 +558,30 @@ def create_sheet(data, wb, total_enrollees, sheet_name, Category):
 
     ws.add_chart(chart, "E6")
 
-def create_student_excel(file_name, data):
+def create_student_excel(data):
     try:
-        excel_file = f'{file_name}.xlsx'
+        filters = data["filters"]
+        file_name_parts = []
+
+        if filters["academic_year"] != "All":
+            file_name_parts.append(filters["academic_year"])
+        if filters["semester"] != "All":
+            file_name_parts.append(filters["semester"])
+        if filters["college"] != "All":
+            file_name_parts.append(filters["college"])
+        if filters["program"] != "All":
+            file_name_parts.append(filters["program"])
+        if filters["age_range"] != "All":
+            file_name_parts.append(filters["age_range"])
+        if filters["gender"] != "All":
+            file_name_parts.append(filters["gender"])
+        if filters["type_of_student"] != "All":
+            file_name_parts.append(filters["type_of_student"])
+
+        file_name = "-".join(file_name_parts) + ".xlsx"
+        if file_name == ".xlsx":
+            file_name = "All.xlsx"
+        excel_file = f'Students - {file_name} - Report.xlsx'
 
         if os.path.exists(excel_file):
             os.remove(excel_file)
@@ -340,18 +589,13 @@ def create_student_excel(file_name, data):
         wb = Workbook()
         wb.remove(wb.active)
 
-        # Age
-        if "age" in data:
-            create_sheet(data["age"].items(), wb, data["total_enrollees"],  "Age Distribution", "Age")
-        # Gender
-        if "gender" in data:
-            create_sheet(data["gender"].items(), wb, data["total_enrollees"], "Gender Distribution", "Gender")
-        # Residency
-        if "residency" in data:
-            create_sheet(data["residency"].items(), wb, data["total_enrollees"], "Residency Distribution", "Residency")
-        # Course_Status
-        if "course_status" in data:
-            create_sheet(data["course_status"].items(), wb, data["total_enrollees"], "Course Status Distribution", "Course Status")
+        ws = wb.create_sheet(title="Report")
+            
+        ws.append(["Total Enrollees", data["total_enrollees"]])
+        ws.append([])
+        ws.append(["Name", "College", "Program", "Age", "Gender", "Student Type"])
+        for student in data["student_list"]:
+            ws.append([student["name"], student["college"], student["program"], student["age"], student["gender"], student["student_type"]])
 
         # Auto Fit
         for sheet in wb.worksheets:
@@ -368,98 +612,96 @@ def create_student_excel(file_name, data):
                 sheet.column_dimensions[get_column_letter(column[0].column)].width = adjusted_width
 
         wb.save(excel_file)
-        return True, "Report created."
+        return True, excel_file
     except Exception as e:
         return False, f"Problem occured while generating report. {e}"
 
-def create_faculty_excel(file_name, data):
+def create_faculty_excel(data):
     try:
         # Lists faculty members and the subjects they handle. Includes details on the number of subjects completed and ongoing for each faculty member.
-        excel_file = f'{file_name}.xlsx'
+        filters = data["filters"]
+        file_name_parts = []
+
+        if filters["academic_year"] != "All":
+            file_name_parts.append(filters["academic_year"])
+        if filters["semester"] != "All":
+            file_name_parts.append(filters["semester"])
+        if filters["college"] != "All":
+            file_name_parts.append(filters["college"])
+        if filters["programs_taught"] != "All":
+            file_name_parts.append(filters["programs_taught"])
+        if filters["honorarium_status"] != "All":
+            file_name_parts.append(filters["age_range"])
+
+        file_name = "_".join(file_name_parts) + ".xlsx"
+        if file_name == ".xlsx":
+            file_name = "All.xlsx"
+        excel_file = f'Faculty Report {file_name}'
+
         if os.path.exists(excel_file):
             os.remove(excel_file)
 
         wb = Workbook()
         wb.remove(wb.active)
 
-        if "pending" in data["faculty"][0]:
-            new_sheet_name = 'Faculty - Subjects'
-            if new_sheet_name in wb.sheetnames:
-                del wb[new_sheet_name]
-            ws = wb.create_sheet(title=new_sheet_name)
-
-            flattened_data = []
-            for faculty in data["faculty"]:
-                courses_handled = []
-                for enrollment_type in ["pending", "ongoing", "completed"]:
-                    for enrollment in faculty[enrollment_type]["enrollments"]:
-                        courses_handled.append(enrollment["course"])
-                flattened_data.append({
-                    "Faculty Name": faculty["name"], 
-                    "Courses Handled": ", ".join(courses_handled),
-                    "Pending": faculty["pending"]["count"],
-                    "Ongoing": faculty["ongoing"]["count"],
-                    "Completed": faculty["completed"]["count"],
-                    "Courses Count": len(courses_handled),
-                    })
-
-            df = pd.DataFrame(flattened_data)
-
-            for r in dataframe_to_rows(df, index=False, header=True):
-                ws.append(r)
-
+        ws = wb.create_sheet(title="Report")
             
-            chart = BarChart()
-            chart.title = "Faculty Distribution"
-            chart.x_axis.title = "Faculty"
-            chart.y_axis.title = "Count"
+        bold_font = Font(bold=True)
+        italic_font = Font(italic=True)
+        center_center = Alignment(horizontal='center', vertical='center')
+        thin_border = Border(left=Side(style='thin'), right=Side(style='thin'), top=Side(style='thin'), bottom=Side(style='thin'))
 
-            chart.width = 30
-            chart.height = 15
+        ws.append(["Total Instructors", data["total_instructors"]])
+        ws["A1"].font = bold_font
+        ws["B1"].font = bold_font
+        ws["A1"].border = thin_border
+        ws["B1"].border = thin_border
+        ws.append([])
 
-            temp = Reference(ws, min_col=2, min_row=1, max_col=len(df.columns), max_row=len(df) + 1)
-            categories = Reference(ws, min_col=1, min_row=2, max_row=len(df) + 1)
-            chart.add_data(temp, titles_from_data=True)
-            chart.set_categories(categories)
+        for faculty in data["faculty_list"]:
 
-            ws.add_chart(chart, f"B{len(df)+ 3}")
+            ws.append(["Name", faculty["name"]])
+            ws.cell(row=ws.max_row, column=1).font = bold_font
+            ws.cell(row=ws.max_row, column=1).border = thin_border
+            ws.cell(row=ws.max_row, column=2).font = bold_font
+            ws.cell(row=ws.max_row, column=2).border = thin_border
+            ws.cell(row=ws.max_row, column=3).font = bold_font
+            ws.cell(row=ws.max_row, column=3).border = thin_border
+            ws.merge_cells(start_row=ws.max_row, start_column=2, end_row=ws.max_row, end_column=3)
 
-        # Honorarium
-        if "honorarium_onprocess" in data["faculty"][0]:
-            new_sheet_name = 'Honorarium'
-            if new_sheet_name in wb.sheetnames:
-                del wb[new_sheet_name]
-            
-            ws = wb.create_sheet(title=new_sheet_name)
+            ws.append(["Program", faculty["program"]])
+            ws.cell(row=ws.max_row, column=1).font = bold_font
+            ws.cell(row=ws.max_row, column=1).border = thin_border
+            ws.cell(row=ws.max_row, column=2).font = bold_font
+            ws.cell(row=ws.max_row, column=2).border = thin_border
+            ws.merge_cells(start_row=ws.max_row, start_column=2, end_row=ws.max_row, end_column=3)
 
-            flattened_data = []
-            for student in data["faculty"]:
-                flattened_data.append({
-                    "Faculty Name": student["name"],
-                    "Honorarium Released": student["honorarium_released"]["count"],
-                    "Honorarium Onprocess": student["honorarium_onprocess"]["count"]
-                })
+            enrollment_types = [
+                ("Pending Enrollments", faculty["pending"]["count"], faculty["pending"]["enrollments"]),
+                ("Ongoing Enrollments", faculty["ongoing"]["count"], faculty["ongoing"]["enrollments"]),
+                ("Completed Enrollments", faculty["completed"]["count"], faculty["completed"]["enrollments"]),
+                ("Honorarium Released", faculty["honorarium_released"]["count"], faculty["honorarium_released"]["enrollments"]),
+                ("Honorarium On Process", faculty["honorarium_onprocess"]["count"], faculty["honorarium_onprocess"]["enrollments"])
+            ]
 
-            df = pd.DataFrame(flattened_data)
-
-            for r in dataframe_to_rows(df, index=False, header=True):
-                ws.append(r)
-
-            chart = BarChart()
-            chart.title = "Honorarium Distribution"
-            chart.x_axis.title = "Faculty"
-            chart.y_axis.title = "Count"
-
-            chart.width = 30
-            chart.height = 15
-
-            temp = Reference(ws, min_col=2, min_row=1, max_col=len(df.columns), max_row=len(df) + 1)
-            categories = Reference(ws, min_col=1, min_row=2, max_row=len(df) + 1)
-            chart.add_data(temp, titles_from_data=True)
-            chart.set_categories(categories)
-
-            ws.add_chart(chart, f"B{len(df)+ 3}")
-
+            for enrollment_type, count, enrollments in enrollment_types:
+                if count > 0:
+                    ws.append([enrollment_type, "Count",count])
+                    ws.cell(row=ws.max_row, column=1).font = italic_font
+                    ws.cell(row=ws.max_row, column=1).alignment = center_center
+                    ws.cell(row=ws.max_row, column=1).border = thin_border
+                    ws.cell(row=ws.max_row, column=2).border = thin_border
+                    ws.cell(row=ws.max_row, column=3).border = thin_border
+                    for enrollment in enrollments:
+                        
+                            ws.append(["", enrollment["course"], enrollment["student"]])
+                            ws.cell(row=ws.max_row, column=1).border = thin_border
+                            ws.cell(row=ws.max_row, column=2).border = thin_border
+                            ws.cell(row=ws.max_row, column=3).border = thin_border
+                    ws.merge_cells(start_row=ws.max_row - len(enrollments), start_column=1, end_row=ws.max_row, end_column=1)
+                    ws.append([])               
+            ws.append([])
+    
         # Auto Fit
         for sheet in wb.worksheets:
             for column in sheet.columns:
@@ -475,7 +717,7 @@ def create_faculty_excel(file_name, data):
                 sheet.column_dimensions[get_column_letter(column[0].column)].width = adjusted_width
 
         wb.save(excel_file)
-        return True, "Report created."
+        return True, excel_file
     except Exception as e:
         return False, f"Problem occured while generating report. {e}"
 
@@ -512,12 +754,15 @@ def add_user(data):
             m_name=data['m_name'],
             l_name=data['l_name'],
             ext_name=data['ext_name'],
+            email=data['email'],
             gender=data['gender'],
             password=data['password'],
             user_type=data['user_type']
         )
         db.session.add(new_user)
         db.session.commit()
+        email_message = f"Hi {data['f_name']}, \n\n\n"
+        email_message += f"Here are your TUP-ETEEAP login credentials:\n\n"
         if data['user_type'] == "admin":
             new_admin = Admin(user=new_user.id)
             db.session.add(new_admin)
@@ -534,8 +779,16 @@ def add_user(data):
                 semester=cfg['semester']
             )
             db.session.add(new_student)
+            email_message += f"TUP ID: {data['tup_id']}\n"
         db.session.commit()
-        return True, "Successfully added user."
+        email_message += f"username: {data['username']}\n"
+        email_message += f"password: {data['password']}\n\n"
+        email_message += f"https://tup-ecadcase-eteeap.onrender.com/"
+        try:
+            send_email(data['email'], "TUP-ETEEAP Login Credentials", email_message)
+            return True, "Successfully added user."
+        except:
+            return False, "Unable to create account."
     except Exception as e:
         return False, f"Error occured while adding user."
 
@@ -577,6 +830,16 @@ def get_instructor_enrollments(instructor_id):
         e = e.__dict__
         e['student'] = get_student_bypk(e['student'])
         e['course'] = get_course(e['course'])
+        program = Program.query.filter_by(id=e['student']['program']).first()
+        if program:
+            e['program'] = program.abbr
+            college = College.query.filter_by(id=program.college_id).first()
+            if college:
+                e['college'] = college.abbr
+            else:
+                e['college'] = ""
+        else:
+            e['program'] = ""
         response.append(e)
     return response
 
@@ -594,12 +857,20 @@ def get_instructor_enrollment(instructor_id, enrollment_id):
     response['course'] = get_course(response['course'])
     return response
 
-def accept_enrollment(enrollment_id):
-    enrollment = Enrollment.query.filter_by(id=enrollment_id).first()
-    if enrollment.status == 'pending':
-        enrollment.status = 'ongoing'
+def confirm_enrollment(enrollment_id, confirmation):
+    enrollment = Enrollment.query.filter_by(id=enrollment_id)
+    if confirmation == "accept":
+        enrollment = enrollment.first()
+        if enrollment.status == 'pending':
+            enrollment.status = 'ongoing'
+            db.session.commit()
+            return "Enrollment accepted."
+        else:
+            return "Invalid operation"
+    elif confirmation == "reject":
+        enrollment.delete()
         db.session.commit()
-        return "Enrollment accepted."
+        return "Enrollment rejected."
     else:
         return "Invalid operation"
 
@@ -721,6 +992,11 @@ def get_students():
         student['l_name'] = userinfo['l_name']
         student['m_name'] = userinfo['m_name']
         student['username'] = userinfo['username']
+        if student['program']:
+            program = Program.query.filter_by(id=student['program']).first()
+            student['program'] = program.abbr
+            college = College.query.filter_by(id=program.college_id).first().abbr
+            student['college'] = college
         students.append(student)
     return students
 
@@ -736,6 +1012,11 @@ def get_student_count():
         'completion': completion_count
     }
 
+def _format_date(time):
+    if time:
+        return time.strftime("%m/%d/%Y")
+    return ""
+
 def get_student_enrollments(student_id):
     enrollments = (
         Enrollment.query.filter_by(student=student_id)
@@ -750,6 +1031,7 @@ def get_student_enrollments(student_id):
         course_data = get_course(e.course)
         enrollment_data['instructor'] = instructor_data
         enrollment_data['course'] = course_data
+        enrollment_data['honorarium_released_date'] = _format_date(enrollment_data['honorarium_released_date'])
         response.append(enrollment_data)
     return response
 
@@ -770,6 +1052,7 @@ def get_student_enrollment_options(student_id):
 def upload_receipt(user_id, data):
     student = Student.query.filter_by(user=user_id).first()
     student.receipt_filepath = str(uuid4()) + os.path.splitext(data['file'].filename)[1]
+    student.progress = 'payment-pending'
     fp = os.path.join(app.config['UPLOAD_FOLDER'], 'receipts', student.receipt_filepath)
     data['file'].save(fp)
     db.session.commit()
@@ -779,20 +1062,78 @@ def get_receipt_fp(user_id):
     fp = student.receipt_filepath
     return fp
 
-def move_student_progress(student_id, progress):
-    student = Student.query.filter_by(id=student_id).first()
-    if student.progress == progress:
-        if progress == 'payment':
-            student.progress = 'enrollment'
-        else:
-            student.progress = 'graduate'
+def accept_receipt(student_id):
+    try:
+        student = Student.query.filter_by(id=student_id).first()
+        student.progress = 'enrollment'
         db.session.commit()
         return True, "Documents have been approved."
-    else:
+    except:
         return False, "Invalid operation."
     
+def reject_receipt(student_id):
+    try:
+        student = Student.query.filter_by(id=student_id).first()
+        student.progress = 'payment-rejected'
+        db.session.commit()
+        return True, "Documents have been rejected."
+    except:
+        return False, "Invalid operation."
+
 def get_enrollment(id):
     return Enrollment.query.filter_by(id=id).first().__dict__
+
+from itertools import groupby
+
+def get_enrollments_grouped_by_student(instructor_id, filters, get_hfr_and_cp=False):
+    enrollments = get_instructor_enrollments(instructor_id)
+    response = []
+    student_data_list = []
+    hfr = 0
+    cp = 0
+    for e in enrollments:
+        if filters['ay'] != "All" and filters['ay'] != e['ay']:
+            continue
+        if filters['semester'] != "All" and filters['semester'] != e['semester']:
+            continue
+        if filters['college'] != "All" and filters['college'] != e['college']:
+            continue
+        if filters['program'] != "All" and filters['program'] != e['program']:
+            continue
+        if filters['status'] != "All" and filters['status'] != e['status']:
+            continue
+        student = {
+            'name':  f"{e['student']['l_name'].title()}, {e['student']['f_name']} {e['student']['m_name'][0]+'.' if e['student']['m_name'] else ''}",
+            'program': e['program'],
+            'college': e['college'],
+            'tup_id': e['student']['tup_id'],
+            'id': e['student']['user'],
+            'enrollments': []
+        }
+        enrollment_data = {
+            'course': f"{e['course']['code']}: {e['course']['title']}",
+            'status': e['status'],
+            'enrollment_id': e['id'],
+            'grade': e['grade'],
+            'ay': e['ay'],
+            'semester': e['semester'],
+            'honorarium': e['honorarium'],
+            'honorarium_released_date': _format_date(e['honorarium_released_date'])
+        }
+        student_data_list.append((student, enrollment_data))
+        if e['honorarium'] == 'onprocess':
+            hfr += 1
+        if e['status'] == 'pending':
+            cp += 1
+    iterator = groupby(student_data_list, lambda x : x[0]) 
+    grouping = {}
+    for student, enrollments in iterator: 
+        grouping = student
+        grouping['enrollments'] = [value for key, value in list(enrollments)]
+        response.append(grouping)
+    if get_hfr_and_cp:
+        response = [response, hfr, cp]
+    return response
 
 def get_programs_by_college():
     response = []
@@ -862,6 +1203,107 @@ def enroll_student_in_program(student_id, data):
     program_info = get_program(data['programs_select'])
     return f"Enrolled student in {program_info['abbr']} for {data['semester']} Semester Academic Year {data['academic_year']}"
 
+def replace_text_in_paragraph(paragraph, replacements):
+    for key, value in replacements.items():
+        if key in paragraph.text:
+            inline = paragraph.runs
+            for i in range(len(inline)):
+                if key in inline[i].text:
+                    inline[i].text = inline[i].text.replace(key, str(value))
+
+def replace_text_in_table(table, replacements):
+    for row in table.rows:
+        for cell in row.cells:
+            for paragraph in cell.paragraphs:
+                replace_text_in_paragraph(paragraph, replacements)
+
+from docx import Document
+
+def auto_fill(input_path, output_path, replacements):
+    try:
+        doc = Document(input_path)
+        for paragraph in doc.paragraphs:
+            replace_text_in_paragraph(paragraph, replacements)
+
+        for table in doc.tables:
+            replace_text_in_table(table, replacements)
+
+        doc.save(output_path)
+        return True
+    except:
+        return False
+
+def _get_full_name(user):
+     u = User.query.filter_by(id=user.user).first()
+     return f"{u.l_name.capitalize()} {u.f_name}"
+
+def get_dtr_data(enrollment_id):
+    enrollment = Enrollment.query.filter_by(id=enrollment_id).first()
+    instructor = Instructor.query.filter_by(id=enrollment.instructor).first()
+    data = {
+        '[Instructor Name]': _get_full_name(instructor),
+        '[Month]': datetime.now().strftime("%B")
+    }   
+    return data
+
+def get_ssgr_data(enrollment_id):
+    enrollment = Enrollment.query.filter_by(id=enrollment_id).first()
+    course = Course.query.filter_by(id=enrollment.course).first()
+    instructor = Instructor.query.filter_by(id=enrollment.instructor).first()
+    student = Student.query.filter_by(id=enrollment.student).first()
+    program = Program.query.filter_by(id=student.program).first()
+    college = College.query.filter_by(id=program.id).first()
+    director = Admin.query.first()
+    days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+    data = {
+        '[College]': college.abbr,
+        '[Semester]': enrollment.semester,
+        '[Course Code]': course.code,
+        '[Units]': enrollment.units,
+        '[Academic Year]': enrollment.ay,
+        '[Course Title]': course.title,
+        '[Day]': days[date.today().weekday()],
+        '[Program]': program.abbr,
+        '[Year]': '4',
+        '[Time]': f"{datetime.now().time().hour}:{datetime.now().time().minute}",
+        '[Student Name]': _get_full_name(student),
+        '[Grade]': enrollment.grade,
+        '[Units]': enrollment.units,
+        '[Instructor Name]': _get_full_name(instructor),
+        '[Date]': datetime.now().date(),
+        '[Director Name]': _get_full_name(director),
+    }
+    return data
+
+def get_ter_data(enrollment_id):
+    enrollment = Enrollment.query.filter_by(id=enrollment_id).first()
+    course = Course.query.filter_by(id=enrollment.course).first()
+    instructor = Instructor.query.filter_by(id=enrollment.instructor).first()
+    student = Student.query.filter_by(id=enrollment.student).first()
+    program = Program.query.filter_by(id=student.program).first()
+    data = {
+        '[Student Name]': _get_full_name(student),
+        '[Program]': program.abbr,
+        '[Course Code]': course.code,
+        '[Course Title]': course.title,
+        '[Units]': enrollment.units,
+        '[Grade]': enrollment.grade,
+        '[Instructor Name]': _get_full_name(instructor)
+    }
+    return data
+
+from time import sleep
+
+def delete_file(file_path):
+    if os.path.exists(file_path):
+        try:
+            os.remove(file_path)
+            print(f"File {file_path} has been deleted.")
+        except Exception as e:
+            print(f"An error occurred while trying to delete the file: {e}")
+    else:
+        print(f"The file {file_path} does not exist.")
+
 def submit_grade(enrollment_id, data):
     try:
         enrollment = Enrollment.query.filter_by(id=enrollment_id).first()
@@ -889,11 +1331,23 @@ def release_honorarium(enrollment_id):
     try:
         enrollment = Enrollment.query.filter_by(id=enrollment_id).first()
         enrollment.honorarium = 'released'
+        enrollment.honorarium_released_date = datetime.now()
         db.session.add(enrollment)
         db.session.commit()
         return True, f"Honorarium has been released."
     except Exception as e:
-        return False, f"Problem occred when releasing honorarium."
+        return False, f"Problem ocucred while releasing honorarium."
+    
+def undo_release_honorarium(enrollment_id):
+    try:
+        enrollment = Enrollment.query.filter_by(id=enrollment_id).first()
+        enrollment.honorarium = 'onprocess'
+        enrollment.honorarium_released_date = None
+        db.session.add(enrollment)
+        db.session.commit()
+        return True, f"Status for this honorarium has been reverted."
+    except Exception as e:
+        return False, f"Problem occured while undoing action."
 
 def _remove_sa_instance_state(obj):
     if isinstance(obj, list):

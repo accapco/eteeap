@@ -7,17 +7,29 @@ from datetime import datetime
 class SystemForm(FlaskForm):
     academic_year = StringField('Academic Year', validators=[DataRequired("Academic year field cannot be empty."), Regexp(regex=r"20\d{2}-20\d{2}", message="Invalid academic year format.")])
     semester = SelectField('Semester', choices=[("1st", "First"), ("2nd", "Second"), ("Midyear", "Midyear")], validators=[DataRequired("Semester field cannot be empty.")])
+    cos_dept_head = StringField('COS Dept. Head')
+    cie_dept_head = StringField('CIE Dept. Head')
+    cit_dept_head = StringField('CIT Dept. Head')
     submit = SubmitField('Save')
 
 class EducationalBackgroundForm(FlaskForm):
     id = HiddenField()
-    school = StringField('University')
-    degree = StringField('Degree (Write in Full)')
+    school = StringField('School/University')
+    degree = StringField('Educational Level/Degree')
     start_year = IntegerField('Year Started')
     end_year = IntegerField('Year Graduated')
     academic_honors = StringField('Academic Honors')
-    submit = SubmitField("Add")
-    update = SubmitField("Update")
+    submit = SubmitField("Add Background")
+    delete = SubmitField("Remove Background")
+    update = SubmitField("Update Background")
+
+class SocialMediaAccountForm(FlaskForm):
+    id = HiddenField()
+    platform = StringField('Social Media Platform')
+    handle = StringField('Social Media Handle')
+    submit = SubmitField("Add Account")
+    delete = SubmitField("Remove Account")
+    update = SubmitField("Update Account")
 
 class NewAccountForm(FlaskForm):
     user_type = HiddenField()
@@ -28,8 +40,9 @@ class NewAccountForm(FlaskForm):
     ext_name = StringField('Ext.')
     gender = SelectField("Gender", choices=[('M', 'M'), ('F', 'F')])
     tup_id = StringField('TUP Student ID')
+    email = StringField('Email', validators=[DataRequired()])
     college = SelectField("Assigned College", choices=[("COS", "College of Science"), ("CIE", "College of Industrial Education"), ("CIT", "College of Industrial Technology")], default='COS')
-    password = StringField('One-time Password')
+    password = PasswordField('One-time Password')
     submit = SubmitField('Add User')
 
 class UserAccountForm(FlaskForm):
@@ -43,9 +56,12 @@ class UserAccountForm(FlaskForm):
     gender = SelectField("Gender", choices=[('M', 'M'), ('F', 'F')])
     tup_id = StringField('TUP Student ID')
     college = SelectField("Assigned College", choices=[("COS", "College of Science"), ("CIE", "College of Industrial Education"), ("CIT", "College of Industrial Technology")], default='COS')
-    email = StringField('Email')
+    email = StringField('Email', validators=[DataRequired()])
+    alternate_email = StringField('Alternate Email')
+    social_media_accounts = FieldList(FormField(SocialMediaAccountForm))
+    new_social_media_account = FormField(SocialMediaAccountForm)
     contact_no = StringField('Contact No.')
-    residency = RadioField('Residency', choices=[('local', 'Local'), ('foreign', 'Foreign')])
+    type_of_student = RadioField('Type of Student', choices=[('local', 'Local'), ('foreign', 'Foreign')])
     local_address = StringField('Local Address')
     foreign_address = StringField('International Address')
     birthyear = IntegerField('Year', validators = [DataRequired(), NumberRange(min=1950, max=datetime.now().year)])
@@ -58,16 +74,6 @@ class UserAccountForm(FlaskForm):
     update = SubmitField('Update Account Details')
     submit = SubmitField('Add User')
 
-    def __init__(self, data=None):
-        super().__init__()
-        if data:
-            self.gender.default = data['gender']
-            self.civil_status.default = data['civil_status']
-            self.residency.default = data['residency']
-            if 'college' in data.keys():
-                self.college.default = data['college']
-            self.process()
-            
 class LoginForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired()])
     password = PasswordField('Password', validators=[DataRequired()])
@@ -90,7 +96,7 @@ class FTLoginForm(FlaskForm):
     gender = SelectField("Gender", choices=[('M', 'M'), ('F', 'F')])
     email = StringField('Email', validators=[DataRequired()])
     contact_no = StringField('Contact No.', validators=[DataRequired()])
-    residency = RadioField('Residency', choices=[('local', 'Local'), ('foreign', 'Foreign')], default='local')
+    type_of_student = RadioField('Type of Student', choices=[('local', 'Local'), ('foreign', 'Foreign')], default='local')
     local_address = StringField('Local Address', validators=[DataRequired()])
     foreign_address = StringField('International Address')
     birthyear = IntegerField('Year', validators=[DataRequired(), NumberRange(min=1950, max=datetime.now().year)])
@@ -111,7 +117,7 @@ class ChangePasswordForm(FlaskForm):
     submit = SubmitField('Save New Password')
 
 class ReceiptForm(FlaskForm):
-    file = FileField('Upload OR and COR', validators=[DataRequired(), FileAllowed(['pdf', 'png', 'jpg'], 'Only .pdf, .png, and .jpg files allowed')])
+    file = FileField('Upload OR and COR', validators=[DataRequired(), FileAllowed(['pdf', 'png', 'jpg', 'docx'], 'Allowed files: pdf, png, jpg, docx.')])
     submit = SubmitField('Upload')
 
 class CourseForm(FlaskForm):
@@ -127,9 +133,9 @@ class RequirementForm(FlaskForm):
 
 class GradeSubmissionForm(FlaskForm):
     grade = SelectField('Final Grade', choices=[(1, 1), (1.25, 1.25), (1.5, 1.5), (1.75, 1.75), (2, 2), (2.25, 2.25), (2.5, 2.5), (2.75, 2.75), (3, 3), (5, 5)], validators=[DataRequired()])
-    file1 = FileField('Upload File 1', validators=[DataRequired()])
-    file2 = FileField('Upload File 2', validators=[DataRequired()])
-    file3 = FileField('Upload File 3', validators=[DataRequired()])
+    file1 = FileField("Daily Time Record", validators=[DataRequired()])
+    file2 = FileField("Student's Summary Grade", validators=[DataRequired()])
+    file3 = FileField("Tutor's Evaluation Report", validators=[DataRequired()])
     submit = SubmitField('Submit Grade')
 
 class SubmissionForm(FlaskForm):
@@ -137,7 +143,11 @@ class SubmissionForm(FlaskForm):
     submit = SubmitField('Submit')
 
 class StatusConfirmationForm(FlaskForm):
+    reject = SubmitField('Reject')
     submit = SubmitField('Approve')
+
+class ConfirmationDialogueForm(FlaskForm):
+    submit = SubmitField('Yes')
 
 class StudentProgramForm(FlaskForm):
     academic_year = StringField('Acad. Year', validators=[DataRequired("Academic year field cannot be empty.")])
@@ -163,53 +173,59 @@ class StudentCoursesForm(FlaskForm):
         self.courses_select.validators = [DataRequired("Course selected is not a valid option.")]
         self.instructors_select.validators = [DataRequired("Select an instructor.")]
 
-class StudentsFilterForm(FlaskForm):
-    ay = SelectField('Academic Year', choices=[], validators=[DataRequired()])
-    semester = SelectField('Semester', choices=[("1st", "First"), ("2nd", "Second"), ("Midyear", "Midyear")], validators=[DataRequired()])
-    submit = SubmitField('Apply')
+class FilterForm(FlaskForm):
+    ay = SelectField('Academic Year', choices=[("All", "All")], validators=[DataRequired()])
+    semester = SelectField('Semester', choices=[("All", "All"), ("1st", "First"), ("2nd", "Second"), ("Midyear", "Midyear")], validators=[DataRequired()])
+    college = SelectField('College', choices=[("All", "All"), ("COS", "COS"), ("CIE", "CIE"), ("CIT", "CIT")], validators=[DataRequired()])
+    program = SelectField('Program', choices=[("All", "All")], validators=[DataRequired()])
+    status = SelectField('Status', choices=[("All", "All")], validators=[DataRequired()])
+    submit = SubmitField('Filter')
 
-    def __init__(self, academic_years):
+    def __init__(self, academic_years, programs, user_type):
         super().__init__()
-        self.ay.choices = [(a, a) for a in academic_years]
-
-class InstructorsFilterForm(FlaskForm):
-    college = SelectField('College', choices=[("All", "All"), ("COS", "COS"), ("CIE", "CIE"), ("CIT", "CIT")])
-    submit = SubmitField('Apply')
+        self.ay.choices += [(a, a) for a in academic_years]
+        self.program.choices += [(p['abbr'], p['abbr']) for p in programs]
+        if user_type == 'admin':
+            self.status.choices += [("payment", "Payment"), ("payment-pending", "Pending Payment"), ("payment-rejected", "Rejected Payment"), ("enrollment", "Enrollment"), ("enrolled", "Enrolled"), ("graduate", "Graduate")]
+        else:
+            self.status.choices += [("pending", "Pending"), ("ongoing", "Ongoing"), ("completed", "Completed")]
 
 class DashboardStudentFilterForm(FlaskForm):
     ay = SelectField('Academic Year', choices=[("All", "All")], validators=[DataRequired()])
     semester = SelectField('Semester', choices=[("All", "All"), ("1st", "First"), ("2nd", "Second"), ("Midyear", "Midyear")], validators=[DataRequired()])
     college = SelectField('College', choices=[("All", "All"), ("COS", "COS"), ("CIE", "CIE"), ("CIT", "CIT")], validators=[DataRequired()])
     program = SelectField('Program', choices=[("All", "All")], validators=[DataRequired()])
-    submit = SubmitField('Apply Filters')
+    status = SelectField('Status', choices=[("All", "All"), ("payment", "Payment"), ("payment-pending", "Pending Payment"), ("payment-rejected", "Rejected Payment"), ("enrollment", "Enrollment"), ("enrolled", "Enrolled"), ("graduate", "Graduate")], validators=[DataRequired()])
+    submit = SubmitField('Filter')
 
-    def __init__(self, options):
+    def __init__(self, academic_years, programs):
         super().__init__()
-        self.ay.choices += [(a, a) for a in options['academic_years']]
-        self.program.choices += [(a, a) for a in options['programs']]
+        self.ay.choices += [(a, a) for a in academic_years]
+        self.program.choices += [(p['abbr'], p['abbr']) for p in programs]
 
 class StudentReportFilterForm(FlaskForm):
     ay = SelectField('Academic Year', choices=[("All", "All")], validators=[DataRequired()])
     semester = SelectField('Semester', choices=[("All", "All"), ("1st", "First"), ("2nd", "Second"), ("Midyear", "Midyear")], validators=[DataRequired()])
     college = SelectField('College', choices=[("All", "All"), ("COS", "COS"), ("CIE", "CIE"), ("CIT", "CIT")], validators=[DataRequired()])
     program = SelectField('Program', choices=[("All", "All")], validators=[DataRequired()])
-    age = BooleanField('Age')
-    gender = BooleanField('Gender')
-    residency = BooleanField('Residency')
-    student_course_status = BooleanField('Course Status')
+    lb_age = IntegerField('Age Range', default=18)
+    ub_age = IntegerField('Age Range', default=30)
+    gender = SelectField('Gender', choices=[("All", "All"), ("M", "M"), ("F", "F")])
+    type_of_student = SelectField('Type of Student', choices=[("All", "All"), ("Foreign", "Foreign"), ("Local", "Local")])
 
     def __init__(self, options):
         super().__init__()
         self.ay.choices += [(a, a) for a in options['academic_years']]
-        self.program.choices += [(a, a) for a in options['programs']]
+        self.program.choices += [(p, p) for p in options['programs']]
 
 class FacultyReportFilterForm(FlaskForm):
     ay = SelectField('Academic Year', choices=[("All", "All")], validators=[DataRequired()])
     semester = SelectField('Semester', choices=[("All", "All"), ("1st", "First"), ("2nd", "Second"), ("Midyear", "Midyear")], validators=[DataRequired()])
     college = SelectField('College', choices=[("All", "All"), ("COS", "COS"), ("CIE", "CIE"), ("CIT", "CIT")], validators=[DataRequired()])
-    faculty_course_status = BooleanField('Course Status')
-    honorarium = BooleanField('Status of Honorarium')
+    programs_taught = SelectField('Teaches For (Program)', choices=[("All", "All")], validators=[DataRequired()])
+    honorarium_status = SelectField('Honorarium Status', choices=[("All", "All"), ("onprocess", "Has Pending"), ("released", "None Pending")])
 
     def __init__(self, options):
         super().__init__()
         self.ay.choices += [(a, a) for a in options['academic_years']]
+        self.programs_taught.choices += [(p, p) for p in options['programs']]

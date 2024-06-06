@@ -7,13 +7,25 @@
         <div class="form-row filters">
             {{ form.hidden_tag() }}
 
-            <div class="field width-15">
+            <div class="field width-20">
                 {{ form.ay.label() }}
                 {{ form.ay(class="text") }}
             </div>
-            <div class="field width-15">
+            <div class="field width-20">
                 {{ form.semester.label() }}
                 {{ form.semester(class="text") }}
+            </div>
+            <div class="field width-20">
+                {{ form.college.label() }}
+                {{ form.college(class="text") }}
+            </div>
+            <div class="field width-20">
+                {{ form.program.label() }}
+                {{ form.program(class="text") }}
+            </div>
+            <div class="field width-20">
+                {{ form.status.label() }}
+                {{ form.status(id="enrollment-status", class="text") }}
             </div>
             <div class="field width-10">
                 {{ form.submit(class='submit grey width-100') }}
@@ -32,20 +44,31 @@
                         TUP ID not set
                     {% endif %}
                 </div>
-                <div class="card-subtext smaller">{{ student.program }}</div>
+                <div class="card-subtext smaller">{{ student.program }} ({{ student.ay }})</div>
             </div>
             <div class="middle">
-                <div class="cell {{ student.progress }}"> {{ student.progress.title() }} </div>
+                <div class="cell smaller {{ student.progress }}"> 
+                    <strong>
+                        {% if student.progress == 'payment-rejected' %}
+                        Payment
+                        {% elif student.progress == 'payment-pending'%}
+                        Payment
+                        {% else %}
+                        {{ student.progress.title() }} 
+                        {% endif %}
+                    </strong>
+                </div>
             </div>
             <div class="right">
-                {% if student.progress == 'payment' and student.receipt %}
-                    <a href="{{url_for(".get_receipt", user_id=student.uid )}}" target="_blank"><button class="btn-grey">View receipt</button></a>
-                    <button class="approve btn-green" data-id="{{student.id}}" data-progress="{{student.progress}}">Approve</button>
-                {% elif student.progress == 'payment' %}
+                <button class="profile btn-grey" data-id="{{student.uid}}">Profile</button>
+                {% if student.progress == 'payment' %}
                     <button disabled>No receipt</button>
-                    <button disabled>Approve</button>
+                {% elif student.progress == 'payment-pending' %}
+                    <button class="approve btn-green" data-id="{{student.id}}" data-progress="{{student.progress}}">Receipt</button>
+                {% elif student.progress == 'payment-rejected' %}
+                    <button class="approve btn-red" data-id="{{student.id}}" data-progress="{{student.progress}}">Rejected</button>
                 {% elif student.progress == 'enrollment' %}
-                    <button class="enroll btn-green"  data-id="{{student.id}}">Enroll student</button>
+                    <button class="enroll btn-green"  data-id="{{student.id}}">Enrollment</button>
                 {% elif student.progress == 'enrolled' %}
                 <button class="view btn-purple">View Subjects</button>
                 {% else %}
@@ -56,12 +79,24 @@
     {% endfor %}
 </div>
 
+<div id="profile-modal" class="modal">
+    <div id="profile-modal-content" class="modal-content width-50"></div>
+</div>
+
 <div id="approve-modal" class="modal">
-    <div id="approve-modal-content" class="modal-content"></div>
+    <div id="approve-modal-content" class="modal-content width-40"></div>
 </div>
 
 <div id="enroll-modal" class="modal">
-    <div id="enroll-modal-content" class="modal-content width-60"></div>
+    <div id="enroll-modal-content" class="modal-content width-70"></div>
+</div>
+
+<div id="confirm-release-modal" class="modal">
+    <div id="confirm-release-modal-content" class="modal-content width-40"></div>
+</div>
+
+<div id="undo-release-modal" class="modal">
+    <div id="undo-release-modal-content" class="modal-content width-40"></div>
 </div>
 
 <script>
@@ -70,6 +105,7 @@
         var approveModalContent = document.querySelector('#approve-modal-content');
         var approveBtns = document.querySelectorAll('.approve');
 
+        // approve receipt
         approveBtns.forEach(btn => {
             btn.addEventListener('click', (event) => {
                 event.preventDefault();
@@ -100,6 +136,7 @@
         var enrollModalContent = document.querySelector('#enroll-modal-content');
         var enrollBtns = document.querySelectorAll('.enroll');
 
+        // enroll student
         enrollBtns.forEach(btn => {
             btn.addEventListener('click', (event) => {
                 event.preventDefault();
@@ -110,29 +147,62 @@
                     .then(response => response.text())
                     .then(data => {
                         enrollModalContent.innerHTML = data;
-                        enrollModalContent.classList.add("width-60");
                         var close = enrollModalContent.querySelector("#close");
                         close.addEventListener('click', (event) => {
                             event.preventDefault();
                             enrollModal.style.display = "none";
                         });
+                        // release honorarium
                         var releaseHonorariumBtns = document.querySelectorAll('.release-honorarium');
                         releaseHonorariumBtns.forEach(btn => {
                             btn.addEventListener('click', function(event) {
                                 event.preventDefault();
-                                const value = btn.getAttribute('data-value');
+                                var confirmReleaseModal = document.querySelector("#confirm-release-modal")
+                                var confirmReleaseModalContent = document.querySelector("#confirm-release-modal-content")
+
+                                var value = btn.getAttribute('data-value');
+                                var route = "/index/enrollments/" + value + "/release_honorarium"
                                 
-                                fetch('/index/release_honorarium', {
-                                    method: 'POST',
-                                    headers: {
-                                        'Content-Type': 'application/json'
-                                    },
-                                    body: JSON.stringify({ enrollment_id: value })
+                                fetch(route, {
+                                    method: 'GET'
                                 })
-                                .then(response => response.json())
+                                .then(response => response.text())
                                 .then(data => {
-                                    alert(data.message);
-                                    window.location.reload();
+                                    confirmReleaseModalContent.innerHTML = data;
+                                    var close = confirmReleaseModalContent.querySelector("#close");
+                                    var closeBtn = confirmReleaseModalContent.querySelector("#close-btn");
+                                    close.addEventListener('click', (event) => {
+                                        event.preventDefault();
+                                        confirmReleaseModal.style.display = "none";
+                                    });
+                                    closeBtn.addEventListener('click', (event) => {
+                                        event.preventDefault();
+                                        confirmReleaseModal.style.display = "none";
+                                    });
+                                    confirmReleaseModal.style.display = "block";
+
+                                    var confirmReleaseSubmit = confirmReleaseModalContent.querySelector("#confirm-release-submit");
+                                    var confirmReleaseCSRF = confirmReleaseModalContent.querySelector("#csrf_token");
+                                    var csrf = confirmReleaseCSRF.value
+
+                                    confirmReleaseSubmit.addEventListener('click', () => {
+                                        fetch(route, {
+                                            method: 'POST',
+                                            headers: {
+                                                csrf_token: csrf
+                                            }
+                                        })
+                                        .then(response => response.json())
+                                        .then(data => {
+                                            alert(data.message);
+                                            window.location.reload();
+                                        })
+                                        .catch(error => {
+                                            console.log(error)
+                                            alert(error.message);
+                                            confirmReleaseModal.style.display = "none";
+                                        })
+                                    });
                                 })
                                 .catch(error => {
                                     alert(error.message);
@@ -141,6 +211,94 @@
                             });
                         });
                         enrollModal.style.display = "block";
+                        // revert honorarium status
+                        var undoReleaseHonorariumBtns = document.querySelectorAll('.undo-release-honorarium');
+                        undoReleaseHonorariumBtns.forEach(btn => {
+                            btn.addEventListener('click', function(event) {
+                                event.preventDefault();
+                                var undoReleaseModal = document.querySelector("#undo-release-modal")
+                                var undoReleaseModalContent = document.querySelector("#undo-release-modal-content")
+
+                                var value = btn.getAttribute('data-value');
+                                var route = "/index/enrollments/" + value + "/undo_release_honorarium"
+                                
+                                fetch(route, {
+                                    method: 'GET'
+                                })
+                                .then(response => response.text())
+                                .then(data => {
+                                    undoReleaseModalContent.innerHTML = data;
+                                    var close = undoReleaseModalContent.querySelector("#close");
+                                    var closeBtn = undoReleaseModalContent.querySelector("#close-btn");
+                                    close.addEventListener('click', (event) => {
+                                        event.preventDefault();
+                                        undoReleaseModal.style.display = "none";
+                                    });
+                                    closeBtn.addEventListener('click', (event) => {
+                                        event.preventDefault();
+                                        undoReleaseModal.style.display = "none";
+                                    });
+                                    undoReleaseModal.style.display = "block";
+
+                                    var undoReleaseSubmit = undoReleaseModalContent.querySelector("#undo-release-submit");
+                                    var undoReleaseCSRF = undoReleaseModalContent.querySelector("#csrf_token");
+                                    var csrf = undoReleaseCSRF.value
+
+                                    undoReleaseSubmit.addEventListener('click', () => {
+                                        fetch(route, {
+                                            method: 'POST',
+                                            headers: {
+                                                csrf_token: csrf
+                                            }})
+                                            .then(response => response.json())
+                                            .then(data => {
+                                                alert(data.message);
+                                                window.location.reload();
+                                            })
+                                            .catch(error => {
+                                                console.log(error)
+                                                alert(error.message);
+                                                undoReleaseModal.style.display = "none";
+                                            })
+                                    });
+                                })
+                                .catch(error => {
+                                    alert(error.message);
+                                    window.location.reload();
+                                });
+                            });
+                        });
+                        enrollModal.style.display = "block";
+                    })
+                    .catch(error => {
+                        alert(error);
+                        window.location.reload();
+                    });
+            });
+        });
+   
+        var profileModal = document.querySelector('#profile-modal');
+        var profileModalContent = document.querySelector('#profile-modal-content');
+        var profileBtns = document.querySelectorAll('.profile');
+
+        profileBtns.forEach((btn) => {
+            btn.addEventListener('click', (event) => {
+                event.preventDefault();
+                var user_id = btn.getAttribute('data-id');
+                var route = "/index/users/" + user_id + "/profile";
+
+                console.log(route)
+
+                fetch(route, {method: 'GET'})
+                    .then(response => response.text())
+                    .then(data => {
+                        profileModalContent.innerHTML = data;
+                        var close = profileModalContent.querySelector("#close");
+                        close.addEventListener('click', (event) => {
+                            event.preventDefault();
+                            profileModal.style.display = "none";
+                        });
+                        profileModal.style.display = "block";
                     })
                     .catch(error => {
                         alert(error);

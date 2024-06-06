@@ -31,10 +31,9 @@ class User(db.Model):
     birthday = db.Column("birthday", db.Integer)
     gender = db.Column("gender", db.Enum('M', 'F'))
     email = db.Column("email", db.String(64))
+    alternate_email = db.Column("alternate_email", db.String(64))
     contact_no = db.Column("contact_no", db.String(64))
-    residency = db.Column("residency", db.Enum('local', 'foreign'), default='local')
     local_address = db.Column("local_address", db.String(100))
-    foreign_address = db.Column("foreign_address", db.String(100))
     password = db.Column("password", db.String(64), nullable=False)
     user_type = db.Column(db.Enum('admin', 'instructor', 'student'), nullable=False)
     ft_login = db.Column("ft_login", db.Boolean, default=True)
@@ -44,6 +43,7 @@ class Admin(db.Model):
     __tablename__ = "admin"
 
     id = db.Column("id", db.Integer, primary_key=True)
+    director = db.Column("director", db.Boolean(), default=False)
     user = db.Column("user", db.Integer, db.ForeignKey('users.id'))
 
 class College(db.Model):
@@ -114,6 +114,7 @@ class Enrollment(db.Model):
     form2 = db.Column("form2path", db.String(64))
     form3 = db.Column("form3path", db.String(64))
     honorarium = db.Column("honorarium", db.Enum('onprocess', 'released'), default='onprocess')
+    honorarium_released_date = db.Column("honorarium_released_date", db.DateTime())
     requirements = db.relationship("Requirement", backref='enrollments')
 
 class Instructor(db.Model):
@@ -128,19 +129,29 @@ class EducationalBackground(db.Model):
     __tablename__ = "educational_backgrounds"
 
     id = db.Column("id", db.Integer, primary_key=True)
+    user = db.Column("user", db.Integer, db.ForeignKey('users.id'))
     school = db.Column("school", db.String(64))
     degree = db.Column("degree", db.String(64))
     start_year = db.Column("start_year", db.Integer())
     end_year = db.Column("end_year", db.Integer())
     academic_honors = db.Column("academic_honors", db.Integer())
-    instructor = db.Column("instructor", db.Integer, db.ForeignKey('instructors.id'))
+
+class SocialMediaAccount(db.Model):
+    __tablename__ = "social_media_accounts"
+
+    id = db.Column("id", db.Integer, primary_key=True)
+    user = db.Column("user", db.Integer, db.ForeignKey('users.id'))
+    platform = db.Column("platform", db.String(50))
+    handle = db.Column("handle", db.String(50))
 
 class Student(db.Model):
     __tablename__ = "students"
 
     id = db.Column("id", db.Integer, primary_key=True)
     user = db.Column("user", db.Integer, db.ForeignKey('users.id'))
-    progress = db.Column(db.Enum('payment', 'enrollment', 'enrolled', 'graduate'), nullable=False, default='payment')
+    type_of_student = db.Column("type_of_student", db.Enum('local', 'foreign'), default='local')
+    foreign_address = db.Column("foreign_address", db.String(100))
+    progress = db.Column(db.Enum('payment', 'payment-pending', 'payment-rejected', 'enrollment', 'enrolled', 'graduate'), nullable=False, default='payment')
     program = db.Column("program", db.Integer, db.ForeignKey('programs.id'))
     ay = db.Column("academic_year", db.String(9))
     tup_id = db.Column("tup_id", db.String(20))

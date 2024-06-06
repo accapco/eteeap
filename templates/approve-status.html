@@ -9,11 +9,13 @@
                 <p>Confirmation of Student's Uploaded OR and COR</p>
             </div>
         </div><hr>
+        
         <iframe id="pdf-preview" src="{{ receipt_fp }}" frameborder="0"></iframe>
         <hr><br>
         <div class="form-row">
             <div class="field center width-100">
-                {{ form.submit(class="submit width-50") }} 
+                {{ form.reject(class="submit red bold width-50") }}
+                {{ form.submit(class="submit bold width-50") }} 
             </div>
         </div>
     </form>

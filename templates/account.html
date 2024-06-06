@@ -8,7 +8,7 @@
             {{ account_form.hidden_tag() }}
             <div class="form-row">
                 <div class="section-header">
-                    <p>Account Details <a>Edit</a> </p>
+                    <p>Account Details <a id="edit">Edit</a> </p>
                 </div>
             </div><br>
             {% if user_type == 'student' %}
@@ -65,38 +65,78 @@
                 </div>
             </div>
             <div class="form-row">
-                <div class="field width-35">
+                <div class="field width-25">
                     {{ account_form.email.label() }}
                     {{ account_form.email(class="toggle text", value=data.email, placeholder="Email", readonly=True) }}
                 </div>
-                <div class="field width-35">
+                <div class="field width-25">
+                    {{ account_form.alternate_email.label() }}
+                    {{ account_form.alternate_email(class="toggle text", value=data.alternate_email, placeholder="Email", readonly=True) }}
+                </div>
+                <div class="field width-25">
                     {{ account_form.contact_no.label() }}
                     {{ account_form.contact_no(class="toggle text", value=data.contact_no, placeholder="Contact No.", readonly=True) }}
                 </div>
-                <div class="field width-30">
-                    {{ account_form.residency.label() }}
-                    {{ account_form.residency(class="toggle radio", value=data.residency, readonly=True) }}
-                </div>
+                {% if user_type == 'student' %}
+                    <div class="field width-25">
+                        {{ account_form.type_of_student.label() }}
+                        {{ account_form.type_of_student(class="toggle radio", disabled="True") }}
+                    </div>
+                {% endif %}
             </div>
             <div class="form-row">
                 <div class="field width-50">
                     {{ account_form.local_address.label() }}
                     {{ account_form.local_address(class="toggle text", value=data.local_address, placeholder="Local Address", readonly=True) }}
                 </div>
-                <div class="field width-50">
-                    {{ account_form.foreign_address.label() }}
-                    {{ account_form.foreign_address(class="toggle text", value=data.foreign_address, placeholder="International Address", readonly=True) }}
+                {% if user_type == 'student' %}
+                    <div class="field width-50">
+                        {{ account_form.foreign_address.label() }}
+                        {{ account_form.foreign_address(class="toggle text", value=data.foreign_address, placeholder="International Address", readonly=True) }}
+                    </div>
+                {% endif %}
+            </div><br><hr><br>
+            <div class="form-row">
+                <div class="section-header">
+                    <p>Social Media Accounts</p>
                 </div>
             </div><br>
-            <div class="form-row">
-                <div class="field width-25">
-                    <button type="button" class="btn-grey" id="change-password-btn">Change Password</button>
+            <div id="educational-background-fields">
+                {% for field in account_form.social_media_accounts %}
+                {{ field.hidden_tag() }}
+                <div class="form-row">
+                    <div class="field width-30">
+                        {{ field.platform.label() }}
+                        {{ field.platform(class="text toggle") }}
+                    </div>
+                    <div class="field width-30">
+                        {{ field.handle.label() }}
+                        {{ field.handle(class="text toggle") }}
+                    </div>
+                    <div class="field width-10">
+                        {{ field.delete(class="submit red toggle width-100", disabled="True") }}
+                    </div>
+                    <div class="field width-10">
+                        {{ field.update(class="submit grey toggle width-100", disabled="True") }}
+                    </div>
                 </div>
-                <div class="field width-25">
-                    {{ account_form.update(class="submit toggle width-100", disabled="True") }}
+                {% endfor %}
+                <div class="form-row">
+                    {{ account_form.new_social_media_account.hidden_tag() }}
+                    <div class="field width-30">
+                        {{ account_form.new_social_media_account.platform.label() }}
+                        {{ account_form.new_social_media_account.platform(class="text toggle") }}
+                    </div>
+                    <div class="field width-30">
+                        {{ account_form.new_social_media_account.handle.label() }}
+                        {{ account_form.new_social_media_account.handle(class="text toggle") }}
+                    </div>
+                    <div class="field width-10">
+                        {{ account_form.new_social_media_account.submit(class="submit toggle width-100", disabled="True") }}
+                    </div>
                 </div>
             </div>
-            {% if user_type == 'instructor' %}
+            {% if user_type in ['student', 'instructor'] %}
             <hr><br>
             <div class="form-row">
                 <div class="section-header">
@@ -107,7 +147,7 @@
                 {% for field in account_form.educational_backgrounds %}
                 {{ field.hidden_tag() }}
                 <div class="form-row">
-                    <div class="field width-30">
+                    <div class="field width-25">
                         {{ field.school.label() }}
                         {{ field.school(class="text toggle") }}
                     </div>
@@ -115,12 +155,9 @@
                         {{ field.degree.label() }}
                         {{ field.degree(class="text toggle") }}
                     </div>
-                    <div class="field width-10">
-                        {{ field.start_year.label() }}
+                    <div class="field width-15">
+                        <label>Years Attended</label>
                         {{ field.start_year(class="text toggle") }}
-                    </div>
-                    <div class="field width-10">
-                        {{ field.end_year.label() }}
                         {{ field.end_year(class="text toggle") }}
                     </div>
                     <div class="field width-15">
@@ -128,13 +165,13 @@
                         {{ field.academic_honors(class="text toggle") }}
                     </div>
                     <div class="field width-10">
-                        {{ field.update(class="submit grey toggle width-100", disabled="True") }}
+                        {{ field.update(class="submit grey toggle fixed-160", disabled="True") }}
                     </div>
                 </div>
                 {% endfor %}
                 <div class="form-row">
                     {{ account_form.new_educational_background.hidden_tag() }}
-                    <div class="field width-30">
+                    <div class="field width-25">
                         {{ account_form.new_educational_background.school.label() }}
                         {{ account_form.new_educational_background.school(class="text toggle") }}
                     </div>
@@ -142,12 +179,9 @@
                         {{ account_form.new_educational_background.degree.label() }}
                         {{ account_form.new_educational_background.degree(class="text toggle") }}
                     </div>
-                    <div class="field width-10">
-                        {{ account_form.new_educational_background.start_year.label() }}
+                    <div class="field width-15">
+                        <label>Years Attended</label>
                         {{ account_form.new_educational_background.start_year(class="text toggle") }}
-                    </div>
-                    <div class="field width-10">
-                        {{ account_form.new_educational_background.end_year.label() }}
                         {{ account_form.new_educational_background.end_year(class="text toggle") }}
                     </div>
                     <div class="field width-15">
@@ -155,11 +189,19 @@
                         {{ account_form.new_educational_background.academic_honors(class="text toggle") }}
                     </div>
                     <div class="field width-10">
-                        {{ account_form.new_educational_background.submit(class="submit toggle width-100", disabled="True") }}
+                        {{ account_form.new_educational_background.submit(class="submit toggle fixed-160", disabled="True") }}
                     </div>
                 </div>
             </div>
             {% endif %}
+            <div class="form-row">
+                <div class="field width-25">
+                    <button type="button" class="btn-grey" id="change-password-btn">Change Password</button>
+                </div>
+                <div class="field width-25">
+                    {{ account_form.update(class="submit toggle width-100", disabled="True") }}
+                </div>
+            </div>
             <div class="form-row">
                 <div class="section-header">
                     {% with messages = get_flashed_messages(with_categories=true) %}
@@ -177,7 +219,7 @@
 
 <div id="password-modal" class="modal">
     <div class="modal-content width-40">
-        <span class="close">&times;</span>
+        <span id="close" class="close">&times;</span>
         <form id="password-change-form" action="/index/account/change_password" method="post">
             {{ pass_form.hidden_tag() }}
             
@@ -216,27 +258,27 @@
 
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-        const editLink = document.querySelector('.section-header p a');
-        const account_formFields = document.querySelectorAll('form .toggle');
-        const submitButton = document.querySelectorAll('form .submit.toggle');
-        const radioButtons = document.querySelectorAll('form .toggle.radio input');
-        const selectFields = document.querySelectorAll('form select.toggle');
-        const residencyField = document.querySelector('form .toggle.radio');
-        const local = document.getElementById('residency-0')
-        const foreign = document.getElementById('residency-1')
-        const foreignAddressField = document.querySelector('input[name="foreign_address"]');
+        var editLink = document.querySelector('#edit');
+        var accountFormFields = document.querySelectorAll('form .toggle');
+        var submitButton = document.querySelectorAll('form .submit.toggle');
+        var radioButtons = document.querySelectorAll('form .toggle.radio input');
+        var selectFields = document.querySelectorAll('form select.toggle');
+        var studentTypeField = document.querySelector('form .toggle.radio');
+        var local = document.getElementById('type_of_student-0')
+        var foreign = document.getElementById('type_of_student-1')
+        var foreignAddressField = document.querySelector('input[name="foreign_address"]');
         let originalValues = {};
-        let originalResidency = {};
+        let originalStudentType = {};
 
         function changeEditMode() {
             if (editLink.textContent === 'Edit') {
-                account_formFields.forEach(field => {
+                accountFormFields.forEach(field => {
                     originalValues[field.name] = field.value;
                     field.removeAttribute('readonly');
                 });
                 radioButtons.forEach(radio => {
                     if (radio.checked) {
-                        originalResidency.value = radio.value;
+                        originalStudentType.value = radio.value;
                     }
                     radio.removeAttribute('disabled');
                 });
@@ -249,12 +291,12 @@
                 editLink.textContent = 'Undo Edit';
                 setForeignAddressFieldDisabled();
             } else {
-                account_formFields.forEach(field => {
+                accountFormFields.forEach(field => {
                     field.value = originalValues[field.name];
                     field.setAttribute('readonly', 'true');
                 });
                 radioButtons.forEach(radio => {
-                    if (radio.value === originalResidency.value) {
+                    if (radio.value === originalStudentType.value) {
                         radio.checked = true;
                     }
                     radio.setAttribute('disabled', 'true');
@@ -276,31 +318,35 @@
         });
 
         function setForeignAddressFieldDisabled() {
-            if (local.checked) {
-                foreignAddressField.setAttribute('disabled', 'true');
-            }  else {
-                foreignAddressField.removeAttribute('disabled');
-            }
+            if (studentTypeField) {
+                if (local.checked) {
+                    foreignAddressField.setAttribute('disabled', 'true');
+                }  else {
+                    foreignAddressField.removeAttribute('disabled');
+                }
+            } 
         }
 
-        residencyField.addEventListener('change', function(event) {
+        if (studentTypeField) {
+            studentTypeField.addEventListener('change', function(event) {
             if (event.target.value === 'local') {
                 foreignAddressField.setAttribute('disabled', 'true');
             } else {
                 foreignAddressField.removeAttribute('disabled');
             }
         });
-
-        const modal = document.getElementById("password-modal");
-        const btn = document.getElementById("change-password-btn");
-        const span = document.querySelector(".modal .close");
-
-        btn.onclick = function() {
-            modal.style.display = "block";
         }
 
-        span.onclick = function() {
-            modal.style.display = "none";
+        var changePasswordBtn = document.getElementById("change-password-btn");
+        var changePasswordModal = document.getElementById("password-modal");
+        var close = document.querySelector("#close");
+
+        changePasswordBtn = function() {
+            changePasswordModal.style.display = "block";
+        }
+
+        close.onclick = function() {
+            changePasswordModal.style.display = "none";
         }
 
         changeEditMode();

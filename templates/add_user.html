@@ -34,7 +34,7 @@
         <div class="form-row">
             <div class="field width-40">
                 {{ form.m_name.label() }}
-                {{ form.m_name(class='text width-50', placeholder='Middle Name') }}
+                {{ form.m_name(class='text', placeholder='Middle Name') }}
             </div>
             <div class="field width-35">
                 {{ form.ext_name.label() }}
@@ -44,7 +44,13 @@
                 {{ form.gender.label() }}
                 {{ form.gender(class='text', title='Gender', placeholder='Gender') }}
             </div>
-        </div><br>
+        </div>
+        <div class="form-row">
+            <div class="field width-100">
+                {{ form.email.label() }}
+                {{ form.email(class='text', placeholder='Email') }}
+            </div>
+        </div>
         <div class="form-row">
             <div class="section-header">Login Details</div>
         </div><hr><br><br>
@@ -59,7 +65,8 @@
             </div>
         </div><br>
         <div class="form-row">
-            <div class="field width-100">
+            <div class="field width-100 gap-20">
+                <button type="button" id="close-btn" class="width-100 btn-grey">Cancel</button>
                 {{ form.submit(class="submit width-100") }}
             </div>
         </div><br>

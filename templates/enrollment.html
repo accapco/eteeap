@@ -15,30 +15,49 @@
 
     <div class="card full">
     <br><br>
-    {% if student.progress  == 'payment' %}
 
-        {% if student.receipt_filepath is none %}
+    {% if student.progress == 'payment' %}
 
-        <p id="status-message">Welcome to the ETEEAP system {{ student.f_name }}. Upload your OR and COR to proceed with enrollment.</p>
+    <p id="status-message">Welcome to the ETEEAP system {{ student.f_name }}. Upload your OR and COR to proceed with enrollment.</p>
 
-        {% else %}
+    {% elif student.progress == 'payment-pending' %}
 
-        <p id="status-message">OR and COR uploaded, waiting for confirmation.</p>
-        <br><br>
-        <a download href="{{ url_for('.get_receipt', user_id=student.user) }}">Uploaded File</a>
+    <p id="status-message">OR and COR uploaded, waiting for confirmation.</p>
+    <br><br>
+    <small><a download href="{{ url_for('.get_receipt', user_id=student.user) }}">Uploaded File</a></small>
 
-        {% endif %}
+    {% elif student.progress == 'payment-rejected' %}
 
-        <br><br>
-        <form action="/index/receipt" method="post" enctype="multipart/form-data">
-            {{ receipt_form.hidden_tag() }}
-    
-            {{ receipt_form.file() }} <br><br>
-    
-            {{ receipt_form.submit() }}
-        </form>
+    <p id="status-message">OR and COR rejected, please upload another.</p>
+    <br><br>
+    <small><a download href="{{ url_for('.get_receipt', user_id=student.user) }}">Uploaded File</a></small>
 
-    {% elif student.progress  == 'enrollment' %}
+    {% endif %}
+
+    {% if 'payment' in student.progress %}
+
+    <br><br><hr><br><br>
+    <form action="/index/receipt" method="post" enctype="multipart/form-data">
+        {{ receipt_form.hidden_tag() }}
+
+        <div class="form-row">
+            <div class="field width-30">
+                {{ receipt_form.file.label() }}
+                {{ receipt_form.file(class="text") }}
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="field width-30">
+                {{ receipt_form.submit(class="submit width-100") }}
+            </div>
+        </div>
+
+    </form>
+
+    {% endif %}
+
+    {% if student.progress  == 'enrollment' %}
 
         <p id="status-message">For enrollment. View your subjects:</p> <br><br>
         <a href="{{ url_for('.subjects') }}">

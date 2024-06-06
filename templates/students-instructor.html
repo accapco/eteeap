@@ -7,68 +7,201 @@
         <div class="form-row filters">
             {{ form.hidden_tag() }}
 
-            <div class="field width-15">
+            <div class="field width-20">
                 {{ form.ay.label() }}
                 {{ form.ay(class="text") }}
             </div>
-            <div class="field width-15">
+            <div class="field width-20">
                 {{ form.semester.label() }}
                 {{ form.semester(class="text") }}
+            </div>
+            <div class="field width-20">
+                {{ form.college.label() }}
+                {{ form.college(class="text") }}
+            </div>
+            <div class="field width-20">
+                {{ form.program.label() }}
+                {{ form.program(class="text") }}
+            </div>
+            <div class="field width-20">
+                {{ form.status.label() }}
+                {{ form.status(id="enrollment-status", class="text") }}
             </div>
             <div class="field width-10">
                 {{ form.submit(class='submit grey width-100') }}
             </div>
         </div>
     </form>
-    {% for e in data.enrollments %}
+    {% for s in data.students %}
     <div class="main-row">
-        <div class="card bar color-white">
-            <div class="left">
-                <div class="card-strongtext"> {{ e.student_name }} </div>
-                <div class="card-subtext"> {{ e.course }}  </div>
-            </div>
-            <div class="middle">
-                <div  class="cell {{ e.status }} smaller"> {{ e.status|title }} </div>
-            </div>
-            <div class="right">
-                {% if e.status == 'pending' %}
-                    <button class="btn-green" onclick="acceptEnrollment('{{data.instructor_id}}', '{{e.enrollment_id}}')">Accept</button>
-                {% elif e.status == 'ongoing' %}
-                    <button class="btn-purple" onclick="viewRequirements('{{data.instructor_id}}', '{{e.enrollment_id}}')">Requirements</button>
-                {% else %}
-                    <div class="section">
-                        <div class="sub-section">
-                            <p class="smaller">Final Grade:  {{ e.grade }}</p>
-                        </div>
-                        <div class="sub-section">
-                            <p class="smaller">Honorarium:</p>
-                            <div class="cell smaller {{ e.honorarium }}"> 
-                                {% if e.honorarium == 'onprocess' %}
-                                On Process
-                                {% else %}
-                                {{ e.honorarium|title }}
-                                {% endif %}
-                            </div>
-                        </div>
+        <div class="card extender color-white">
+            <div class="card-header">
+                <div class="header-section left">
+                    <div class="row">
+                        <span class="card-strongtext"> Name:  </span>
+                        <span class="card-subtext"> {{ s.name }} </span>
                     </div>
-                {% endif %}
+                    <div class="row">
+                        <span class="card-strongtext"> TUP ID:  </span>
+                        <span class="card-subtext"> {{ s.tup_id }} </span>
+                    </div>
+                </div>
+                <div class="header-section middle">
+                    <div class="row">
+                        <span class="card-strongtext"> College: </span>
+                        <span class="card-subtext"> {{ s.college }} </span>
+                    </div>
+                    <div class="row">
+                        <span class="card-strongtext"> Program: </span>
+                        <span class="card-subtext"> {{ s.program }} </span>
+                    </div>
+                </div>
+                <div class="header-section right">
+                    <button class="profile" data-id="{{s.id}}"><strong>Profile</strong></button>
+                </div>
+            </div>
+            <div class="card-body">
+                {% for e in s.enrollments %}
+                <div class="card-row">
+                    <div class="left">
+                        <div class="card-subtext">{{ e.course }}</div>
+                        <div class="card-subtext smaller">A.Y.:  {{ e.ay }}</div>
+                        <div class="card-subtext smaller">Term:  {{ e.semester }}{% if e.semester != "Midyear" %} Semester{% endif %}</div>
+                    </div>
+                    <div class="middle">
+                        <p class="label"> Course Status: </p><br>
+                        <div class="cell smaller {{ e.status }}"> {{ e.status|title }} </div>
+                    </div>
+                    <div class="right">
+                        {% if e.status == 'pending' %}
+                            <button class="btn-green confirm" data-instructor='{{data.instructor_id}}' data-enrollment='{{e.enrollment_id}}' data-value="accept"><strong>Accept</strong></button>
+                            <button class="btn-red confirm" data-instructor='{{data.instructor_id}}' data-enrollment='{{e.enrollment_id}}' data-value="reject"><strong>Reject</strong></button>
+                        {% elif e.status == 'ongoing' %}
+                            <button class="btn-purple" onclick="viewRequirements('{{data.instructor_id}}', '{{e.enrollment_id}}')"><strong>Course Syllabus</strong></button>
+                        {% else %}
+                            <div class="section">
+                                <div class="sub-section">
+                                    <p class="label">Final Grade:  <span class="smaller">{{ e.grade }}</span></p>
+                                </div>
+                                <div class="sub-section">
+                                    {% if e.honorarium == 'onprocess' %}
+                                    <div class="col">
+                                        <p class="label">Honorarium:</p><br>
+                                        <div class="cell smaller {{ e.honorarium }}">On Process</div>
+                                        <br>
+                                        <p class="smaller">- - - - - - - -</p>
+                                    </div>
+                                    {% else %}
+                                    <div class="col">
+                                        <p class="label">Honorarium:</p><br>
+                                        <div class="cell smaller {{ e.honorarium }}">{{ e.honorarium|title }}</div>
+                                        <br>
+                                        <p class="label">{{ e.honorarium_released_date }}</p>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
             </div>
         </div>
     </div>
     {% endfor %}
 </div>
 
-<script>
-    function acceptEnrollment(instructor_id, enrollment_id) {
-        var url = '/index/instructors/' + instructor_id + '/enrollments/' + enrollment_id + '/accept';
-        width = 600;
-        height = 400;
-        left = (screen.width - width) / 2;
-        top = (screen.height - height) / 4;
-        var features = 'width='+width+',height='+height+',left='+left+',top='+top;
-        window.open(url, name, features);
-    }
+<div id="confirmation-modal" class="modal">
+    <div id="confirmation-modal-content" class="modal-content width-40"></div>
+</div>
 
+<div id="profile-modal" class="modal">
+    <div id="profile-modal-content" class="modal-content width-50"></div>
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+    {% for category, message in messages %}
+    <script>
+        alert('{{ message }}');
+    </script>
+    {% endfor %}
+{% endif %}
+{% endwith %}
+
+<script>
+    console.log("{{form.data}}")
+    document.addEventListener("DOMContentLoaded", function() {
+        var profileModal = document.querySelector('#profile-modal');
+        var profileModalContent = document.querySelector('#profile-modal-content');
+        var profileBtns = document.querySelectorAll('.profile');
+
+        profileBtns.forEach((btn) => {
+            btn.addEventListener('click', (event) => {
+                event.preventDefault();
+                var user_id = btn.getAttribute('data-id');
+                var route = "/index/users/" + user_id + "/profile";
+
+                console.log(route)
+
+                fetch(route, {method: 'GET'})
+                    .then(response => response.text())
+                    .then(data => {
+                        profileModalContent.innerHTML = data;
+                        var close = profileModalContent.querySelector("#close");
+                        close.addEventListener('click', (event) => {
+                            event.preventDefault();
+                            profileModal.style.display = "none";
+                        });
+                        profileModal.style.display = "block";
+                    })
+                    .catch(error => {
+                        alert(error);
+                        window.location.reload();
+                    });
+            });
+        });
+   
+        var confirmationModal = document.querySelector('#confirmation-modal');
+        var confirmationModalContent = document.querySelector('#confirmation-modal-content');
+        var confirmationBtns = document.querySelectorAll('.confirm');
+
+        confirmationBtns.forEach((btn) => {
+            btn.addEventListener('click', (event) => {
+                event.preventDefault();
+                var instructor = btn.getAttribute('data-instructor');
+                var enrollment = btn.getAttribute('data-enrollment');
+                var value = btn.getAttribute('data-value');
+                var route = "/index/instructors/" + instructor + "/enrollments/" + enrollment + "/" + value;
+
+                console.log(route)
+
+                fetch(route, {method: 'GET'})
+                    .then(response => response.text())
+                    .then(data => {
+                        confirmationModalContent.innerHTML = data;
+                        var close = confirmationModalContent.querySelector("#close");
+                        var closeBtn = confirmationModalContent.querySelector("#close-btn");
+                        close.addEventListener('click', (event) => {
+                            event.preventDefault();
+                            confirmationModal.style.display = "none";
+                        });
+                        closeBtn.addEventListener('click', (event) => {
+                            event.preventDefault();
+                            confirmationModal.style.display = "none";
+                        });
+                        confirmationModal.style.display = "block";
+                    })
+                    .catch(error => {
+                        alert(error);
+                        window.location.reload();
+                    });
+            });
+        });
+   });
+</script>
+
+<script>
     function viewRequirements(instructor_id, enrollment_id) {
         var url = '/index/instructors/' + instructor_id + '/enrollments/' + enrollment_id + '/requirements';
         width = 1000;

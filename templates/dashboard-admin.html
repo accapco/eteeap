@@ -23,6 +23,10 @@
                 {{ s_form.program(class="text") }}
             </div>
             <div class="field width-15">
+                {{ s_form.status.label() }}
+                {{ s_form.status(id="enrollment-status", class="text") }}
+            </div>
+            <div class="field width-15">
                 {{ s_form.submit(class="submit width-100 grey") }}
             </div>
         </div>
@@ -37,7 +41,7 @@
     </div>
     <div class="main-row">
         <div class="card col-2 chart">
-            <canvas id="chart-residency"></canvas>
+            <canvas id="chart-type_of_student"></canvas>
         </div>
         <div class="card col-2 chart">
             <canvas id="chart-course_status"></canvas>
@@ -64,7 +68,6 @@
                 'rgb(132, 95, 184)',
                 'rgb(201, 71, 71)',
                 'rgb(69, 118, 153)',
-                
                 'rgb(98, 179, 71)'
                 ],
                 borderWidth: 1,
@@ -72,6 +75,8 @@
                 data: data
             }]
         };
+
+        console.log('{{key}}')
 
         var config = {
             type: '{{value.type}}',

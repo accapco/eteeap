@@ -84,7 +84,14 @@
                             {% endif %}
                         </div>
                         {% if e.grade and e.honorarium == "onprocess" %}
-                        <div><a class="smaller release-honorarium" data-value="{{e.id}}">Release</a></div>
+                        <div>
+                            <a class="smaller release-honorarium" data-value="{{e.id}}">Release</a>
+                        </div>
+                        {% elif e.honorarium == "released" %}
+                        <div>
+                            <p class="smaller">{{ e.honorarium_released_date }}</p>
+                            <a class="smaller undo-release-honorarium" data-value="{{e.id}}">Undo</a>
+                        </div>
                         {% endif %}
                     </div>
                 </div>

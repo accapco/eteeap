@@ -12,23 +12,45 @@
         <div class="view">
             <div class="sidebar">
                 <div class="logo">
-                    <img src=""><br>
-                    <h4>ETEEAP</h4><br>
+                    <h1>ETEEAP</h1>
+                    <h2>Welcome, {{ session.get('user').title() }}</h2>
                 </div>
                 <ul>
                     {% for view in views %}
-                    <li><div class=icon></div><a class="side-links" href="{{ url_for(view.link) }}">{{ view.name }}</a></li>
+                    <li><button class="side-link" data-url="{{url_for(view.link)}}">{{ view.name }}</button></li>
                     {% endfor %}
-                    <li id="logout"><div class=icon></div><a href="/logout">Logout</a></li>
-                </ul><br>
+                    <li><button id="logout" class="side-link" data-url="/logout">Logout</button></li>
+                </ul>
             </div>
             <div class="page-content">
-                <div class="nav"><h4>{{ page }}</h4></div>
+                <div class="nav"><h2>{{ page }}</h2></div>
                 <div class="main-content">
                     {% block content %}
                     {% endblock %}
                 </div>
             </div>
         </div>
+        <script>
+            document.addEventListener("DOMContentLoaded", event => {
+                event.preventDefault();
+                linkBtns = document.querySelectorAll(".side-link");
+                active = document.querySelector(".active");
+
+                if (active) {
+                    active.classList.remove("active");
+                }
+
+                linkBtns.forEach(btn => {
+                    var link =  btn.getAttribute('data-url');
+                    btn.addEventListener("click", event => {
+                        window.location.replace(link);
+                    });
+                    if (link === window.location.pathname) {
+                        btn.classList.add("active");
+                    }
+                });
+            });
+
+        </script>
     </body>
 </html>

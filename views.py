@@ -1,4 +1,4 @@
-from flask import Blueprint, request, redirect, url_for, session, render_template, g, jsonify, flash, send_from_directory
+from flask import Blueprint, request, redirect, url_for, session, render_template, g, jsonify, flash, send_from_directory, send_file, after_this_request
 views = Blueprint('views', __name__)
 
 from app import app
@@ -65,6 +65,9 @@ def system():
     data = db.get_system_settings()
     form.academic_year.data = data['academic_year']
     form.semester.data = data['semester']
+    form.cos_dept_head.data = data['cos_dept_head']
+    form.cit_dept_head.data = data['cit_dept_head']
+    form.cie_dept_head.data = data['cie_dept_head']
     return render_template('system.html', page="System Settings", form=form, views=views)
 
 @views.route('/report', methods=['GET', 'POST'])
@@ -91,12 +94,11 @@ def student_report():
     }
     student_report_form = StudentReportFilterForm(options=options)
     if student_report_form.validate_on_submit():
-        data = db.generate_student_report(student_report_form.data)
+        data = db.generate_student_excel_report(student_report_form.data)
         param = student_report_form.data
-        filename = f"Student Report - {param['ay']} - {param['semester']} Semester - {'All Colleges' if param['college'] == 'All' else param['college']} - {'All Programs' if param['program'] == 'All' else param['program']}"
-        success, message = db.create_student_excel(filename, data)
+        success, filename = db.create_student_excel(data)
         if success:
-            return(send_from_directory('.', f'{filename}.xlsx'))
+            return send_file(filename, as_attachment=True)
         return f"""
             <script>
                 alert("{message}");
@@ -116,11 +118,9 @@ def faculty_report():
     faculty_report_form = FacultyReportFilterForm(options=options)
     if faculty_report_form.validate_on_submit():
         data = db.generate_faculty_report(faculty_report_form.data)
-        param = faculty_report_form.data
-        filename = f"Faculty Report - {param['ay']} - {param['semester']} Semester - {'All Colleges' if param['college'] == 'All' else param['college']}"
-        success, message = db.create_faculty_excel(filename, data)
+        success, data = db.create_faculty_excel(data)
         if success:
-            return(send_from_directory('.', f'{filename}.xlsx'))
+            return send_file(data, as_attachment=True)
         return f"""
             <script>
                 alert("{message}");
@@ -128,16 +128,29 @@ def faculty_report():
             """
     return redirect(url_for('.report'))
 
+@views.route('/honorarium_summary/<status>', methods=['POST'])
+def honorarium_report(status):
+    if g.user != 'admin':
+        return redirect(url_for('.unauthorized'))
+    options = {
+        'academic_years': db.get_academic_years(),
+        'programs': [p['abbr'] for p in db.get_programs()]
+    }
+    faculty_report_form = FacultyReportFilterForm(options=options)
+    if request.method == 'POST':
+        data = db.generate_faculty_report(faculty_report_form.data)
+        success, file = db.create_honorarium_pdf(data, status)
+        if success:
+            return send_file(file, as_attachment=True)
+        else:
+            return jsonify({'messsage': data})
+    
 @views.route('/admin_dashboard', methods=['GET', 'POST'])
 def dashboard_admin():
     if g.user != 'admin':
         return redirect(url_for('.unauthorized'))
     views = user_views[g.user]
-    options = {
-        'academic_years': db.get_academic_years(),
-        'programs': [p['abbr'] for p in db.get_programs()]
-    }
-    student_filter_form = DashboardStudentFilterForm(options)
+    student_filter_form = DashboardStudentFilterForm(db.get_academic_years(), db.get_programs())
     if student_filter_form.validate_on_submit():
         filter = student_filter_form.data
     else:
@@ -145,23 +158,25 @@ def dashboard_admin():
             'ay': 'All',
             'semester': 'All',
             'college': 'All',
-            'program': 'All'
+            'program': 'All',
+            'status': 'All'
         }
     student_report_filters = {
         'ay': filter['ay'],
         'semester': filter['semester'],
         'college': filter['college'],
         'program': filter['program'],
+        'status': 'All',
         'age': True,
         'gender': True,
-        'residency': True,
+        'type_of_student': True,
         'student_course_status': True
     }
     student_data = db.generate_student_report(student_report_filters)
     graphs = {
         'age': {
             'labels': [], 
-            'data': [], 
+            'data': [],
             'type': 'bar', 
             'title': "Age Chart", 
             'x_label': "Age", 
@@ -175,11 +190,11 @@ def dashboard_admin():
             'x_label': "", 
             'scales': "false"
         },
-        'residency': {
+        'type_of_student': {
             'labels': [], 
             'data': [], 
             'type': 'pie', 
-            'title': "Residency Chart", 
+            'title': "Student Type Chart", 
             'x_label': "", 
             'scales': "false"
         },
@@ -213,21 +228,28 @@ def instructors():
         return redirect(url_for('.unauthorized'))
     views = user_views[g.user]
     instructors = db.get_instructors()
-    form = InstructorsFilterForm()
+    form = FilterForm(db.get_academic_years(), db.get_programs(), 'instructor')
+    cfg = db.get_system_settings()
+    if request.method != 'POST':
+        form.ay.data = str(cfg['academic_year'])
+        form.semester.data = str(cfg['semester'])
+        form.college.data = "All"
+        form.program.data = "All"
+        form.status.data = "All"
     data = { 'instructors': [] }
-    if form.validate_on_submit():
-        filter = form.data
-    else:
-        filter = {'college': "All"}
     for i in instructors:
-        if filter['college'] != "All" and filter['college'] != i['college']:
+        students, hfr, cp = db.get_enrollments_grouped_by_student(i['id'], form.data, get_hfr_and_cp=True)
+        if form.college.data != "All" and i['college'] != form.college.data:
             continue
         info = {
             'name': f"{i['l_name'].title()}, {i['f_name']} {i['m_name'][0]+'.' if i['m_name'] else ''}",
             'username': i['username'],
             'id': i['id'],
             'uid': i['user'],
-            'college': i['college']
+            'college': i['college'],
+            'students': students,
+            'honorarium_for_release': hfr,
+            'courses_pending': cp
         }
         data['instructors'].append(info)
     data['instructors'].sort(key=lambda x: x['college'])
@@ -240,37 +262,49 @@ def admin_students():
     views = user_views[g.user]
     students = db.get_students()
     data = { 'students': [] }
-    form = StudentsFilterForm(db.get_academic_years())
-    for s in students:
-        info = {
-            'name': f"{s['l_name'].title()}, {s['f_name']} {s['m_name'][0]+'.' if s['m_name'] else ''}",
-            'username': s['username'],
-            'id': s['id'],
-            'uid': s['user'],
-            'tup_id': s['tup_id'],
-            'program': db.get_program(s['program'])['abbr'],
-            'progress': s['progress'],
-            'receipt': s['receipt_filepath'],
-            'ay': s['ay'],
-            'semester': s['semester']
-        }
-        data['students'].append(info)
+    form = FilterForm(db.get_academic_years(), db.get_programs(), 'admin')
     if form.validate_on_submit():
         filter = form.data
     else:
         cfg = db.get_system_settings()
         form.ay.data = str(cfg['academic_year'])
         form.semester.data = str(cfg['semester'])
+        form.college.data = "All"
+        form.program.data = "All"
+        form.status.data = "All"
         filter = form.data
-    data['students'] = [s for s in data['students'] if str(s['ay']) == filter['ay'] and str(s['semester']) == filter['semester']]
+    for s in students:
+        if filter['ay'] != "All" and filter['ay'] != s['ay']:
+            continue
+        if filter['semester'] != "All" and filter['semester'] != s['semester']:
+            continue
+        if filter['college'] != "All" and filter['college'] != s['college']:
+            continue
+        if filter['program'] != "All" and filter['program'] != s['program']:
+            continue
+        if filter['status'] != "All" and filter['status'] != s['progress']:
+            continue
+        info = {
+            'name': f"{s['l_name'].title()}, {s['f_name']} {s['m_name'][0]+'.' if s['m_name'] else ''}",
+            'username': s['username'],
+            'id': s['id'],
+            'uid': s['user'],
+            'tup_id': s['tup_id'],
+            'program': s['program'],
+            'progress': s['progress'],
+            'receipt': s['receipt_filepath'],
+            'ay': s['ay'],
+            'semester': s['semester']
+        }
+        data['students'].append(info)
     return render_template('students-admin.html', page="Students", data=data, form=form, views=views)
 
 @views.route('/users/<user_id>/profile')
 def profile(user_id):
-    if g.user != 'admin':
+    if g.user not in ('admin', 'instructor'):
         return redirect(url_for('.unauthorized'))
     views = user_views[g.user]
-    data = db.get_account_details(user_id)
+    data = db.profile(user_id)
     return render_template('profile.html', page="Profile", data=data, views=views)
 
 @views.route('/instructor_students', methods=["GET", "POST"])
@@ -278,38 +312,34 @@ def instructor_students():
     if g.user != 'instructor':
         return redirect(url_for('.unauthorized'))
     views = user_views[g.user]
-    enrollments = db.get_instructor_enrollments(db.uid_to_pk(session.get('id'), 'instructor'))
     data = {
         'instructor_id': db.uid_to_pk(session.get('id'), 'instructor'),
-        'enrollments': []
+        'students': []
     }
-    form = StudentsFilterForm(db.get_academic_years())
-    for e in enrollments:
-        data['enrollments'].append({
-            'student_name': f"{e['student']['l_name'].title()}, {e['student']['f_name']} {e['student']['m_name'][0]+'.' if e['student']['m_name'] else ''}",
-            'course': f"{e['course']['code']}: {e['course']['title']}",
-            'status': e['status'],
-            'enrollment_id': e['id'],
-            'grade': e['grade'],
-            'ay': e['ay'],
-            'semester': e['semester'],
-            'honorarium': e['honorarium']
-        })
+    form = FilterForm(db.get_academic_years(), db.get_programs(), 'instructor')
     if form.validate_on_submit():
-        filter = form.data
+        filters = form.data
     else:
         cfg = db.get_system_settings()
         form.ay.data = str(cfg['academic_year'])
         form.semester.data = str(cfg['semester'])
-        filter = form.data
-    data['enrollments'] = [e for e in data['enrollments'] if str(e['ay']) == filter['ay'] and str(e['semester']) == filter['semester']]
+        form.college.data = "All"
+        form.program.data = "All"
+        form.status.data = "All"
+        filters = form.data
+    data['students'] = db.get_enrollments_grouped_by_student(data['instructor_id'], filters)
     return render_template('students-instructor.html', page="Students", form=form, data=data, views=views)
 
-@views.route('/instructors/<instructor_id>/enrollments/<enrollment_id>/accept', methods=["GET", "POST"])
-def accept_enrollment(instructor_id, enrollment_id):
+def _format_date(time):
+    if time:
+        return time.strftime("%m/%d/%Y")
+    return ""
+
+@views.route('/instructors/<instructor_id>/enrollments/<enrollment_id>/<confirmation>', methods=["GET", "POST"])
+def confirm_enrollment(instructor_id, enrollment_id, confirmation):
     if g.user != 'instructor':
         return redirect(url_for('.unauthorized'))
-    form = StatusConfirmationForm()
+    form = ConfirmationDialogueForm()
     e = db.get_instructor_enrollment(instructor_id, enrollment_id)
     data = {
         'student_name': f"{e['student']['l_name'].title()}, {e['student']['f_name']} {e['student']['m_name'][0] if e['student']['m_name'] else ''}.",
@@ -318,15 +348,10 @@ def accept_enrollment(instructor_id, enrollment_id):
         'enrollment_id': enrollment_id
     }
     if form.validate_on_submit():
-        message = db.accept_enrollment(enrollment_id)
-        return f"""
-        <script>
-            alert("{message}");
-            window.opener.location.reload();
-            window.close();
-        </script>
-        """
-    return render_template('accept-enrollment.html', data=data, form=form)
+        message = db.confirm_enrollment(enrollment_id, confirmation)
+        flash(message, 'info')
+        return redirect(url_for('.instructor_students'))
+    return render_template('confirm-enrollment.html', data=data, confirmation=confirmation, form=form)
 
 @views.route('/instructors/<instructor_id>/enrollments/<enrollment_id>/requirements', methods=["GET", "POST"])
 def view_instructor_requirements(instructor_id, enrollment_id):
@@ -500,12 +525,20 @@ def add_user(user_type):
         return redirect(url_for('.users'))
     return jsonify({'html': render_template('add_user.html', user_type=user_type, form=form)}), 200
 
-@views.route('/users/<id>/reset_password')
+@views.route('/users/<id>/reset_password', methods=['GET', 'POST'])
 def reset_password(id):
     if g.user != 'admin':
         return redirect(url_for('.unauthorized'))
-    success, message = db.reset_password(id)
-    return jsonify({"message": message}), 200 if success else 300
+    form = ConfirmationDialogueForm()
+    u = db.get_user(id)
+    name =  f"{u['l_name'].title()}, {u['f_name']} {u['m_name'][0]+'.' if u['m_name'] else ''}"
+    if request.method == "POST":
+        success, message = db.reset_password(id)
+        if success:
+            return jsonify({'message': message}), 200
+        else:
+            return jsonify({'message': message}), 300
+    return render_template('confirm-reset-pass.html', form=form, name=name)
 
 @views.route('/enrollment')
 def enrollment():
@@ -537,16 +570,49 @@ def get_receipt(user_id):
     fp = db.get_receipt_fp(user_id)
     return send_from_directory(os.path.join(app.config['UPLOAD_FOLDER'], 'receipts'), fp)
 
-@views.route('/uploads/forms/grade_submission_form1')
-def get_grade_submission_form1():
+from uuid import uuid4
+from time import sleep
+
+@views.route('/uploads/forms/dtr/<enrollment_id>')
+def get_dtr(enrollment_id):
+    fp = os.path.join(app.config['UPLOAD_FOLDER'], 'forms', "Daily Time Record 3.docx")
+    out = f"{str(uuid4())}.docx"
+    success = db.auto_fill(fp, out, db.get_dtr_data(enrollment_id))
+    # @after_this_request
+    # def delete_file(response, success=success):
+    #     if success:
+    #         db.delete_file(out)
+    #     return response
+    if success:
+        return send_file(out, as_attachment=True)
     return send_from_directory(os.path.join(app.config['UPLOAD_FOLDER'], 'forms'), "Daily Time Record 3.docx")
 
-@views.route('/uploads/forms/grade_submission_form2')
-def get_grade_submission_form2():
+@views.route('/uploads/forms/ssgr/<enrollment_id>')
+def get_ssgr(enrollment_id):
+    fp = os.path.join(app.config['UPLOAD_FOLDER'], 'forms', "Student's Summary Grade Report 4.docx")
+    out = f"{str(uuid4())}.docx"
+    success = db.auto_fill(fp, out, db.get_ssgr_data(enrollment_id))
+    # @after_this_request
+    # def delete_file(response, success=success):
+    #     if success:
+    #         db.delete_file(out)
+    #     return response
+    if success:
+        return send_file(out, as_attachment=True)
     return send_from_directory(os.path.join(app.config['UPLOAD_FOLDER'], 'forms'), "Student's Summary Grade Report 4.docx")
 
-@views.route('/uploads/forms/grade_submission_form3')
-def get_grade_submission_form3():
+@views.route('/uploads/forms/grade_submission_form3/<enrollment_id>')
+def get_ter(enrollment_id):
+    fp = os.path.join(app.config['UPLOAD_FOLDER'], 'forms', "TER.Tutor's Evaluation Report  2.docx")
+    out = f"{str(uuid4())}.docx"
+    success = db.auto_fill(fp, out, db.get_ter_data(enrollment_id))
+    # @after_this_request
+    # def delete_file(response, success=success):
+    #     if success:
+    #         db.delete_file(out)
+    #     return response
+    if success:
+        return send_file(out, as_attachment=True)
     return send_from_directory(os.path.join(app.config['UPLOAD_FOLDER'], 'forms'), "TER.Tutor's Evaluation Report  2.docx")
 
 @views.route('/uploads/<path:fp>')
@@ -563,16 +629,45 @@ def grade_forms(form, enrollment):
     directory = os.path.join(app.config['UPLOAD_FOLDER'], 'grades')
     return send_from_directory(directory, fp)
 
-@views.route('/release_honorarium', methods=['POST'])
-def release_honorarium():
+@views.route('/enrollments/<enrollment_id>/release_honorarium', methods=['GET', 'POST'])
+def release_honorarium(enrollment_id):
     if g.user != 'admin':
         return redirect(url_for('.unauthorized'))
-    enrollment_id = request.get_json()['enrollment_id']
-    success, message = db.release_honorarium(enrollment_id)
-    if success:
-        return jsonify({'message': message}), 200
-    else:
-        return jsonify({'message': message}), 400
+    data = db.get_enrollment(enrollment_id)
+    data['student'] = db.get_student_bypk(data['student'])
+    data['instructor'] = db.get_instructor_bypk(data['instructor'])
+    form = ConfirmationDialogueForm()
+    data['student_name'] = f"{data['student']['l_name'].title()}, {data['student']['f_name']} {data['student']['m_name'][0]+'.' if data['student']['m_name'] else ''}"
+    data['instructor_name'] = f"{data['instructor']['l_name'].title()}, {data['instructor']['f_name']} {data['instructor']['m_name'][0]+'.' if data['instructor']['m_name'] else ''}"
+    course = db.get_course(data['course'])
+    data['course'] = f"{course['code']}: {course['title']}"
+    if request.method == 'POST':
+        success, message = db.release_honorarium(enrollment_id)
+        if success:
+            return jsonify({"message": message}), 200
+        else:
+            return jsonify({"message": message}), 300
+    return render_template('confirm-release-of-honorarium.html', data=data, enrollment_id=enrollment_id, form=form)
+
+@views.route('/enrollments/<enrollment_id>/undo_release_honorarium', methods=['GET', 'POST'])
+def undo_release_honorarium(enrollment_id):
+    if g.user != 'admin':
+        return redirect(url_for('.unauthorized'))
+    data = db.get_enrollment(enrollment_id)
+    data['student'] = db.get_student_bypk(data['student'])
+    data['instructor'] = db.get_instructor_bypk(data['instructor'])
+    form = ConfirmationDialogueForm()
+    data['student_name'] = f"{data['student']['l_name'].title()}, {data['student']['f_name']} {data['student']['m_name'][0]+'.' if data['student']['m_name'] else ''}"
+    data['instructor_name'] = f"{data['instructor']['l_name'].title()}, {data['instructor']['f_name']} {data['instructor']['m_name'][0]+'.' if data['instructor']['m_name'] else ''}"
+    course = db.get_course(data['course'])
+    data['course'] = f"{course['code']}: {course['title']}"
+    if request.method == 'POST':
+        success, message = db.undo_release_honorarium(enrollment_id)
+        if success:
+            return jsonify({"message": message}), 200
+        else:
+            return jsonify({"message": message}), 300
+    return render_template('revert-honorarium-status.html', data=data, enrollment_id=enrollment_id, form=form)
 
 @views.route('/students/<student_id>/approve/<progress>', methods=['GET', 'POST'])
 def approve_document(student_id, progress):
@@ -580,9 +675,13 @@ def approve_document(student_id, progress):
         return redirect(url_for('.unauthorized'))
     form = StatusConfirmationForm()
     receipt_fp = url_for('.get_receipt', user_id=db.pk_to_uid(student_id, 'student'))
-    if form.validate_on_submit():
-        success, message = db.move_student_progress(student_id, progress)
-        return redirect(url_for('.admin_students'))
+    if request.method == 'POST':
+        if 'submit' in request.form.keys():
+            success, message = db.accept_receipt(student_id)
+            return redirect(url_for('.admin_students'))
+        if 'reject' in request.form.keys():
+            success, message = db.reject_receipt(student_id)
+            return redirect(url_for('.admin_students'))
     return render_template('approve-status.html', form=form, student_id=student_id, progress=progress, receipt_fp=receipt_fp)
 
 @views.route('/students/<student_id>/courses', methods=['GET', 'POST'])
@@ -631,8 +730,15 @@ def account():
     data = db.get_account_details(session.get('id'))
     account_form = UserAccountForm(data=data)
     pass_form = ChangePasswordForm()
+    account_form.gender.data = data['gender']
+    account_form.civil_status.data = data['civil_status']
+    if session.get('user') == 'student':
+        account_form.type_of_student.data = data['type_of_student']
+        account_form.foreign_address.data = data['foreign_address']
     if session.get('user') == 'instructor':
-        educational_backgrounds = db.get_educational_background(session.get('id'))
+        account_form.college.data = data['college']
+    if session.get('user') != 'admin':
+        educational_backgrounds = db.get_educational_backgrounds(session.get('id'))
         for e in educational_backgrounds:
             e_form = EducationalBackgroundForm()
             e_form.id.data = e['id']
@@ -642,6 +748,13 @@ def account():
             e_form.end_year.data = e['end_year']
             e_form.academic_honors.data = e['academic_honors']
             account_form.educational_backgrounds.append_entry(e_form.data)
+    social_media_accounts = db.get_social_media_accounts(session.get('id'))
+    for s in social_media_accounts:
+        s_form = SocialMediaAccountForm()
+        s_form.id.data = s['id']
+        s_form.platform.data = s['platform']
+        s_form.handle.data = s['handle']
+        account_form.social_media_accounts.append_entry(s_form.data)
     user_type = session.get('user')
     return render_template('account.html', page="Account", account_form=account_form, pass_form=pass_form, data=data, user_type=user_type, views=views)
 
@@ -649,13 +762,16 @@ def account():
 def change_account_details():
     form = UserAccountForm()
     if request.method == "POST":
-        if "Update" in request.form.values():
+        if "Update Background" in request.form.values():
             for eb_form in form.educational_backgrounds:
                 db.update_educational_background(eb_form.data)
-            return redirect(url_for('.account'))
-        if "Add" in request.form.values():
+        if "Add Background" in request.form.values():
             db.add_educational_background(session.get('id'), form.new_educational_background.data)
-            return redirect(url_for('.account'))
+        if "Update Account" in request.form.values():
+            for sm_form in form.social_media_accounts:
+                db.update_social_media_account(sm_form.data)
+        if "Add Account" in request.form.values():
+            db.add_social_media_account(session.get('id'), form.new_social_media_account.data)
         success, message = db.update_account_details(session.get('id'), form.data)
         if success:
             flash(f"{message}", 'message')

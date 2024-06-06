@@ -23,17 +23,29 @@
                 </div>
             </div><br>
             <div class="form-row">
-                <div class="field width-50">
+                <div class="field width-35">
                     {{ form.academic_year.label() }}
                     {{ form.academic_year(class="toggle text", placeholder="Academic Year", readonly=True) }}
                 </div>
-            </div>
-            <div class="form-row">
-                <div class="field width-50">
+                <div class="field width-35">
                     {{ form.semester.label() }}
-                    {{ form.semester(class="toggle text", placeholder="Semester", readonly=True) }}
+                    {{ form.semester(class="toggle disabled text", placeholder="Semester", readonly=True, disabled=True) }}
                 </div>
             </div><br>
+            <div class="form-row">
+                <div class="field width-50">
+                    {{ form.cos_dept_head.label() }}
+                    {{ form.cos_dept_head(class="toggle text", placeholder="COS Dept. Head", readonly=True) }}
+                </div>
+                <div class="field width-50">
+                    {{ form.cie_dept_head.label() }}
+                    {{ form.cie_dept_head(class="toggle text", placeholder="CIE Dept. Head", readonly=True) }}
+                </div>
+                <div class="field width-50">
+                    {{ form.cit_dept_head.label() }}
+                    {{ form.cit_dept_head(class="toggle text", placeholder="CIT Dept. Head", readonly=True) }}
+                </div>
+            </div>
             <div class="form-row">
                 <div class="field width-50">
                     {{ form.submit(class="submit toggle width-100", disabled="True") }}
@@ -48,7 +60,10 @@ document.addEventListener("DOMContentLoaded", function() {
     const editLink = document.querySelector('.section-header p a');
     const formFields = document.querySelectorAll('form .toggle');
     const submitButton = document.querySelector('form .submit.toggle');
+    const disabled = document.querySelectorAll('.disabled');
     let originalValues = {};
+
+    console.log(disabled)
 
     editLink.addEventListener('click', function(event) {
         event.preventDefault();
@@ -58,12 +73,18 @@ document.addEventListener("DOMContentLoaded", function() {
                 originalValues[field.name] = field.value;
                 field.removeAttribute('readonly');
             });
+            disabled.forEach(field => {
+                field.removeAttribute('disabled')
+            });
             submitButton.removeAttribute('disabled');
             editLink.textContent = 'Undo Edit';
         } else {
             formFields.forEach(field => {
                 field.value = originalValues[field.name];
                 field.setAttribute('readonly', 'true');
+            });
+            disabled.forEach(field => {
+                field.setAttribute('disabled', 'true');
             });
             submitButton.setAttribute('disabled', 'true');
             editLink.textContent = 'Edit';

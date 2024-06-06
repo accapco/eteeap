@@ -6,3 +6,8 @@ flask-migrate
 pandas
 openpyxl
 gunicorn
+python-docx
+flask[async]
+scikit-learn
+textblob
+reportlab

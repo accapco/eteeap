@@ -7,27 +7,122 @@
         <div class="form-row filters">
             {{ form.hidden_tag() }}
 
-            <div class="field width-15">
+            <div class="field width-20">
+                {{ form.ay.label() }}
+                {{ form.ay(class="text") }}
+            </div>
+            <div class="field width-20">
+                {{ form.semester.label() }}
+                {{ form.semester(class="text") }}
+            </div>
+            <div class="field width-20">
                 {{ form.college.label() }}
                 {{ form.college(class="text") }}
+            </div>
+            <div class="field width-20">
+                {{ form.program.label() }}
+                {{ form.program(class="text") }}
+            </div>
+            <div class="field width-20">
+                {{ form.status.label() }}
+                {{ form.status(id="enrollment-status", class="text") }}
             </div>
             <div class="field width-10">
                 {{ form.submit(class='submit grey width-100') }}
             </div>
         </div>
     </form>
-    {% for instructor in data.instructors %}
+    {% for i in data.instructors %}
     <div class="main-row">
-        <div class="card bar color-white">
-            <div class="left">
-                <div class="card-strongtext"> {{ instructor.name}} </div>
-                <div class="card-subtext">{{ instructor.username }}</div>
+        <div class="card extender color-white">
+            <div class="card-header">
+                <div class="header-section left">
+                    <div class="row">
+                        <span class="card-strongtext"> Instructor:  </span>
+                        <span class="card-subtext"> {{ i.name }} </span>
+                    </div>
+                    <div class="row">
+                        <span class="card-strongtext"> College:  </span>
+                        <span class="card-subtext"> {{ i.college }} </span>
+                    </div>
+                </div>
+                <div class="header-section left">
+                    <div class="row">
+                        <span class="card-strongtext"> Honorarium For Release:  </span>
+                        <span class="card-subtext"> {{ i.honorarium_for_release }} </span>
+                    </div>
+                    <div class="row">
+                        <span class="card-strongtext"> Courses Pending:  </span>
+                        <span class="card-subtext"> {{ i.courses_pending }} </span>
+                    </div>
+                </div>
+                <div class="header-section right">
+                    <button class="profile" data-id="{{i.uid}}"><strong>Profile</strong></button>
+                </div>
             </div>
-            <div class="middle">
-                <div class="cell {{instructor.college}}">{{ instructor.college }}</div>
-            </div>
-            <div class="right">
-                <button class="btn-grey" data-value="{{instructor.uid}}">Info</button>
+            <div class="card-body">
+                {% for s in i.students %}
+                <div class="card-subheader">
+                    <div class="subheader-section left">
+                        <div class="row">
+                            <span class="card-strongtext"> Student:  </span>
+                            <span class="card-subtext"> {{ s.name }} </span>
+                            <a class="profile" data-id="{{s.id}}">View Profile</a>
+                        </div>
+                    </div>
+                    <div class="subheader-section middle">
+                        <div class="row">
+                            <span class="card-strongtext"> TUP ID:  </span>
+                            <span class="card-subtext"> {{ s.tup_id }} </span>
+                        </div>
+                    </div>
+                    <div class="subheader-section right">
+                        <div class="row">
+                            <span class="card-strongtext"> Program: </span>
+                            <span class="card-subtext"> {{ s.program }} </span>
+                        </div>
+                    </div>
+                </div>
+                {% for e in s.enrollments %}
+                <div class="card-row">
+                    <div class="left">
+                        <div class="card-subtext">{{ e.course }}</div>
+                        <div class="card-subtext smaller">A.Y.:  {{ e.ay }}</div>
+                        <div class="card-subtext smaller">Term:  {{ e.semester }}{% if e.semester != "Midyear" %} Semester{% endif %}</div>
+                    </div>
+                    <div class="middle">
+                        <p class="label"> Course Status: </p><br>
+                        <div class="cell smaller {{ e.status }}"> {{ e.status|title }} </div>
+                    </div>
+                    <div class="right">
+                        <div class="section">
+                            <div class="sub-section">
+                                {% if e.honorarium == 'onprocess' %}
+                                <div class="col">
+                                    <p class="label">Honorarium:</p><br>
+                                    <div class="cell smaller {{ e.honorarium }}">On Process</div>
+                                    <br>
+                                    <p class="smaller">- - - - - - - -</p>
+                                </div>
+                                {% else %}
+                                <div class="col">
+                                    <p class="label">Honorarium:</p><br>
+                                    <div class="cell smaller {{ e.honorarium }}">{{ e.honorarium|title }}</div>
+                                    <br>
+                                    <p class="label">{{ e.honorarium_released_date }}</p>
+                                </div>
+                                {% endif %}
+                            </div>
+                            {% if e.grade %}
+                            <div class="sub-section">
+                                <p class="label">Final Grade:  <span class="smaller">{{ e.grade }}</span></p>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+                {% endfor %}
             </div>
         </div>
     </div>
@@ -41,26 +136,26 @@
 
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-        var modal = document.querySelector('.modal');
-        var modalContent = document.querySelector('.modal-content');
-        var btns = document.querySelectorAll('.btn-grey');
+        var profileModal = document.querySelector('.modal');
+        var profileModalContent = document.querySelector('.modal-content');
+        var profileBtns = document.querySelectorAll('.profile');
 
-        btns.forEach((btn) => {
+        profileBtns.forEach((btn) => {
             btn.addEventListener('click', (event) => {
                 event.preventDefault();
-                var user_id = btn.getAttribute('data-value');
+                var user_id = btn.getAttribute('data-id');
                 var route = "/index/users/" + user_id + "/profile";
 
                 fetch(route, {method: 'GET'})
                     .then(response => response.text())
                     .then(data => {
-                        modalContent.innerHTML = data;
-                        var close = modalContent.querySelector("#close");
+                        profileModalContent.innerHTML = data;
+                        var close = profileModalContent.querySelector("#close");
                         close.addEventListener('click', (event) => {
                             event.preventDefault();
-                            modal.style.display = "none";
+                            profileModal.style.display = "none";
                         });
-                        modal.style.display = "block";
+                        profileModal.style.display = "block";
                     })
                     .catch(error => {
                         alert(error);

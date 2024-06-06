@@ -1,4 +1,4 @@
-from flask import Flask, request, session, redirect, url_for, render_template, flash, g
+from flask import Flask, request, session, redirect, url_for, render_template, flash, g, after_this_request, jsonify
 
 import os
 import secrets
@@ -17,7 +17,7 @@ def create_default_user():
     if not existing_user:
         default_user = User(username='admin', f_name="", m_name="", l_name="", password='12345', user_type='admin', ft_login=True)
         db.session.add(default_user)
-        default_admin = Admin(user_id=User.query.filter(User.username == "admin").one().id)
+        default_admin = Admin(user_id=User.query.filter(User.username == "admin").one().id, director=True)
         db.session.add(default_admin)
         db.session.commit()
 
@@ -101,6 +101,17 @@ def reset_password():
 def logout():
     session.pop('user', None)
     return redirect(url_for('.login'))
+
+from chatbot import query
+
+@app.route('/chat', methods=['POST'])
+def chat():
+    if request.method == "POST":
+        try:
+            response = query(request.json['query'])
+            return jsonify({'response': str(response)}), 200
+        except Exception as e:
+            return jsonify({'message': f"{str(e)} {request.get_data()}"}), 400
 
 @app.template_filter('filename')
 def get_filename(filepath):

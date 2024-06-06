@@ -61,8 +61,12 @@
     </div>
 </div class="main-row">
 
-<div class="modal">
-    <div class="modal-content"></div>
+<div id="add-user-modal" class="modal">
+    <div id="add-user-modal-content" class="modal-content width-40"></div>
+</div>
+
+<div id="reset-confirmation-modal" class="modal">
+    <div id="reset-confirmation-modal-content" class="modal-content width-40"></div>
 </div>
 
 {% with messages = get_flashed_messages(with_categories=true) %}
@@ -74,27 +78,6 @@
         {% endfor %}
     {% endif %}
 {% endwith %}
-
-<script>
-    document.addEventListener("DOMContentLoaded", () => {
-        var resetBtns = document.querySelectorAll(".password-reset");
-
-        resetBtns.forEach(btn => { 
-            btn.addEventListener('click', (event) => {
-                event.preventDefault();
-                var id = btn.getAttribute("data-id");
-                var route = "/index/users/" + id + "/reset_password";
-
-                console.log(route)
-
-                fetch(route, {method: 'GET'})
-                    .then(response => response.json())
-                    .then(data => {alert(data.message)})
-                    .catch(error => {alert(error.message)})
-            });
-        });
-    });
-</script>
 
 <script>
     function autoUpdateUsernameAndPassword(element) {
@@ -135,8 +118,8 @@
 
     document.addEventListener("DOMContentLoaded", () => {
         const addBtns = document.querySelectorAll(".btn-add");
-        const modal = document.querySelector(".modal");
-        const modalContent = document.querySelector(".modal-content");
+        const addUserModal = document.querySelector("#add-user-modal");
+        const addUserModalContent = document.querySelector("#add-user-modal-content");
 
         addBtns.forEach(btn => {
             btn.addEventListener("click", (event) => {
@@ -147,20 +130,69 @@
                 fetch(route, {method: 'GET'})
                     .then(response => response.json())
                     .then(data => {
-                        modalContent.innerHTML = data.html;
-                        modalContent.classList.add("width-40")
-                        var close = modalContent.querySelector("#close");
-                        autoUpdateUsernameAndPassword(modalContent);
+                        addUserModalContent.innerHTML = data.html;
+                        autoUpdateUsernameAndPassword(addUserModalContent);
+                        var close = addUserModalContent.querySelector("#close");
                         close.addEventListener('click', (event) => {
                             event.preventDefault();
-                            modal.style.display = "none";
+                            addUserModal.style.display = "none";
                         });
-                        modal.style.display = "block";
+                        var closeBtn = addUserModalContent.querySelector("#close-btn");
+                        closeBtn.addEventListener('click', (event) => {
+                            event.preventDefault();
+                            addUserModal.style.display = "none";
+                        });
+                        addUserModal.style.display = "block";
                     })
                     .catch(error => {
                         alert(error);
                         window.location.reload();
                     })
+            });
+        });
+    
+        var resetBtns = document.querySelectorAll(".password-reset");
+        const resetConfirmationModal = document.querySelector("#reset-confirmation-modal");
+        const resetConfirmationModalContent = document.querySelector("#reset-confirmation-modal-content");
+
+        resetBtns.forEach(btn => { 
+            btn.addEventListener('click', (event) => {
+                event.preventDefault();
+                var id = btn.getAttribute("data-id");
+                var route = "/index/users/" + id + "/reset_password";
+
+                fetch(route, {method: 'GET'})
+                    .then(response => response.text())
+                    .then(data => {
+                        resetConfirmationModalContent.innerHTML = data;
+                        resetConfirmationCSRF = resetConfirmationModal.querySelector("#csrf_token");
+                        var confirmResetBtn = resetConfirmationModal.querySelector("#confirm-reset-btn");
+                        csrf = resetConfirmationCSRF.value
+                        confirmResetBtn.addEventListener('click', () => {
+                            fetch(route, {
+                                method: 'POST',
+                                headers: {
+                                    csrf_token: csrf
+                                }})
+                                .then(response => response.json())
+                                .then(data => {
+                                    alert(data.message);
+                                    location.reload();
+                                })
+                                .catch(error => {
+                                    alert(data.message);
+                                    location.reload();
+                                })
+                        });
+                        var closeBtns = resetConfirmationModalContent.querySelectorAll("#close-btn, #close");
+                        closeBtns.forEach(btn => {
+                            btn.addEventListener('click', () => {
+                                resetConfirmationModal.style.display = "none";
+                            });
+                        });
+                        resetConfirmationModal.style.display = "inline";
+                    })
+                    .catch(error => {alert(error.message)})
             });
         });
     });

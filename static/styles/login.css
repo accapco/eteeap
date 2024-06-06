@@ -1,138 +1,266 @@
 @font-face {
-    font-family: mplus1p-bold;
-    src: url(/static/fonts/MPLUS1p-Bold.ttf);
+  font-family: mplus1p-bold;
+  src: url(/static/fonts/MPLUS1p-Bold.ttf);
 }
 
 @font-face {
-    font-family: quicksand;
-    src: url(/static/fonts/QuicksandbookRegular-0gW4.otf);
+  font-family: quicksand;
+  src: url(/static/fonts/QuicksandbookRegular-0gW4.otf);
 }
 
 * {
-    margin: 0;
-    padding: 0;
-    font-family: quicksand;
+  margin: 0;
+  padding: 0;
+  font-family: quicksand;
 }
 
 body {
-    background-color: #dedede;
+  background-color: #dedede;
 }
 
-h1{
-    color: #266DD3;
-    font-size: 38px;
-    font-family: mplus1p-bold;
-    margin-top: 80px;
-    width: 100%;
-    text-align: center;
+h1 {
+  color: #266dd3;
+  font-size: 38px;
+  font-family: quicksand;
+  font-weight: bold;
+  margin-top: 80px;
+  width: 100%;
+  letter-spacing: 0.1em;
+  text-align: center;
 }
 
-h2{
-    color: #266DD3;
-    font-size: 22px;
-    width: 100%;
-    padding-left: 32px;
-    margin-top: 36px;
-    text-align: left;
+h2 {
+  color: #266dd3;
+  font-size: 22px;
+  width: 100%;
+  padding-left: 32px;
+  margin-top: 36px;
+  text-align: left;
 }
 
 .card {
-    background-color: #f7f7f7;
-    margin: auto;
-    margin-top: 10px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-around;
-    width: 640px;
-    height: 420px;
-    border: 1px solid #344055;
-    box-shadow: 12px 10px #344055;
-    border-radius: 3%;
+  background-color: #f7f7f7;
+  margin: auto;
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  width: 640px;
+  height: 420px;
+  border: 1px solid #344055;
+  box-shadow: 12px 10px #344055;
+  border-radius: 3%;
 }
 
 .card label {
-    font-size: 26px;
+  font-size: 26px;
 }
 
 .card form {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .card input {
-    width: 380px;
-    font-size: 22px;
-    padding: 12px 18px;
-    border: none;
-    border-bottom: 2px solid #344055;
-    margin-bottom: 20px;
-    background-color: #ffffff00;
-    transition: ease-in-out, width .35s ease-in-out;
+  width: 380px;
+  font-size: 22px;
+  padding: 12px 18px;
+  border: none;
+  border-bottom: 2px solid #344055;
+  margin-bottom: 20px;
+  background-color: #ffffff00;
+  transition: ease-in-out, width 0.35s ease-in-out;
 }
 
-.card input[type='submit'] {
-    background-color: #266DD3;
-    color: white;
-    font-size: 22px;
-    padding: 12px 22px;
-    border: none;
-    border-radius: 6px;
+.card input[type="submit"] {
+  background-color: #266dd3;
+  color: white;
+  font-size: 22px;
+  padding: 12px 22px;
+  border: none;
+  border-radius: 6px;
 }
-
 
 .card input:focus {
-    outline: none;
-    border-bottom: 2px solid #266DD3;
+  outline: none;
+  border-bottom: 2px solid #266dd3;
 }
 
-.card input[type='submit']:hover {
-    background-color: #344055;
-    cursor: pointer;
+.card input[type="submit"]:hover {
+  background-color: #344055;
+  cursor: pointer;
 }
 
-.card input[type='submit']:focus {
-    background-color: #344055;
-    outline: none;
-    border-bottom: none;
+.card input[type="submit"]:focus {
+  background-color: #344055;
+  outline: none;
+  border-bottom: none;
 }
 
 .ws-80 {
-    height: 80px;
-    background-color: #ffffff00;
+  height: 80px;
+  background-color: #ffffff00;
 }
 
 .ws-20 {
-    height: 20px;
-    background-color: #ffffff00;
+  height: 20px;
+  background-color: #ffffff00;
 }
 
 .flashes {
-    list-style-type: none;
-    display: block;
-    width: auto;
-    text-align: center;
-    margin-top: 40px;
+  list-style-type: none;
+  display: block;
+  width: auto;
+  text-align: center;
+  margin-top: 40px;
 }
 
 .error {
-    color: rgba(255, 34, 34, 0.95);
-    font-size: 22px;
-    line-height: 24px;
+  color: rgba(255, 34, 34, 0.95);
+  font-size: 22px;
+  line-height: 24px;
 }
 
 .info {
-    color: rgba(30, 166, 37, 0.95);
-    font-size: 22px;
-    line-height: 24px;
+  color: rgba(30, 166, 37, 0.95);
+  font-size: 22px;
+  line-height: 24px;
 }
 
 .flash {
-    font-weight: bold;
+  font-weight: bold;
 }
 
 .message {
-    color: rgba(0, 0, 0, 0.95);
-    font-size: 22px;
-    line-height: 24px;
+  color: rgba(0, 0, 0, 0.95);
+  font-size: 22px;
+  line-height: 24px;
+}
+
+.chat-widget {
+  display: none;
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 400px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  background-color: #fff;
+  z-index: 1000;
+}
+
+.chat-header {
+  background-color: #007bff;
+  color: #fff;
+  padding: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.chat-body {
+  display: flex;
+  flex-direction: column;
+  height: 400px;
+  padding: 12px;
+}
+
+.chat-body input[type="text"] {
+  width: calc(100% - 20px);
+  padding: 10px;
+  margin-bottom: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.chat-body button {
+  width: 50px;
+  padding: 10px;
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.chat-body #chat-log {
+  flex: 1;
+  overflow-y: auto;
+  margin-bottom: 10px;
+}
+
+#chat-toggle {
+    padding: 6px;
+    border: none;
+    border-radius: 4px;
+
+    &:hover {
+        opacity: 50%;
+    }
+}
+
+#send {
+    padding: 10px;
+    border: none;
+    border-radius: 4px;
+    width: 84px;
+    text-align: center;
+
+    &:hover {
+        opacity: 50%;
+    }
+}
+
+
+.user-message {
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: 0.05em;
+  word-spacing: 0.08em;
+  text-align: right;
+  padding: 10px 20px;
+  margin: 5px;
+  background-color: #dff0d8;
+  border-radius: 5px;
+}
+
+.bot-response {
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: 0.05em;
+  word-spacing: 0.08em;
+  text-align: left;
+  padding: 10px 20px;
+  margin: 5px;
+  background-color: #d9edf7;
+  border-radius: 5px;
+}
+
+.chat-icon {
+  background-color: white;
+  border: 1px solid #007bff;
+  padding: 8px;
+  position: fixed;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  bottom: 30px;
+  right: 30px;
+  width: 60px;
+  height: 60px;
+  cursor: pointer;
+  border-radius: 6px;
+
+  img {
+    height: 100%;
+    width: 100%;
+    opacity: 100%;
+  }
+
+  &:hover {
+    opacity: 50%;
+  }
 }

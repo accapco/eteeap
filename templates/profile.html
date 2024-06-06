@@ -1,13 +1,16 @@
 <div>
-    <span id="close" class="close">&times;</span><br>
+    <span id="close" class="close">&times;</span>
     <div class="popup-content">
         <h1>
             {{ data.l_name | upper }}, {{ data.f_name | upper }} {{ data.m_name | upper }}<br>
             <span class="subtext"><span class="label">Email :</span> {{ data.email }}</span><br>
+            {% if data.alternate_email %} 
+            <span class="subtext"><span class="label">Alternate Email :</span> {{ data.alternate_email }}</span><br>
+            {% endif %}
             <span class="subtext"><span class="label">Contact No. :</span> {{ data.contact_no }}</span><br>
-        </h1><br><br><hr><br>
+        </h1><br><br><hr>
         <div class="row">
-            <div class="popup-section width-40 right-border">
+            <div class="popup-section width-60 right-border">
                 <h2>Personal Details</h2>
                 {% if data.birthday and data.birthmonth and data.birthyear %}
                     <div class="row"><span class="label width-40">Birthdate :</span><p class="width-60">{{data.birthday}} / {{data.birthmonth}} / {{data.birthyear}}</p></div>
@@ -28,25 +31,46 @@
                     <div class="row"><span class="label width-40">Address :</span><p class="width-60">{{data.local_address}}</p></div>
                 {% endif %}
             </div><br>
-            
-            <div class="popup-section width-60">
-            <h2>Educational Background</h2>
-            {% if data.educational_background %}
-                {% for e in data.educational_background %}
-                <h3>{{ e.school }} ({{ e.start_year }}-{{ e.end_year}})</h3>
+
+            <div class="popup-section width-40 right-border">
+                <h2>Social Media Accounts</h2>
+                {% if data.social_media_accounts %}
+                {% for s in data.social_media_accounts %}
                 <ul>
                     <li>
+                        <h3>— {{s.platform}} —</h3>
                         <p class="label">
-                            {{e.degree}} 
-                            {% if e.academic_honors %}
-                            <span> — {{e.academic_honors}}</span>
-                            {% endif %}
+                             <span><strong>{{s.handle}}</strong></span>
                         </p>
                     </li>
                 </ul>
                 {% endfor %}
-            {% endif %}
-            </div>
+                {% else %}
+                <h3>Information not set.</h3>
+                {% endif %}
+            </div><br>
+        </div><hr>
+        <div class="row">
+            <div class="popup-section width-60 right-border">
+                <h2>Educational Background</h2>
+                {% if data.educational_background %}
+                    {% for e in data.educational_background %}
+                    <h3>{{ e.school }} ({{ e.start_year }}-{{ e.end_year}})</h3>
+                    <ul>
+                        <li>
+                            <p class="label">
+                                {{e.degree}} 
+                                {% if e.academic_honors %}
+                                <span> — {{e.academic_honors}}</span>
+                                {% endif %}
+                            </p>
+                        </li>
+                    </ul>
+                    {% endfor %}
+                    {% else %}
+                    <h3>Information not set.</h3>
+                    {% endif %}
+                </div>
         </div>
     </div>
 </div>

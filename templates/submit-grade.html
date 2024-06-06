@@ -21,9 +21,9 @@
                 <div class="form-row">
                     <div class="section-header">
                         <p>Grade Submission Forms 
-                            <a href="{{ url_for('views.get_grade_submission_form1') }}" download>Daily Time Record</a>
-                            <a href="{{ url_for('views.get_grade_submission_form2') }}" download>Student's Summary Grade</a>
-                            <a href="{{ url_for('views.get_grade_submission_form3') }}" download>Tutor's Evaluation Report</a>
+                            <a href="{{ url_for('views.get_dtr', enrollment_id=enrollment_id) }}">Daily Time Record</a>
+                            <a href="{{ url_for('views.get_ssgr', enrollment_id=enrollment_id) }}">Student's Summary Grade</a>
+                            <a href="{{ url_for('views.get_ter', enrollment_id=enrollment_id) }}">Tutor's Evaluation Report</a>
                         </p>
                     </div>
                 </div>

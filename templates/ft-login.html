@@ -78,20 +78,24 @@
                                 {{ form.contact_no.label() }}
                                 {{ form.contact_no(class="text", value=data.contact_no, placeholder="Contact No.") }}
                             </div>
-                            <div class="field width-30">
-                                {{ form.residency.label() }}
-                                {{ form.residency(class="radio", value=data.residency) }}
-                            </div>
+                            {% if user_type == 'student' %}
+                                <div class="field width-30">
+                                    {{ form.type_of_student.label() }}
+                                    {{ form.type_of_student(class="radio") }}
+                                </div>
+                            {% endif %}
                         </div>
                         <div class="form-row">
                             <div class="field width-50">
                                 {{ form.local_address.label() }}
                                 {{ form.local_address(class="text", value=data.local_address, placeholder="Local Address") }}
                             </div>
-                            <div class="field width-50">
-                                {{ form.foreign_address.label() }}
-                                {{ form.foreign_address(class="text", value=data.foreign_address, placeholder="Foreign Address") }}
-                            </div>
+                            {% if user_type == 'student' %}
+                                <div class="field width-50">
+                                    {{ form.foreign_address.label() }}
+                                    {{ form.foreign_address(class="text", value=data.foreign_address, placeholder="Foreign Address") }}
+                                </div>
+                            {% endif %}
                         </div>
                         <div class="form-row">
                             <div class="section-header">
@@ -127,11 +131,11 @@
             {% endfor %}
         {% endif %}
         <script>
-            const residencyField = document.querySelector('form .radio');
+            const studentTypeField = document.querySelector('form .radio');
             const foreignAddressField = document.querySelector('input[name="foreign_address"]');
-            const local = document.getElementById('residency-0')
+            const local = document.getElementById('type_of_student-0')
 
-            residencyField.addEventListener('change', function(event) {
+            studentTypeField.addEventListener('change', function(event) {
                 if (event.target.value === 'local') {
                     foreignAddressField.setAttribute('disabled', 'true');
                 } else {

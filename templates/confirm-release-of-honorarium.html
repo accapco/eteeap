@@ -1,0 +1,48 @@
+<div>
+    <span id="close" class="close">&times;</span><br>
+    <div class="popup-content">
+        <form id="confirm-release-form" method="post">
+            {{ form.hidden_tag() }}
+
+            <br><br><hr><br><br>
+            <div class="form-row">
+                <div class="section-header">
+                    <span>Mark honorarium as released for <strong>{{ data.instructor_name }}</strong>?</span>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="section-header">
+                    <p class="subtext"><strong>Instructor</strong>:  {{data.instructor_name}}</p>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="section-header">
+                    <p class="subtext"><strong>Student</strong>:  {{data.student_name}}</p>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="section-header">
+                    <p class="subtext"><strong>Academic Year</strong>:  {{data.ay}}</p>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="section-header">
+                    <p class="subtext"><strong>Semester</strong>:  {{data.semester}}</p>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="section-header">
+                    <p class="subtext"><strong>Course</strong>:  {{data.course}}</p>
+                </div>
+            </div>
+            <br><br><hr><br><br>
+
+            <div class="form-row">
+                <div class="field width-100 gap-20">
+                    <button id="close-btn" type="button" class="submit btn-grey width-50">Cancel</button>
+                    <button id="confirm-release-submit" type="button" class="submit width-50 accept">Yes</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>

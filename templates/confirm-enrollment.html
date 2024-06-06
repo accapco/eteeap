@@ -1,0 +1,23 @@
+<div>
+    <span id="close" class="close">&times;</span><br>
+    <div class="popup-content">
+        <form action="/index/instructors/{{ data.instructor_id }}/enrollments/{{ data.enrollment_id }}/{{ confirmation }}" method="post">
+            {{ form.hidden_tag() }}
+
+            <br><br><hr><br><br>
+            <div class="form-row">
+                <div class="section-header">
+                    <span>Are you sure you want to <strong class="{{confirmation}}">{{ confirmation.title() }}</strong> the enrollment of <strong>{{ data.student_name }}</strong> for the course <strong>{{ data.course }}</strong>?</span>
+                </div>
+            </div>
+            <br><br><hr><br><br>
+
+            <div class="form-row">
+                <div class="field width-100 gap-20">
+                    <button id="close-btn" type="button" class="submit btn-grey width-50">Cancel</button>
+                    {{ form.submit(class="submit width-50 {{confirmation}}") }}
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
