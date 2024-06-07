@@ -20,7 +20,7 @@ def correct_spelling_and_grammar(text):
     corrected_text = ' '.join(corrected_words)
     return corrected_text
 
-def find_similar_question(user_question, qa_pairs, threshold=0.5):
+def find_similar_question(user_question, qa_pairs, threshold):
     user_question = correct_spelling_and_grammar(user_question)
     all_questions = [q for pair in qa_pairs for q in pair["questions"]]
     
@@ -38,7 +38,7 @@ def find_similar_question(user_question, qa_pairs, threshold=0.5):
     else:
         return None
 
-def get_answer(user_question, qa_pairs, threshold=0.5):
+def get_answer(user_question, qa_pairs, threshold=0.4):
     user_question = correct_spelling_and_grammar(user_question)
     for pair in qa_pairs:
         if user_question.lower() in [q.lower() for q in pair["questions"]]:
