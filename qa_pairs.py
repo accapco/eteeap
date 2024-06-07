@@ -1,7 +1,6 @@
 qa_pairs = [
     {
         "questions": [
-            "Who are you?",
             "What are you?"
         ],
         "answers": [
