@@ -25,6 +25,14 @@ qa_pairs = [
     },
     {
         "questions": [
+            "Who is the director of ETEEAP?"
+        ],
+        "answers": [
+            "The director of ETEEAP is Dr. Kevien Cabarrubias - Dela Cruz"
+            ]
+    },
+    {
+        "questions": [
             "How do I contact the ETEEAP department?"
         ],
         "answers": [
@@ -159,11 +167,39 @@ qa_pairs = [
         "answers": "It depends on the reason. If the reason is you still need to gain more experience or skills, present enough supporting documents, you can still apply until you met the requirement for a program."
     },
     {
-        "questions": ["What degrees can be earned through ETEEAP?"],
-        "answers": "Here is a current list of Program offered by the ETEEAP of the Technological university of the Philippines Manila. - Bachelor of Science in Computer Science (BSCS) - Bachelor of Science in Information System (BSIS)  - Bachelor of Science in Information Technology (BSIT) - Bachelor of Science in Industrial Education (BSIE) - Bachelor in Technical Teacher Education (BTTE) - Bachelor of Technology Major in Automative Engineering Tecnology (BTAET) - Bachelor of Technology Major in Civil Engineering Technology (BTCET) - Bachelor of Technology Major in Electrical Engineering Technology (BTEET) - Bachelor of Technology Major in Electronics Communication Engineering Technology (BTECET) - Bachelor of Technology Major in Electronics Engineering Technology (BTESET) - Bachelor of Technology Major in Foundry Engineering Technology (BTFET) - Bachelor of Technology Major in Instrumentation and Control Engineering Technology (BTICET) - Bachelor of Technology Major in Mechanical Engineering Technology (BTMET) - Bachelor of Technology Major in Power Plant Engineering Technology (BTPPET) - Bachelor of Technology Major in Refrigeration and Air -conditioning Engineering Technology (BTRACET)- Bachelor of Technology Major in Tool and Die Engineering Technology (BTTDET)"
-    },
-    {
-        "questions": ["What courses under College of Science (COS) are offered?"],
+        "questions": [
+            "What degrees or courses under College of Science (COS) are offered?",
+        ],
         "answers": "Here is a current list of Program under College of Science offered by the ETEEAP of the Technological university of the Philippines Manila. Bachelor of Science in Computer Science (BSCS) - Bachelor of Science in Information System (BSIS)  - Bachelor of Science in Information Technology (BSIT)"
     },
+    {
+        "questions": [
+            "What degrees or courses under College of Industrial Education (CIE) are offered?",
+        ],
+        "answers": "Here is a current list of Program under College of Industrial Education (CIE) offered by the ETEEAP of the Technological university of the Philippines Manila. Bachelor of Science in Industrial Education	(BSIE) - Bachelor in Technical Teacher Education (BTTE)"
+    },
+    {
+        "questions": [
+            "What degrees or courses under College of Industrial Technology (CIT) are offered?",
+        ],
+        "answers": "Here is a current list of Program under College of Industrial Technology (CIT) offered by the ETEEAP of the Technological university of the Philippines Manila. Bachelor of Technology Major in Automative Engineering Tecnology (BTAET) - Bachelor of Technology Major in Civil Engineering Technology (BTCET) - Bachelor of Technology Major in Electrical Engineering Technology (BTEET) - Bachelor of Technology Major in Electronics Communication Engineering Technology (BTECET) - Bachelor of Technology Major in Electronics Engineering Technology (BTESET) - Bachelor of Technology Major in Foundry Engineering Technology	(BTFET) - Bachelor of Technology Major in Instrumentation and Control Engineering Technology (BTICET) - Bachelor of Technology Major in Mechanical Engineering Technology (BTMET) - Bachelor of Technology Major in Power Plant Engineering Technology (BTPPET) - Bachelor of Technology Major in Refrigeration and Air-conditioning Engineering Technology (BTRACET) - Bachelor of Technology Major in Tool and Die Engineering Technology (BTTDET)"
+    },
+    {
+        "questions": [
+            "What Colleges are offered in ETEEAP?",
+            "List of Colleges"
+        ],
+        "answers": [
+            "The current Colleges with offered courses are College of Science (COS), College of Industrial Education (CIE), and College of Industrial Technology (CIT)"
+        ]
+    },
+    {
+        "questions": [
+            "What degrees or courses can be earned through ETEEAP?"
+            "List of Courses",
+            "List of Degrees",    
+        ],      
+        "answers": "Here is a current list of Program offered by the ETEEAP of the Technological university of the Philippines Manila. - Bachelor of Science in Computer Science (BSCS) - Bachelor of Science in Information System (BSIS)  - Bachelor of Science in Information Technology (BSIT) - Bachelor of Science in Industrial Education (BSIE) - Bachelor in Technical Teacher Education (BTTE) - Bachelor of Technology Major in Automative Engineering Tecnology (BTAET) - Bachelor of Technology Major in Civil Engineering Technology (BTCET) - Bachelor of Technology Major in Electrical Engineering Technology (BTEET) - Bachelor of Technology Major in Electronics Communication Engineering Technology (BTECET) - Bachelor of Technology Major in Electronics Engineering Technology (BTESET) - Bachelor of Technology Major in Foundry Engineering Technology (BTFET) - Bachelor of Technology Major in Instrumentation and Control Engineering Technology (BTICET) - Bachelor of Technology Major in Mechanical Engineering Technology (BTMET) - Bachelor of Technology Major in Power Plant Engineering Technology (BTPPET) - Bachelor of Technology Major in Refrigeration and Air -conditioning Engineering Technology (BTRACET)- Bachelor of Technology Major in Tool and Die Engineering Technology (BTTDET)"
+    },
+    
 ]

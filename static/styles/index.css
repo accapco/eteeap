@@ -28,7 +28,7 @@ a {
   padding: 0;
   text-decoration: none;
   color: rgb(119, 212, 255);
-  letter-spacing: 0.2em;
+  letter-spacing: 0.1em;
 }
 
 .back {
@@ -74,6 +74,15 @@ textarea {
 
 textarea {
   height: 100px;
+}
+
+input:-webkit-autofill {
+  color: white !important;
+  -webkit-text-fill-color: white !important; /* Set text color */
+}
+
+input:-moz-autofill {
+  color: white !important;
 }
 
 ::-webkit-scrollbar {
@@ -406,7 +415,7 @@ textarea {
 
     a {
       color: rgb(119, 212, 255);
-      letter-spacing: 0.2em;
+      letter-spacing: 0.1em;
       margin-left: 16px;
       font-size: 12px;
       font-style: italic;
@@ -1188,7 +1197,7 @@ button[disabled]:hover {
     a {
       margin-left: 52px;
       color: rgb(119, 212, 255);
-      letter-spacing: 0.2em;
+      letter-spacing: 0.1em;
     }
 
     a:hover {
@@ -1243,7 +1252,7 @@ button[disabled]:hover {
 
       a {
         color: rgb(119, 212, 255);
-        letter-spacing: 0.2em;
+        letter-spacing: 0.1em;
         font-size: 14px;
         opacity: 100%;
 
@@ -1377,7 +1386,7 @@ button[disabled]:hover {
     a {
       font-style: italic;
       color: rgb(119, 212, 255);
-      letter-spacing: 0.2em;
+      letter-spacing: 0.1em;
     }
 
     a:hover {
@@ -1396,6 +1405,19 @@ button[disabled]:hover {
     position: sticky;
     top: 0;
     background-color: #000423;
+    border-bottom: 1px solid white;
+    border-top: 1px solid white;
+    color: white;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    z-index: 1;
+  }
+  .table-subheader {
+    position: -webkit-sticky;
+    position: sticky;
+    top: 0;
+    background-color: #21243d;
     border-bottom: 1px solid white;
     border-top: 1px solid white;
     color: white;
@@ -1445,6 +1467,54 @@ button[disabled]:hover {
   }
   .col-6 {
     flex-basis: 60%;
+  }
+  .col-7 {
+    flex-basis: 70%;
+  }
+  .col-8 {
+    flex-basis: 80%;
+  }
+  .col-9 {
+    flex-basis: 90%;
+  }
+  select,
+  input {
+    margin: 0;
+    padding: 0;
+    font-size: 12px;
+    height: 24px;
+    background-color: #00000000;
+    color: white;
+    border-radius: 4px;
+    border: none;
+    width: 70%;
+    border: 1px solid white;
+
+    &:focus {
+      border: none;
+    }
+
+    &[readonly="True"] {
+      border: none;
+      appearance: none;
+      -moz-appearance: none;
+      -webkit-appearance: none;
+
+      option {
+        display: none;
+      }
+    }
+  }
+
+  .assign-instructor, .assign-status {
+    display: none;
+    letter-spacing: 0.05em;
+    font-size: 12px;
+  }
+
+  option {
+    border-radius: 0;
+    background-color: black;
   }
 }
 
@@ -1541,7 +1611,7 @@ button[disabled]:hover {
 
   a {
     color: rgb(119, 212, 255);
-    letter-spacing: 0.2em;
+    letter-spacing: 0.1em;
     margin-bottom: 6px;
     font-size: 12px;
 
@@ -1587,6 +1657,10 @@ button[disabled]:hover {
 
       &.smaller {
         font-size: 12px;
+      }
+
+      &.yellow {
+        background-color: rgb(12, 78, 29);
       }
     }
 
@@ -1705,14 +1779,33 @@ button[disabled]:hover {
   line-height: 24px;
 }
 
+select.cell {
+  padding: 0px;
+  height: 28px;
+  width: 85px;
+  font-size: 11px;
+  font-weight: normal;
+  border-radius: 20px;
+  border: 1px solid white;
+
+  option {
+    font-size: 14px;
+  }
+
+  &:focus {
+    padding: 0px;
+    border: 1px solid white;
+  }
+}
+
 .cell {
   font-size: 14px;
   font-weight: bold;
-  border-radius: 20px;
   padding: 8px 12px;
   width: 72px;
   text-align: center;
   border: 1px solid white;
+  border-radius: 20px;
 
   &.payment,
   &.payment-pending,
@@ -1738,7 +1831,7 @@ button[disabled]:hover {
   &.enrollment,
   &.ongoing,
   &.CIE {
-    background-color: rgb(91, 203, 0);
+    background-color: #21931d;
     color: white;
   }
 
@@ -1815,19 +1908,80 @@ button[disabled]:hover {
 }
 
 .close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px;
   height: 24px;
   width: 24px;
   float: right;
-  color: #aaa;
+  color: white;
+  border: 2px solid white;
   font-size: 24px;
   font-weight: bold;
   margin: 24px;
   margin-right: 28px;
+  border-radius: 100%;
 }
 
 .close:hover,
 .close:focus {
-  color: black;
+  border: 2px solid rgb(149, 46, 46);
+  background-color: rgb(149, 46, 46);
+  color: #242424;
   text-decoration: none;
   cursor: pointer;
+}
+
+#curriculum-table {
+  display: flex;
+  flex-direction: column;
+  max-height: 80%;
+  margin-top: 40px;
+
+  .table-row {
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .table-header {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    height: 20px;
+  }
+
+  .table-subheader {
+    height: 20px;
+    border-bottom: 1px solid white;
+  }
+
+  #add-row {
+    width: 100%;
+    text-align: center;
+  }
+
+  .btn {
+    max-width: none;
+    width: 100%;
+    height: 100%;
+    padding: 10px;
+    line-height: 1em;
+    text-align: center;
+    font-size: 13px;
+
+    &.btn-green {
+      background-color: #21931d;
+      border: 2px solid white;
+
+      &:hover {
+        background-color: #125210;
+        opacity: 100%;
+      }
+    }
+  }
+
+  .delete {
+    color: #be3222;
+  }
 }

@@ -1,0 +1,71 @@
+
+{% if data.enrolled|length > 0 %}
+    {% for e in data.enrolled %}
+    <li class="table-row smaller">
+        <div class="col col-3" data-label="code">{{ e.course.code }}: {{ e.course.title }}</div>
+        <div class="col col-3" data-label="instructor">
+            {% if e.instructor %}
+                {{ e.instructor.l_name|title }}, {{ e.instructor.f_name }} {{ e.instructor.m_name[0] }}.
+            {% elif e.status == 'listed' %}
+                <form class="instructor-form" id="assign-instructor-form-{{e.id}}">
+                    {{ e.instructor_form.hidden_tag() }}
+                    {{ e.instructor_form.instructor() }} 
+                    <a data-id="{{e.id}}" class="assign-instructor">Assign</a>
+                </form>
+            {% else %}
+                <p>------------------</p>
+            {% endif %}
+        </div>
+        <div class="col col-2">
+            {% if e.status != 'listed' %}
+                <div class="cell smaller {{ e.status }}">{{ e.status.title() }}</div>
+            {% else %}
+                <form class="status-form" id="assign-status-form-{{e.id}}">
+                    {{ e.status_form.hidden_tag() }}
+                    {{ e.status_form.course_status(class="cell") }}
+                    <a data-id="{{e.id}}" class="assign-status">Credit</a>
+                </form>
+            {% endif %}
+        </div>
+        <div class="col col-3 flex-col">
+            {% if e.grade %}
+            <a class="smaller" download href="{{url_for('.grade_forms', form=1, enrollment=e.id)}}">Daily Time Record</a>
+            <a class="smaller" download href="{{url_for('.grade_forms', form=2, enrollment=e.id)}}">Student's Summary Grade Report</a>
+            <a class="smaller" download href="{{url_for('.grade_forms', form=3, enrollment=e.id)}}">Tutor's Evaluation Report</a>
+            {% elif e.instructor %}
+            <p class="smaller">Not yet submitted</p>
+            {% else %}
+            <p>------------------</p>
+            {% endif %}
+        </div>
+        <div class="col col-2">
+            <div class="inline">
+                {% if e.honorarium %}
+                    <div class="cell smaller {{ e.honorarium }}">
+                        {% if e.honorarium == "onprocess" %}
+                            On Process
+                        {% elif e.honorarium == "released" %}
+                            Released
+                        {% endif %}
+                    </div>
+                    {% if e.grade and e.honorarium == "onprocess" %}
+                    <div>
+                        <a class="smaller release-honorarium" data-value="{{e.id}}">Release</a>
+                    </div>
+                    {% elif e.honorarium == "released" %}
+                    <div>
+                        <p class="smaller">{{ e.honorarium_released_date }}</p>
+                        <a class="smaller undo-release-honorarium" data-value="{{e.id}}">Undo</a>
+                    </div>
+                    {% endif %}
+                {% else %}
+                    <p>------------------</p>
+                {% endif %}
+            </div>
+        </div>
+    </li>
+    {% endfor %}
+{% else %}
+    <p class="message">Student not yet enrolled to any subjects.</p>
+{% endif %}
+</div>

@@ -1,89 +1,84 @@
-{% extends "index.html" %}
+<div>
+    <span id="close" class="close">&times;</span><br>
+    <div class="popup-content">
+        {% if data.student.program == "Not yet enrolled to any program."  %}
+        <form action="/index/students/{{data.student.id}}/enroll/program" method="post">
+            <div class="form-row center">
+                <div class="section-header column">
+                    <span>Enroll Student To A Program</span><br>
+                    <span class="subtext">Name: {{ data.student.name }}</span>
+                    <span class="subtext">Student ID: {{ data.student.tup_id }}</span>
+                </div>
+            </div><hr><br>
+            {{ programs_form.hidden_tag() }}
 
-
-{% block content %}
-
-<div class="main-row">
-    <div class="card thin-bar color-1 opacity-80">
-        <p id="status"> Status: {{ student.progress.title() }} </p>
-    </div> 
-</div>
-
-<br>
-
-<div class="main-row">
-
-    <div class="card full">
-    <br><br>
-
-    {% if student.progress == 'payment' %}
-
-    <p id="status-message">Welcome to the ETEEAP system {{ student.f_name }}. Upload your OR and COR to proceed with enrollment.</p>
-
-    {% elif student.progress == 'payment-pending' %}
-
-    <p id="status-message">OR and COR uploaded, waiting for confirmation.</p>
-    <br><br>
-    <small><a download href="{{ url_for('.get_receipt', user_id=student.user) }}">Uploaded File</a></small>
-
-    {% elif student.progress == 'payment-rejected' %}
-
-    <p id="status-message">OR and COR rejected, please upload another.</p>
-    <br><br>
-    <small><a download href="{{ url_for('.get_receipt', user_id=student.user) }}">Uploaded File</a></small>
-
-    {% endif %}
-
-    {% if 'payment' in student.progress %}
-
-    <br><br><hr><br><br>
-    <form action="/index/receipt" method="post" enctype="multipart/form-data">
-        {{ receipt_form.hidden_tag() }}
-
-        <div class="form-row">
-            <div class="field width-30">
-                {{ receipt_form.file.label() }}
-                {{ receipt_form.file(class="text") }}
+            <div class="form-row center">
+                <div class="field width-50">
+                    {{ programs_form.academic_year.label() }} 
+                    {{ programs_form.academic_year(class="text", value=data.student.ay) }}
+                </div>
+            </div>
+            <div class="form-row center">
+                <div class="field width-50">
+                    {{ programs_form.semester.label() }}
+                    {{ programs_form.semester(class="text", value=data.student.semester) }}
+                </div>
+            </div>
+            <div class="form-row center">
+                <div class="field width-50">
+                    {{ programs_form.programs_select.label() }}
+                    {{ programs_form.programs_select(class="text") }}
+                </div>
+            </div>
+            <div class="form-row center">
+                <div class="field width-50">
+                    {{ programs_form.submit(class="submit width-100") }}
+                </div>
+            </div><br>
+        </form>
+        {% else %}
+        <div class="row header">
+            <div>
+                <h4><span class="label ni">Student's Name:</span>  {{ data.student.name }}</h4>
+                <h4><span class="label ni">Enrolled Program:</span>  {{ data.student.program }}</h4>
+            </div>
+            <div>
+                <h4 class="right-align"><span class="label ni">Username:</span>  {{ data.student.username }}</h4>
+                <h4 class="right-align"><span class="label ni">TUP ID:</span>  {{ data.student.tup_id }}</h4>
             </div>
         </div>
-
-        <div class="form-row">
-            <div class="field width-30">
-                {{ receipt_form.submit(class="submit width-100") }}
+        <ul class="stylized-table">
+            <li class="table-header smaller">
+                <div class="col col-3">COURSE</div>
+                <div class="col col-3">INSTRUCTOR</div>
+                <div class="col col-2">STATUS</div>
+                <div class="col col-3">FORMS</div>
+                <div class="col col-2">HONORARIUM</div>
+            </li>
+            <div id="enrollment-table-content">
+                {% include "enrollment-table.html" %}
             </div>
+        </ul>
+        <br><br>
+        <div class="main-row">
+            <form action="/index/students/{{data.student.id}}/enroll/course" method="post">
+                {{ courses_form.hidden_tag() }}
+    
+                <div class="form-row">
+                    <div class="field width-40">
+                        {{ courses_form.courses_select.label() }} 
+                        {{ courses_form.courses_select(class="text") }}
+                    </div>
+                    <div class="field width-40">
+                        {{ courses_form.instructors_select.label() }}
+                        {{ courses_form.instructors_select(class="text") }}
+                    </div>
+                    <div class="field width-20">
+                        {{ courses_form.submit(class="submit width-100") }}
+                    </div>
+                </div>
+            </form>
         </div>
-
-    </form>
-
-    {% endif %}
-
-    {% if student.progress  == 'enrollment' %}
-
-        <p id="status-message">For enrollment. View your subjects:</p> <br><br>
-        <a href="{{ url_for('.subjects') }}">
-            <button class="btn-grey">Subjects</button>
-        </a>
-
-    {% else %}
-
-    {% endif %}
-
-    <br><br>
-
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            <ul class=flashes>
-                {% for category, message in messages %}
-                <li class="{{ category }}">{{ message }}</li>
-                {% endfor %}
-            </ul>
         {% endif %}
-    {% endwith %}
-
-    <br><br>
-
     </div>
-
 </div>
-
-{% endblock %}

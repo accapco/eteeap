@@ -37,7 +37,10 @@ def update_system_settings(data):
             'semester': data['semester'],
             'cos_dept_head': data['cos_dept_head'],
             'cit_dept_head': data['cit_dept_head'],
-            'cie_dept_head': data['cie_dept_head']
+            'cie_dept_head': data['cie_dept_head'],
+            'cos_dean': data['cos_dean'],
+            'cit_dean': data['cit_dean'],
+            'cie_dean': data['cie_dean']
         }
         with open(fp, 'w') as file:
             file.write(json.dumps(cfg))
@@ -267,7 +270,7 @@ def generate_student_report(filters):
     if filters['type_of_student']:
         data['type_of_student'] = {'foreign': 0, 'local': 0}
     if filters['student_course_status']:
-        data['course_status'] = {'pending': 0, 'ongoing': 0, 'completed': 0}
+        data['course_status'] = {'listed': 0,'pending': 0, 'ongoing': 0, 'completed': 0}
 
     for student in students:
         # get student info
@@ -858,9 +861,8 @@ def get_instructor_enrollment(instructor_id, enrollment_id):
     return response
 
 def confirm_enrollment(enrollment_id, confirmation):
-    enrollment = Enrollment.query.filter_by(id=enrollment_id)
+    enrollment = Enrollment.query.filter_by(id=enrollment_id).first()
     if confirmation == "accept":
-        enrollment = enrollment.first()
         if enrollment.status == 'pending':
             enrollment.status = 'ongoing'
             db.session.commit()
@@ -868,7 +870,8 @@ def confirm_enrollment(enrollment_id, confirmation):
         else:
             return "Invalid operation"
     elif confirmation == "reject":
-        enrollment.delete()
+        enrollment.instructor = None
+        enrollment.status = 'listed'
         db.session.commit()
         return "Enrollment rejected."
     else:
@@ -1018,18 +1021,14 @@ def _format_date(time):
     return ""
 
 def get_student_enrollments(student_id):
-    enrollments = (
-        Enrollment.query.filter_by(student=student_id)
-        .join(Instructor)
-        .join(Course)
-        .all()
-    )
+    enrollments = Enrollment.query.filter_by(student=student_id).all()
     response = []
     for e in enrollments:
         enrollment_data = e.__dict__
-        instructor_data = get_instructor_bypk(e.instructor)
+        if e.instructor:
+            instructor_data = get_instructor_bypk(e.instructor)
+            enrollment_data['instructor'] = instructor_data
         course_data = get_course(e.course)
-        enrollment_data['instructor'] = instructor_data
         enrollment_data['course'] = course_data
         enrollment_data['honorarium_released_date'] = _format_date(enrollment_data['honorarium_released_date'])
         response.append(enrollment_data)
@@ -1155,9 +1154,49 @@ def get_program(program_id):
             'id': None,
             'name': 'Not yet enrolled to any program.',
             'abbr': 'Not yet enrolled to any program.',
-            'courses': [],
             'college_id': None
         }
+    
+def get_curriculum(program_id):
+    program = Program.query.filter_by(id=program_id).first()
+    college = College.query.filter_by(id=program.college_id).first()
+    program_courses = ProgramCourseAssociation.query.filter_by(program=program_id).all()
+    response = {
+        'program': program.abbr,
+        'college': college.abbr,
+        'program_courses': []
+    }
+    for pc in program_courses:
+        course = Course.query.filter_by(id=pc.course).first()
+        pc = pc.__dict__
+        pc['units'] = course.units
+        pc['title'] = course.title
+        response['program_courses'].append(pc)
+    return response
+
+def update_curriculum(data):
+    try:
+        pc_list = data['curriculum_courses']
+        program = data['program']
+        for pc in pc_list:
+            program_course = ProgramCourseAssociation.query.filter_by(id=pc['pc_id']).first()
+            if program_course == None:
+                program_course = ProgramCourseAssociation(program=program)
+            program_course.course = pc['course_code']
+            db.session.add(program_course)
+        db.session.commit()
+        return True, "Curriculum updated."
+    except Exception as e:
+        return False, f"Could not update curriculum. {e}"
+
+def delete_program_course(id):
+    try:
+        program_course = ProgramCourseAssociation.query.filter_by(id=int(id)).first()
+        db.session.delete(program_course)
+        db.session.commit()
+        return True, "Removed course from the course curriculum."
+    except Exception as e:
+        return False, f"Unable to delete program course. {e}"
 
 def add_course(course):
     try:
@@ -1168,8 +1207,20 @@ def add_course(course):
         db.session.add(new_course)
         db.session.commit()
         return True, "Added new course."
+    except Exception as e:
+        return False, f"Error occured while adding course. {e}"
+
+def edit_course(data):
+    try:
+        course = Course.query.filter_by(id=data['id']).first()
+        course.title = data['title']
+        course.code = data['code']
+        course.units = data['units']
+        db.session.add(course)
+        db.session.commit()
+        return True, "Successfully modified course details."
     except:
-        return False, "Error occured while adding course."
+        return False, "An error occured while editing course details."
 
 def get_course(cid):
     return Course.query.filter_by(id=cid).first().__dict__
@@ -1199,9 +1250,55 @@ def enroll_student_in_program(student_id, data):
     student.ay = data['academic_year']
     student.semester = data['semester']
     student.program = data['programs_select']
-    db.session.commit()
+    cfg = get_system_settings()
     program_info = get_program(data['programs_select'])
+    program = Program.query.filter_by(id=program_info['id']).first()
+    college = College.query.filter_by(id=program.college_id).first().abbr
+    if college == "COS":
+        student.dept_head = cfg['cos_dept_head']
+        student.dean = cfg['cos_dean']
+    elif college == "CIE":
+        student.dept_head = cfg['cie_dept_head']
+        student.dean = cfg['cie_dean']
+    elif college == "CIT":
+        student.dept_head = cfg['cit_dept_head']
+        student.dean = cfg['cit_dean']
+    db.session.add(student)
+    
+    program_courses = ProgramCourseAssociation.query.filter_by(program=student.program).all()
+    for pc in program_courses:
+        new_enrollment = Enrollment(
+            course = pc.course,
+            student = student_id,
+            ay = student.ay,
+            semester = student.semester,
+            status = 'listed'
+        )
+        db.session.add(new_enrollment)
+    db.session.commit()
     return f"Enrolled student in {program_info['abbr']} for {data['semester']} Semester Academic Year {data['academic_year']}"
+
+def assign_instructor_to_enrollment(enrollment_id, data):
+    try:
+        enrollment = Enrollment.query.filter_by(id=enrollment_id).first()
+        instructor = Instructor.query.filter_by(user=data['instructor']).first()
+        enrollment.instructor = instructor.id
+        enrollment.status = 'pending'
+        db.session.add(enrollment)
+        db.session.commit()
+        return True, f"Instructor assigned."
+    except Exception as e:
+        return False, f"Could not assign instructor. {e}"
+    
+def assign_course_status(enrollment_id, data):
+    try:
+        enrollment = Enrollment.query.filter_by(id=enrollment_id).first()
+        enrollment.status = data['course_status']
+        db.session.add(enrollment)
+        db.session.commit()
+        return True, f"Course status changed."
+    except Exception as e:
+        return False, f"Could not change course status. {e}"
 
 def replace_text_in_paragraph(paragraph, replacements):
     for key, value in replacements.items():
@@ -1235,7 +1332,7 @@ def auto_fill(input_path, output_path, replacements):
 
 def _get_full_name(user):
      u = User.query.filter_by(id=user.user).first()
-     return f"{u.l_name.capitalize()} {u.f_name}"
+     return f"{u.l_name.title()} {u.f_name}"
 
 def get_dtr_data(enrollment_id):
     enrollment = Enrollment.query.filter_by(id=enrollment_id).first()
@@ -1252,14 +1349,13 @@ def get_ssgr_data(enrollment_id):
     instructor = Instructor.query.filter_by(id=enrollment.instructor).first()
     student = Student.query.filter_by(id=enrollment.student).first()
     program = Program.query.filter_by(id=student.program).first()
-    college = College.query.filter_by(id=program.id).first()
+    college = College.query.filter_by(id=program.college_id).first()
     director = Admin.query.first()
     days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
     data = {
         '[College]': college.abbr,
         '[Semester]': enrollment.semester,
         '[Course Code]': course.code,
-        '[Units]': enrollment.units,
         '[Academic Year]': enrollment.ay,
         '[Course Title]': course.title,
         '[Day]': days[date.today().weekday()],
@@ -1268,9 +1364,11 @@ def get_ssgr_data(enrollment_id):
         '[Time]': f"{datetime.now().time().hour}:{datetime.now().time().minute}",
         '[Student Name]': _get_full_name(student),
         '[Grade]': enrollment.grade,
-        '[Units]': enrollment.units,
+        '[Units]': course.units,
         '[Instructor Name]': _get_full_name(instructor),
         '[Date]': datetime.now().date(),
+        '[Dept Head]': student.dept_head,
+        '[College Dean]': student.dean,
         '[Director Name]': _get_full_name(director),
     }
     return data
@@ -1281,14 +1379,17 @@ def get_ter_data(enrollment_id):
     instructor = Instructor.query.filter_by(id=enrollment.instructor).first()
     student = Student.query.filter_by(id=enrollment.student).first()
     program = Program.query.filter_by(id=student.program).first()
+    college = College.query.filter_by(id=program.college_id).first().name
     data = {
         '[Student Name]': _get_full_name(student),
         '[Program]': program.abbr,
         '[Course Code]': course.code,
         '[Course Title]': course.title,
-        '[Units]': enrollment.units,
+        '[Units]': course.units,
         '[Grade]': enrollment.grade,
-        '[Instructor Name]': _get_full_name(instructor)
+        '[Instructor Name]': _get_full_name(instructor),
+        '[College Dean]': student.dean,
+        '[College]': college.replace("College of ", "")
     }
     return data
 
@@ -1321,6 +1422,7 @@ def submit_grade(enrollment_id, data):
         file3path = os.path.join(app.config['UPLOAD_FOLDER'], 'grades', file3name)
         data['file3'].save(file3path)
         enrollment.form3 = file3name
+        enrollment.honorarium = "onprocess"
         db.session.add(enrollment)
         db.session.commit()
         return True, f"Grades have been submitted."

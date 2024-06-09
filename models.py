@@ -60,8 +60,8 @@ class Program(db.Model):
     id = db.Column("id", db.Integer, primary_key=True)
     name = db.Column("name", db.String(64))
     abbr = db.Column("abbr", db.String(10))
-    courses = db.relationship("Course", backref=db.backref("program"))
     college_id = db.Column(db.Integer, db.ForeignKey("colleges.id"))
+    year_levels = db.Column(db.Integer)
 
 class Course(db.Model):
     __tablename__ = "courses"
@@ -69,7 +69,14 @@ class Course(db.Model):
     id = db.Column("id", db.Integer, primary_key=True)
     title = db.Column("title", db.String(64))
     code = db.Column("code", db.String(8))
-    program_id = db.Column(db.Integer, db.ForeignKey("programs.id"))
+    units = db.Column("units", db.Integer)
+
+class ProgramCourseAssociation(db.Model):
+    __table_name__ = "program_course_association"
+
+    id = db.Column("id", db.Integer, primary_key=True)
+    program = db.Column(db.Integer, db.ForeignKey("programs.id"))
+    course = db.Column(db.Integer, db.ForeignKey("courses.id"))
 
 class RequirementMaterial(db.Model):
     __tablename__ = "requirement_materials"
@@ -103,7 +110,6 @@ class Enrollment(db.Model):
 
     id = db.Column("id", db.Integer, primary_key=True)
     course = db.Column("course", db.Integer, db.ForeignKey('courses.id'))
-    units = db.Column("units", db.Integer)
     ay = db.Column("academic_year", db.String(9))
     semester = db.Column("semester", db.Enum('1st', '2nd', 'Midyear'))
     instructor = db.Column("instructor", db.Integer, db.ForeignKey('instructors.id'))
@@ -113,7 +119,7 @@ class Enrollment(db.Model):
     form1 = db.Column("form1path", db.String(64))
     form2 = db.Column("form2path", db.String(64))
     form3 = db.Column("form3path", db.String(64))
-    honorarium = db.Column("honorarium", db.Enum('onprocess', 'released'), default='onprocess')
+    honorarium = db.Column("honorarium", db.Enum('onprocess', 'released'))
     honorarium_released_date = db.Column("honorarium_released_date", db.DateTime())
     requirements = db.relationship("Requirement", backref='enrollments')
 
@@ -157,4 +163,6 @@ class Student(db.Model):
     tup_id = db.Column("tup_id", db.String(20))
     semester = db.Column("semester", db.Enum('1st', '2nd', 'Midyear'))
     receipt_filepath = db.Column("receipt_filepath", db.String(64))
+    dean = db.Column("dean", db.String(64))
+    dept_head = db.Column("dept_head", db.String(64))
     enrollments = db.relationship("Enrollment", backref='students')

@@ -15,7 +15,13 @@
                 </li>
                 {% for program in college.programs %}
                 <li class="table-row smaller">
-                    <div class="col">{{ program.name }} <strong>({{ program.abbr }})</strong></div>
+                    <div class="col col-6">
+                        {{ program.name }} 
+                        <strong>({{ program.abbr }})</strong>
+                    </div>
+                    <div class="col col-2">
+                        <a class="curriculum-link smaller" data-id="{{program.id}}">Curriculum</a>
+                    </div>
                 </li>
                 {% endfor %}
                 <br><br>
@@ -36,12 +42,13 @@
         <ul class="stylized-table">
             <li class="table-header">
                 <div class="col col-3">COURSE CODE</div>
-                <div class="col col-6">TITLE</div>
+                <div class="col col-7">TITLE</div>
             </li>
             {% for course in courses %}
             <li class="table-row smaller">
                 <div class="col col-3" data-label="CODE">{{ course.code }}</div>
-                <div class="col col-6" data-label="TITLE">{{ course.title }}</div>
+                <div class="col col-5" data-label="TITLE">{{ course.title }}</div>
+                <div class="col col-2"><a class="edit-course-link smaller" data-id="{{course.id}}">Edit</a></div>
             </li>
             {% endfor %}
         </ul>
@@ -61,15 +68,20 @@
 {% endif %}
 {% endwith %}
 
-<div class="modal">
-    <div class="modal-content width-30"></div>
+<div id="course-modal" class="modal">
+    <div id="course-modal-content" class="modal-content width-30"></div>
+</div>
+
+<div id="curriculum-modal" class="modal">
+    <div id="curriculum-modal-content" class="modal-content width-50"></div>
 </div>
 
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-        var modal = document.querySelector('.modal');
-        var modalContent = document.querySelector('.modal-content');
+        var courseModal = document.querySelector('#course-modal');
+        var courseModalContent = document.querySelector('#course-modal-content');
         const addCourse = document.getElementById('add-course-btn')
+        const editCourseLinks = document.querySelectorAll('.edit-course-link')
 
         addCourse.addEventListener('click', (event) => {
             event.preventDefault();
@@ -80,20 +92,173 @@
                 })
                 .then(response => response.text())
                 .then(data => {
-                    modalContent.innerHTML = data;
-                    var close = modalContent.querySelector("#close");
+                    courseModalContent.innerHTML = data;
+                    var close = courseModalContent.querySelector("#close");
                     close.addEventListener('click', (event) => {
                         event.preventDefault();
-                        modal.style.display = "none";
+                        courseModal.style.display = "none";
                     });
-                    modal.style.display = "block";
+                    courseModal.style.display = "block";
                 })
                 .catch(error => {
                     alert(error);
                     window.location.reload();
                 });
         });
+
+        editCourseLinks.forEach(link => {
+            link.addEventListener('click', event => {
+                event.preventDefault();
+                var course_id = link.getAttribute("data-id");
+                var route = "/index/courses/" + course_id + "/edit_course";
+
+                fetch(route, {
+                    method: 'GET'
+                })
+                .then(response => response.text())
+                .then(data => {
+                    courseModalContent.innerHTML = data;
+                    var close = courseModalContent.querySelector("#close");
+                    close.addEventListener('click', (event) => {
+                        event.preventDefault();
+                        courseModal.style.display = "none";
+                    });
+                    courseModal.style.display = "block";
+                })
+                .catch(error => {
+                    alert(error);
+                });
+            });
+        });
+    
+        var curriculumModal = document.querySelector('#curriculum-modal');
+        var curriculumModalContent = document.querySelector('#curriculum-modal-content');
+        var curriculumLinks = document.querySelectorAll('.curriculum-link');
+
+        function addEventListenersForCurriculumTable(curriculumRoute) {
+            // add row
+            var addBtn = curriculumModalContent.querySelector("#add-btn");
+            addBtn.addEventListener('click', (event) => {
+                event.preventDefault();
+                tableRoute = "/index/curriculum_table/modify_rows"
+                var form = curriculumModalContent.querySelector("form");
+                var formData = new FormData(form);
+                fetch(tableRoute, {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.text())
+                .then(data => {
+                    var curriculumTable = curriculumModalContent.querySelector("#table-courses");
+                    curriculumTable.innerHTML = data;
+                    linkFields(curriculumModalContent.querySelector("form"));
+                    addEventListenersForCurriculumTable(curriculumRoute);
+                })
+                .catch(error => {
+                    alert(error);
+                })
+            });
+            // delete row
+            var deleteBtns = curriculumModalContent.querySelectorAll(".delete");
+            deleteBtns.forEach(btn => {
+                btn.addEventListener("click", event => {
+                    event.preventDefault();
+                    tableRoute = "/index/curriculum_table/modify_rows"
+                    var form = curriculumModalContent.querySelector("form");
+                    var formData = new FormData(form);
+                    var id = btn.getAttribute("data-id");
+                    formData.append("delete_program_course_id", id);
+                    fetch(tableRoute, {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => response.text())
+                    .then(data => {
+                        var curriculumTable = curriculumModalContent.querySelector("#table-courses");
+                        curriculumTable.innerHTML = data;
+                        linkFields(curriculumModalContent.querySelector("form"));
+                        addEventListenersForCurriculumTable(curriculumRoute);
+                    })
+                    .catch(error => {
+                        alert(error);
+                    })
+                });
+            });
+        }
+
+        curriculumLinks.forEach(link => {
+            link.addEventListener('click', event => {
+                event.preventDefault();
+                program_id = link.getAttribute("data-id");
+                curriculumRoute = "/index/programs/" + program_id + "/curriculum";
+                // open curriculum form
+                fetch(curriculumRoute, {
+                    method: 'GET'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    curriculumModalContent.innerHTML = data.html;
+                    var close = curriculumModalContent.querySelector("#close");
+                    close.addEventListener('click', (event) => {
+                        event.preventDefault();
+                        curriculumModal.style.display = "none";
+                    });
+                    curriculumModal.style.display = "block";
+                    linkFields(curriculumModalContent.querySelector("form"));
+                    addEventListenersForCurriculumTable(curriculumRoute);
+                    // update curriculum
+                    var updateBtn = curriculumModalContent.querySelector("#update-curriculum-btn");
+                    updateBtn.addEventListener("click", event => {
+                        event.preventDefault();
+                        var form = curriculumModalContent.querySelector("form");
+                        var formData = new FormData(form);
+                        fetch(curriculumRoute, {
+                            method: 'POST',
+                            body: formData
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.status.ok) {
+                                curriculumModalContent.innerHTML = data.html;
+                                linkFields(curriculumModalContent.querySelector("form"));
+                            }
+                            alert(data.message);
+                            window.location.reload();
+                        })
+                        .catch(error => {
+                            alert(error);
+                        })
+                    });
+                })
+                .catch(error => {
+                    alert(error);
+                    window.location.reload();
+                });
+            });
+        });
     });
+
+    function linkFields(form) {
+        var courseCode = form.querySelectorAll(".course_code");
+        var courseTitle = form.querySelectorAll(".course_title");
+        var courseUnits = form.querySelectorAll(".course_units");
+        courseCode.forEach(codeField => {
+            var index = parseInt(codeField.getAttribute("data-index"));
+            codeField.addEventListener('change', event => {
+                event.preventDefault();
+                courseTitle[index].value = codeField.value;
+                courseUnits[index].value = codeField.value;
+            });
+        });
+        courseTitle.forEach(titleField => {
+            var index = parseInt(titleField.getAttribute("data-index"));
+            titleField.addEventListener('change', event => {
+                event.preventDefault();
+                courseCode[index].value = titleField.value;
+                courseUnits[index].value = titleField.value;
+            });
+        });
+    }
 </script>
 
 {% endblock %}

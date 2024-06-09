@@ -1,0 +1,25 @@
+<div>
+    <span id="close" class="close">&times;</span><br>
+    <div class="popup-content">
+        <div id="curriculum-table">
+            <ul class="stylized-table">
+                <li class="table-header smaller">
+                    <div class="col col-9">Course Curriculum for {{ data.college }} - {{ data.program }}</div>
+                    <div class="col col-1"><button id="update-curriculum-btn" class="btn btn-green">Update</button></div>
+                </li>
+                <li class="table-subheader smaller">
+                    <div class="col col-3">Subject Code</div>
+                    <div class="col col-6">Subject Title</div>
+                    <div class="col col-2">Total Units</div>
+                    <div class="col col-2">Actions</div>
+                </li>
+                <div id="table-courses">
+                    {% include "curriculum-table.html" %}
+                </div>
+                <li class="table-row smaller">
+                    <div id="add-row" class="col"><a id="add-btn">Add Course</a></div>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>

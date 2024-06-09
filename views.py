@@ -1,4 +1,5 @@
 from flask import Blueprint, request, redirect, url_for, session, render_template, g, jsonify, flash, send_from_directory, send_file, after_this_request
+from werkzeug.datastructures import MultiDict
 views = Blueprint('views', __name__)
 
 from app import app
@@ -25,7 +26,7 @@ user_views = {
         {'name': 'Manage Account', 'link': '.account'},
     ],
     'student': [
-        {'name': 'Enrollment', 'link': '.enrollment'},
+        {'name': 'Home', 'link': '.student_home'},
         {'name': 'Subjects', 'link': '.subjects'},
         {'name': 'Manage Account', 'link': '.account'},
     ],
@@ -68,6 +69,9 @@ def system():
     form.cos_dept_head.data = data['cos_dept_head']
     form.cit_dept_head.data = data['cit_dept_head']
     form.cie_dept_head.data = data['cie_dept_head']
+    form.cos_dean.data = data['cos_dean']
+    form.cit_dean.data = data['cit_dean']
+    form.cie_dean.data = data['cie_dean']
     return render_template('system.html', page="System Settings", form=form, views=views)
 
 @views.route('/report', methods=['GET', 'POST'])
@@ -483,6 +487,95 @@ def add_course():
         return redirect(url_for('.courses'))
     return render_template('add_course.html', form=form)
 
+@views.route('/courses/<course_id>/edit_course', methods=["GET", "POST"])
+def edit_course(course_id):
+    if g.user != 'admin':
+        return redirect(url_for('.unauthorized'))
+    course = db.get_course(course_id)
+    form = CourseForm()
+    if form.validate_on_submit():
+        success, message = db.edit_course(form.data)
+        if success:
+            flash(message, 'info')
+        else:
+            flash(message, 'error')
+        return redirect(url_for('.courses'))
+    form.id.data = course_id
+    form.title.data = course['title']
+    form.code.data = course['code']
+    form.units.data = course['units']
+    return render_template('edit-course.html', form=form)
+
+@views.route('/programs/<program_id>/curriculum', methods=["GET", "POST"])
+def curriculum(program_id):
+    if g.user != 'admin':
+        return redirect(url_for('.unauthorized'))
+    data = db.get_curriculum(program_id)
+    form = FullCurriculumForm()
+    form.program.data = program_id
+    courses = db.get_courses()
+    c_choices = [(c['id'], f"{c['code']}") for c in courses]
+    t_choices = [(c['id'], f"{c['title']}") for c in courses]
+    u_choices = [(c['id'], f"{c['units']}") for c in courses]
+    for pc in data['program_courses']:
+        cf = CurriculumPartForm()
+        form.curriculum_courses.append_entry(cf.data)
+        form.curriculum_courses[-1].course_code.choices = c_choices
+        form.curriculum_courses[-1].course_title.choices = t_choices
+        form.curriculum_courses[-1].units.choices = u_choices
+        form.curriculum_courses[-1].pc_id.data = pc['id']
+        form.curriculum_courses[-1].course_code.data = pc['course']
+        form.curriculum_courses[-1].course_title.data = pc['course']
+        form.curriculum_courses[-1].units.data = pc['course']
+    if request.method == 'POST':
+        form = FullCurriculumForm(request.form)
+        success, message = db.update_curriculum(form.data)
+        if success:
+            status_code = 201
+        else:
+            status_code = 500
+    else:
+        message = "Web content loaded."
+        status_code = 200
+    return jsonify({
+            'html': render_template('curriculum.html', data=data, form=form),
+            'status': status_code,
+            'message': message
+        }), status_code
+
+@views.route('/curriculum_table/modify_rows', methods=["POST"])
+def curriculum_modify_rows():
+    if g.user != 'admin':
+        return redirect(url_for('.unauthorized'))
+    courses = db.get_courses()
+    c_choices = [(c['id'], f"{c['code']}") for c in courses]
+    t_choices = [(c['id'], f"{c['title']}") for c in courses]
+    u_choices = [(c['id'], f"{c['units']}") for c in courses]
+    # handle delete
+    form_data = request.form.copy()
+    delete = 'delete_program_course_id' in form_data.keys()
+    if delete:
+        delete_id = form_data.pop('delete_program_course_id')
+        indices_to_remove = {key.split('-')[1] for key, value in form_data.items() if 'pc_id' in key and value == delete_id}
+        filtered_data = [
+            (key, value) for key, value in form_data.items()
+            if not any(index in key for index in indices_to_remove)
+        ]
+        form_data = {key: value for key, value in filtered_data}
+        db.delete_program_course(delete_id)
+    form = FullCurriculumForm(MultiDict(form_data))
+    for index, cf in enumerate(form.curriculum_courses):
+        form.curriculum_courses[index].course_code.choices = c_choices
+        form.curriculum_courses[index].course_title.choices = t_choices
+        form.curriculum_courses[index].units.choices = u_choices
+    if request.method == 'POST' and not delete:
+        new_form = CurriculumPartForm()
+        form.curriculum_courses.append_entry(new_form.data)
+        form.curriculum_courses[-1].course_code.choices = c_choices
+        form.curriculum_courses[-1].course_title.choices = t_choices
+        form.curriculum_courses[-1].units.choices = u_choices
+    return render_template('curriculum-table.html', form=form)
+
 @views.route('/subjects')
 def subjects():
     if g.user != 'student':
@@ -540,15 +633,15 @@ def reset_password(id):
             return jsonify({'message': message}), 300
     return render_template('confirm-reset-pass.html', form=form, name=name)
 
-@views.route('/enrollment')
-def enrollment():
+@views.route('/home/student')
+def student_home():
     if g.user != 'student':
         return redirect(url_for('.unauthorized'))
     views = user_views[g.user]
     student = db.get_student(session.get('id'))
     receipt_form = ReceiptForm()
     receipt_fp = url_for('.get_receipt', user_id=session.get('id'))
-    return render_template('enrollment.html', page="Enrollment", student=student, receipt_form=receipt_form, receipt_fp=receipt_fp, views=views)
+    return render_template('home-student.html', page="Enrollment", student=student, receipt_form=receipt_form, receipt_fp=receipt_fp, views=views)
     
 @views.route('/receipt', methods=['POST'])
 def receipt():
@@ -563,7 +656,7 @@ def receipt():
             flash(f'Problem uploading document. {e}', 'error')
     else:
         flash(f"Problem uploading document. {'. '.join(form.file.errors)}", 'error')
-    return redirect(url_for('.enrollment'))
+    return redirect(url_for('.student_home'))
     
 @views.route('/uploads/receipts/<user_id>')
 def get_receipt(user_id):
@@ -693,13 +786,13 @@ def enroll_student(student_id):
     data['student']['program'] = db.get_program(data['student']['program'])['abbr']
     programs_form = StudentProgramForm(data['programs'])
     courses_form = StudentCoursesForm(data['available_courses'], data['instructors'])
-    if data['student']['ay']:
-        programs_form.academic_year.data = data['student']['ay']
-    else:
-        programs_form.academic_year.data = datetime.now().year
+    programs_form.academic_year.data = data['student']['ay']
     programs_form.semester.data = data['student']['semester']
-    programs_form.programs_select.data = data['student']['program']   
-    return render_template('modify-courses.html', programs_form=programs_form, courses_form=courses_form, data=data)
+    programs_form.programs_select.data = data['student']['program']
+    for e in data['enrolled']:
+        e['instructor_form'] = InstructorAssignmentForm(data['instructors'])
+        e['status_form'] = CreditCourseForm()
+    return render_template('enrollment.html', programs_form=programs_form, courses_form=courses_form, data=data)
 
 @views.route('/students/<student_id>/enroll/program', methods=['POST'])
 def enroll_student_in_program(student_id):
@@ -724,11 +817,56 @@ def enroll_student_in_course(student_id):
         message = db.enroll_student_in_course(student_id, courses_form.data)
     return redirect(url_for('.admin_students'))
 
+@views.route('/students/<student_id>/enrollments/<enrollment_id>/assign_instructor', methods=['POST'])
+def assign_instructor_to_enrollment(student_id, enrollment_id):
+    data = db.get_student_enrollment_options(student_id)
+    form = InstructorAssignmentForm(data['instructors'])
+    status_code = 500
+    if form.validate_on_submit():
+        success, message = db.assign_instructor_to_enrollment(enrollment_id, form.data)
+        if success:
+            status_code = 201
+    else:
+        message = f"Unable to assign instructor. {form.errors}"
+    data = db.get_student_enrollment_options(student_id)
+    for e in data['enrolled']:
+        e['instructor_form'] = InstructorAssignmentForm(data['instructors'])
+        e['instructor_form'].instructor.data = 0
+        e['status_form'] = CreditCourseForm()
+        e['status_form'].course_status.data = 'listed'
+    return jsonify({
+        'html': render_template('enrollment-table.html', data=data),
+        'status': status_code,
+        'message': message
+    }), status_code
+
+@views.route('/students/<student_id>/enrollments/<enrollment_id>/set_status', methods=['POST'])
+def assign_course_status(student_id, enrollment_id):
+    form = CreditCourseForm()
+    status_code = 500
+    if form.validate_on_submit():
+        success, message = db.assign_course_status(enrollment_id, form.data)
+        if success:
+            status_code = 201
+    else:
+        message = f"Unable to set status. {form.errors}"
+    data = db.get_student_enrollment_options(student_id)
+    for e in data['enrolled']:
+        e['instructor_form'] = InstructorAssignmentForm(data['instructors'])
+        e['instructor_form'].instructor.data = 0
+        e['status_form'] = CreditCourseForm()
+        e['status_form'].course_status.data = 'listed'
+    return jsonify({
+        'html': render_template('enrollment-table.html', data=data),
+        'status': status_code,
+        'message': message
+    }), status_code
+
 @views.route('/account', methods=['GET', 'POST'])
 def account():
     views = user_views[g.user]
     data = db.get_account_details(session.get('id'))
-    account_form = UserAccountForm(data=data)
+    account_form = UserAccountForm()
     pass_form = ChangePasswordForm()
     account_form.gender.data = data['gender']
     account_form.civil_status.data = data['civil_status']

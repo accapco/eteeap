@@ -1,11 +1,11 @@
 <div>
     <span id="close" class="close">&times;</span><br>
-    <form id="add-course-form" action="/index/courses/add_course" method="post">
+    <form id="edit-course-form" action="/index/courses/{{form.data.id}}/edit_course" method="post">
         {{ form.hidden_tag() }}
 
         <div class="form-row">
             <div class="section-header">
-                <p>Add a new course to the system.</p>
+                <p>Edit course details.</p>
             </div>
         </div><hr><br><br>
         <div class="form-row">
@@ -26,7 +26,7 @@
         </div><br>
         <div class="form-row">
             <div class="field width-100">
-                {{ form.submit(class="submit width-100") }}
+                {{ form.update(class="submit width-100") }}
             </div>
         </div>
     </form>

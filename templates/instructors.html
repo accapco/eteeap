@@ -97,20 +97,22 @@
                     <div class="right">
                         <div class="section">
                             <div class="sub-section">
-                                {% if e.honorarium == 'onprocess' %}
-                                <div class="col">
-                                    <p class="label">Honorarium:</p><br>
-                                    <div class="cell smaller {{ e.honorarium }}">On Process</div>
-                                    <br>
-                                    <p class="smaller">- - - - - - - -</p>
-                                </div>
-                                {% else %}
-                                <div class="col">
-                                    <p class="label">Honorarium:</p><br>
-                                    <div class="cell smaller {{ e.honorarium }}">{{ e.honorarium|title }}</div>
-                                    <br>
-                                    <p class="label">{{ e.honorarium_released_date }}</p>
-                                </div>
+                                {% if e.honorarium %}
+                                    {% if e.honorarium == 'onprocess' %}
+                                    <div class="col">
+                                        <p class="label">Honorarium:</p><br>
+                                        <div class="cell smaller {{ e.honorarium }}">On Process</div>
+                                        <br>
+                                        <p class="smaller">- - - - - - - -</p>
+                                    </div>
+                                    {% else %}
+                                    <div class="col">
+                                        <p class="label">Honorarium:</p><br>
+                                        <div class="cell smaller {{ e.honorarium }}">{{ e.honorarium|title }}</div>
+                                        <br>
+                                        <p class="label">{{ e.honorarium_released_date }}</p>
+                                    </div>
+                                    {% endif %}
                                 {% endif %}
                             </div>
                             {% if e.grade %}

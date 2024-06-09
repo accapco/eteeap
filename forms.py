@@ -10,6 +10,9 @@ class SystemForm(FlaskForm):
     cos_dept_head = StringField('COS Dept. Head')
     cie_dept_head = StringField('CIE Dept. Head')
     cit_dept_head = StringField('CIT Dept. Head')
+    cos_dean = StringField('COS Dean')
+    cie_dean = StringField('CIE Dean')
+    cit_dean = StringField('CIT Dean')
     submit = SubmitField('Save')
 
 class EducationalBackgroundForm(FlaskForm):
@@ -121,9 +124,34 @@ class ReceiptForm(FlaskForm):
     submit = SubmitField('Upload')
 
 class CourseForm(FlaskForm):
+    id = HiddenField()
     title = StringField('Title', validators=[DataRequired()])
     code = StringField('Course Code', validators=[DataRequired()])
+    units = IntegerField('Units', validators=[DataRequired(), NumberRange(min=1, max=9)])
+    update = SubmitField('Update Course')
     submit = SubmitField('Add Course')
+
+class CurriculumPartForm(FlaskForm):
+    pc_id = HiddenField("ID")
+    units = SelectField("Units", coerce=int)
+    course_title = SelectField("Subject Title", coerce=int)
+    course_code = SelectField("Subject Code", coerce=int)
+
+class FullCurriculumForm(FlaskForm):
+    curriculum_courses = FieldList(FormField(CurriculumPartForm))
+    program = HiddenField()
+    submit = SubmitField("Update Curriculum")
+
+class InstructorAssignmentForm(FlaskForm):
+    instructor = SelectField("Instructor", choices=[(0, "Instructor not set.")])
+
+    def __init__(self, available_instructors):
+        super().__init__()
+        available_instructors = [(i['user'], f"{i['l_name'].capitalize()}, {i['f_name']} {i['m_name'][0]+'.' if i['m_name'] else ''}") for i in available_instructors]
+        self.instructor.choices += available_instructors
+
+class CreditCourseForm(FlaskForm):
+    course_status = SelectField("Instructor", choices=[("listed", "Listed"), ("completed", "Completed")])
 
 class RequirementForm(FlaskForm):
     title = StringField('Title', validators=[DataRequired()])

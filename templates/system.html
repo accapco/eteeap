@@ -48,6 +48,20 @@
             </div>
             <div class="form-row">
                 <div class="field width-50">
+                    {{ form.cos_dean.label() }}
+                    {{ form.cos_dean(class="toggle text", placeholder="COS Dean", readonly=True) }}
+                </div>
+                <div class="field width-50">
+                    {{ form.cie_dean.label() }}
+                    {{ form.cie_dean(class="toggle text", placeholder="CIE Dean", readonly=True) }}
+                </div>
+                <div class="field width-50">
+                    {{ form.cit_dean.label() }}
+                    {{ form.cit_dean(class="toggle text", placeholder="CIT Dean", readonly=True) }}
+                </div>
+            </div><br>
+            <div class="form-row">
+                <div class="field width-50">
                     {{ form.submit(class="submit toggle width-100", disabled="True") }}
                 </div>
             </div>

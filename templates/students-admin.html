@@ -68,7 +68,7 @@
                 {% elif student.progress == 'payment-rejected' %}
                     <button class="approve btn-red" data-id="{{student.id}}" data-progress="{{student.progress}}">Rejected</button>
                 {% elif student.progress == 'enrollment' %}
-                    <button class="enroll btn-green"  data-id="{{student.id}}">Enrollment</button>
+                    <button class="enroll btn-green"  data-id="{{student.id}}">Subjects</button>
                 {% elif student.progress == 'enrolled' %}
                 <button class="view btn-purple">View Subjects</button>
                 {% else %}
@@ -144,139 +144,224 @@
                 var route = '/index/students/' + student_id + '/courses'
 
                 fetch(route, {method: 'GET'})
-                    .then(response => response.text())
-                    .then(data => {
-                        enrollModalContent.innerHTML = data;
-                        var close = enrollModalContent.querySelector("#close");
-                        close.addEventListener('click', (event) => {
-                            event.preventDefault();
-                            enrollModal.style.display = "none";
-                        });
-                        // release honorarium
-                        var releaseHonorariumBtns = document.querySelectorAll('.release-honorarium');
-                        releaseHonorariumBtns.forEach(btn => {
-                            btn.addEventListener('click', function(event) {
-                                event.preventDefault();
-                                var confirmReleaseModal = document.querySelector("#confirm-release-modal")
-                                var confirmReleaseModalContent = document.querySelector("#confirm-release-modal-content")
-
-                                var value = btn.getAttribute('data-value');
-                                var route = "/index/enrollments/" + value + "/release_honorarium"
-                                
-                                fetch(route, {
-                                    method: 'GET'
-                                })
-                                .then(response => response.text())
-                                .then(data => {
-                                    confirmReleaseModalContent.innerHTML = data;
-                                    var close = confirmReleaseModalContent.querySelector("#close");
-                                    var closeBtn = confirmReleaseModalContent.querySelector("#close-btn");
-                                    close.addEventListener('click', (event) => {
-                                        event.preventDefault();
-                                        confirmReleaseModal.style.display = "none";
-                                    });
-                                    closeBtn.addEventListener('click', (event) => {
-                                        event.preventDefault();
-                                        confirmReleaseModal.style.display = "none";
-                                    });
-                                    confirmReleaseModal.style.display = "block";
-
-                                    var confirmReleaseSubmit = confirmReleaseModalContent.querySelector("#confirm-release-submit");
-                                    var confirmReleaseCSRF = confirmReleaseModalContent.querySelector("#csrf_token");
-                                    var csrf = confirmReleaseCSRF.value
-
-                                    confirmReleaseSubmit.addEventListener('click', () => {
-                                        fetch(route, {
-                                            method: 'POST',
-                                            headers: {
-                                                csrf_token: csrf
-                                            }
-                                        })
-                                        .then(response => response.json())
-                                        .then(data => {
-                                            alert(data.message);
-                                            window.location.reload();
-                                        })
-                                        .catch(error => {
-                                            console.log(error)
-                                            alert(error.message);
-                                            confirmReleaseModal.style.display = "none";
-                                        })
-                                    });
-                                })
-                                .catch(error => {
-                                    alert(error.message);
-                                    window.location.reload();
-                                });
-                            });
-                        });
-                        enrollModal.style.display = "block";
-                        // revert honorarium status
-                        var undoReleaseHonorariumBtns = document.querySelectorAll('.undo-release-honorarium');
-                        undoReleaseHonorariumBtns.forEach(btn => {
-                            btn.addEventListener('click', function(event) {
-                                event.preventDefault();
-                                var undoReleaseModal = document.querySelector("#undo-release-modal")
-                                var undoReleaseModalContent = document.querySelector("#undo-release-modal-content")
-
-                                var value = btn.getAttribute('data-value');
-                                var route = "/index/enrollments/" + value + "/undo_release_honorarium"
-                                
-                                fetch(route, {
-                                    method: 'GET'
-                                })
-                                .then(response => response.text())
-                                .then(data => {
-                                    undoReleaseModalContent.innerHTML = data;
-                                    var close = undoReleaseModalContent.querySelector("#close");
-                                    var closeBtn = undoReleaseModalContent.querySelector("#close-btn");
-                                    close.addEventListener('click', (event) => {
-                                        event.preventDefault();
-                                        undoReleaseModal.style.display = "none";
-                                    });
-                                    closeBtn.addEventListener('click', (event) => {
-                                        event.preventDefault();
-                                        undoReleaseModal.style.display = "none";
-                                    });
-                                    undoReleaseModal.style.display = "block";
-
-                                    var undoReleaseSubmit = undoReleaseModalContent.querySelector("#undo-release-submit");
-                                    var undoReleaseCSRF = undoReleaseModalContent.querySelector("#csrf_token");
-                                    var csrf = undoReleaseCSRF.value
-
-                                    undoReleaseSubmit.addEventListener('click', () => {
-                                        fetch(route, {
-                                            method: 'POST',
-                                            headers: {
-                                                csrf_token: csrf
-                                            }})
-                                            .then(response => response.json())
-                                            .then(data => {
-                                                alert(data.message);
-                                                window.location.reload();
-                                            })
-                                            .catch(error => {
-                                                console.log(error)
-                                                alert(error.message);
-                                                undoReleaseModal.style.display = "none";
-                                            })
-                                    });
-                                })
-                                .catch(error => {
-                                    alert(error.message);
-                                    window.location.reload();
-                                });
-                            });
-                        });
-                        enrollModal.style.display = "block";
-                    })
-                    .catch(error => {
-                        alert(error);
-                        window.location.reload();
+                .then(response => response.text())
+                .then(data => {
+                    enrollModalContent.innerHTML = data;
+                    var close = enrollModalContent.querySelector("#close");
+                    close.addEventListener('click', (event) => {
+                        event.preventDefault();
+                        enrollModal.style.display = "none";
                     });
+                    enrollModal.style.display = "block";
+                    addEventListersForEnrollModal(student_id);
+                })
+                .catch(error => {
+                    alert(error);
+                    window.location.reload();
+                });
             });
         });
    
+        // add event listeners to enroll modal elements
+        function addEventListersForEnrollModal(student_id) {
+            // release honorarium
+            var releaseHonorariumBtns = document.querySelectorAll('.release-honorarium');
+            releaseHonorariumBtns.forEach(btn => {
+                btn.addEventListener('click', function(event) {
+                    event.preventDefault();
+                    var confirmReleaseModal = document.querySelector("#confirm-release-modal")
+                    var confirmReleaseModalContent = document.querySelector("#confirm-release-modal-content")
+
+                    var value = btn.getAttribute('data-value');
+                    var route = "/index/enrollments/" + value + "/release_honorarium"
+                    
+                    fetch(route, {
+                        method: 'GET'
+                    })
+                    .then(response => response.text())
+                    .then(data => {
+                        confirmReleaseModalContent.innerHTML = data;
+                        var close = confirmReleaseModalContent.querySelector("#close");
+                        var closeBtn = confirmReleaseModalContent.querySelector("#close-btn");
+                        close.addEventListener('click', (event) => {
+                            event.preventDefault();
+                            confirmReleaseModal.style.display = "none";
+                        });
+                        closeBtn.addEventListener('click', (event) => {
+                            event.preventDefault();
+                            confirmReleaseModal.style.display = "none";
+                        });
+                        confirmReleaseModal.style.display = "block";
+
+                        var confirmReleaseSubmit = confirmReleaseModalContent.querySelector("#confirm-release-submit");
+                        var confirmReleaseCSRF = confirmReleaseModalContent.querySelector("#csrf_token");
+                        var csrf = confirmReleaseCSRF.value
+
+                        confirmReleaseSubmit.addEventListener('click', () => {
+                            fetch(route, {
+                                method: 'POST',
+                                headers: {
+                                    csrf_token: csrf
+                                }
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                alert(data.message);
+                                window.location.reload();
+                            })
+                            .catch(error => {
+                                console.log(error)
+                                alert(error.message);
+                                confirmReleaseModal.style.display = "none";
+                            })
+                        });
+                    })
+                    .catch(error => {
+                        alert(error.message);
+                        window.location.reload();
+                    });
+                });
+            });
+            // revert honorarium status
+            var undoReleaseHonorariumBtns = document.querySelectorAll('.undo-release-honorarium');
+            undoReleaseHonorariumBtns.forEach(btn => {
+                btn.addEventListener('click', function(event) {
+                    event.preventDefault();
+                    var undoReleaseModal = document.querySelector("#undo-release-modal")
+                    var undoReleaseModalContent = document.querySelector("#undo-release-modal-content")
+
+                    var value = btn.getAttribute('data-value');
+                    var route = "/index/enrollments/" + value + "/undo_release_honorarium"
+                    
+                    fetch(route, {
+                        method: 'GET'
+                    })
+                    .then(response => response.text())
+                    .then(data => {
+                        undoReleaseModalContent.innerHTML = data;
+                        var close = undoReleaseModalContent.querySelector("#close");
+                        var closeBtn = undoReleaseModalContent.querySelector("#close-btn");
+                        close.addEventListener('click', (event) => {
+                            event.preventDefault();
+                            undoReleaseModal.style.display = "none";
+                        });
+                        closeBtn.addEventListener('click', (event) => {
+                            event.preventDefault();
+                            undoReleaseModal.style.display = "none";
+                        });
+                        undoReleaseModal.style.display = "block";
+
+                        var undoReleaseSubmit = undoReleaseModalContent.querySelector("#undo-release-submit");
+                        var undoReleaseCSRF = undoReleaseModalContent.querySelector("#csrf_token");
+                        var csrf = undoReleaseCSRF.value
+
+                        undoReleaseSubmit.addEventListener('click', () => {
+                            fetch(route, {
+                                method: 'POST',
+                                headers: {
+                                    csrf_token: csrf
+                                }})
+                                .then(response => response.json())
+                                .then(data => {
+                                    alert(data.message);
+                                    window.location.reload();
+                                })
+                                .catch(error => {
+                                    console.log(error)
+                                    alert(error.message);
+                                    undoReleaseModal.style.display = "none";
+                                })
+                        });
+                    })
+                    .catch(error => {
+                        alert(error.message);
+                        window.location.reload();
+                    });
+                });
+            });
+            // instructor forms event listeners
+            var instructorForms = document.querySelectorAll(".instructor-form");
+            instructorForms.forEach(form => {
+                var submit = form.querySelector("a");
+                var field = form.querySelector("select");
+                field.addEventListener("change", event => {
+                    if (field.value == 0) {
+                        submit.style.display = "none";
+                    } else {
+                        submit.style.display = "inline";
+                    }
+                });
+            });
+            // assign instructor
+            var assignInstructorBtns = document.querySelectorAll('.assign-instructor');
+            assignInstructorBtns.forEach(btn => {
+                btn.addEventListener('click', event => {
+                    enrollment_id = btn.getAttribute("data-id");
+                    route = "/index/students/" + student_id + "/enrollments/" + enrollment_id + "/assign_instructor";
+                    form = enrollModalContent.querySelector("#assign-instructor-form-"+enrollment_id);
+                    formData = new FormData(form)
+                    fetch(route, {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 201) {
+                            var tableContent = enrollModalContent.querySelector("#enrollment-table-content");
+                            tableContent.innerHTML = data.html
+                            addEventListersForEnrollModal(student_id)
+                        }
+                    })
+                    .catch(errpr => {
+                        alert(error)
+                    })
+                });
+            });
+            // set status
+            var assignStatusBtns = document.querySelectorAll('.assign-status');
+            assignStatusBtns.forEach(btn => {
+                btn.addEventListener('click', event => {
+                    enrollment_id = btn.getAttribute("data-id");
+                    route = "/index/students/" + student_id + "/enrollments/" + enrollment_id + "/set_status";
+                    form = enrollModalContent.querySelector("#assign-status-form-"+enrollment_id);
+                    formData = new FormData(form)
+                    fetch(route, {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 201) {
+                            var tableContent = enrollModalContent.querySelector("#enrollment-table-content");
+                            tableContent.innerHTML = data.html
+                            addEventListersForEnrollModal(student_id)
+                        }
+                    })
+                    .catch(errpr => {
+                        alert(error)
+                    })
+                });
+            });
+            // status forms event listeners
+            var statusForms = document.querySelectorAll(".status-form");
+            statusForms.forEach(form => {
+                var submit = form.querySelector("a");
+                var field = form.querySelector("select");
+                field.addEventListener("change", event => {
+                    if (field.value == "listed") {
+                        submit.style.display = "none";
+                        field.classList.remove("completed")
+                        field.classList.add("listed")
+                    } else {
+                        submit.style.display = "inline";
+                        field.classList.add("completed")
+                        field.classList.remove("listed")
+                    }
+                });
+            });
+        }
+
+        // student profiles
         var profileModal = document.querySelector('#profile-modal');
         var profileModalContent = document.querySelector('#profile-modal-content');
         var profileBtns = document.querySelectorAll('.profile');
@@ -290,20 +375,20 @@
                 console.log(route)
 
                 fetch(route, {method: 'GET'})
-                    .then(response => response.text())
-                    .then(data => {
-                        profileModalContent.innerHTML = data;
-                        var close = profileModalContent.querySelector("#close");
-                        close.addEventListener('click', (event) => {
-                            event.preventDefault();
-                            profileModal.style.display = "none";
-                        });
-                        profileModal.style.display = "block";
-                    })
-                    .catch(error => {
-                        alert(error);
-                        window.location.reload();
+                .then(response => response.text())
+                .then(data => {
+                    profileModalContent.innerHTML = data;
+                    var close = profileModalContent.querySelector("#close");
+                    close.addEventListener('click', (event) => {
+                        event.preventDefault();
+                        profileModal.style.display = "none";
                     });
+                    profileModal.style.display = "block";
+                })
+                .catch(error => {
+                    alert(error);
+                    window.location.reload();
+                });
             });
         });
    });
