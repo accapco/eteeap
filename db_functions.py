@@ -1332,7 +1332,11 @@ def auto_fill(input_path, output_path, replacements):
 
 def _get_full_name(user):
      u = User.query.filter_by(id=user.user).first()
-     return f"{u.l_name.title()} {u.f_name}"
+     m_name = str(u.m_name[0])+'.'if u.m_name else ""
+     if m_name != "":
+        return f"{u.f_name} {m_name} {u.l_name.title()}"
+     else:
+         return f"{u.f_name} {u.l_name.title()}"
 
 def get_dtr_data(enrollment_id):
     enrollment = Enrollment.query.filter_by(id=enrollment_id).first()
@@ -1367,7 +1371,7 @@ def get_ssgr_data(enrollment_id):
         '[Units]': course.units,
         '[Instructor Name]': _get_full_name(instructor),
         '[Date]': datetime.now().date(),
-        '[Dept Head]': student.dept_head,
+        '[Department Head]': student.dept_head,
         '[College Dean]': student.dean,
         '[Director Name]': _get_full_name(director),
     }
